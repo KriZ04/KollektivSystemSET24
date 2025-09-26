@@ -1,9 +1,11 @@
 using Aspire.Hosting;
+using CommunityToolkit.Aspire.Hosting.SqlServer.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 
-var sql = builder.AddSqlServer("sql");
+var sql = builder.AddSqlServer("sql")
+    .WithAdminer();
                  //.WithLifetime(ContainerLifetime.Persistent);
 
 var db = sql.AddDatabase("database");
