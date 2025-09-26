@@ -17,7 +17,12 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+
+    //Example to add something to db :)
+    //db.Add(new User { FirstName = "Christian", Role = KollektivSystem.ApiService.Models.Enums.Role.Developer });
+    //await db.SaveChangesAsync();
 }
+
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();

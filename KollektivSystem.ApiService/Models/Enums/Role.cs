@@ -1,4 +1,4 @@
-﻿namespace KollektivSystem.ApiService.Models
+﻿namespace KollektivSystem.ApiService.Models.Enums
 {
     public enum Role
     {

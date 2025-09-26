@@ -1,4 +1,6 @@
-﻿namespace KollektivSystem.ApiService.Models;
+﻿using KollektivSystem.ApiService.Models.Enums;
+
+namespace KollektivSystem.ApiService.Models;
 
 public class User
 {
