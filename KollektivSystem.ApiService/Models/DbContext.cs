@@ -9,7 +9,7 @@ namespace KollektivSystem.ApiService.Models
         
         }
 
-        public DbSet<User> Users { get; set; }
+        public virtual DbSet<User> Users { get; set; }
 
         public string DbPath { get; }
 
