@@ -1,11 +1,9 @@
-using Aspire.Hosting;
-using CommunityToolkit.Aspire.Hosting.SqlServer.Extensions;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 
 var sql = builder.AddSqlServer("sql")
-    .WithAdminer();
+    //.WithAdminer()
+    .WithDbGate();
                  //.WithLifetime(ContainerLifetime.Persistent);
 
 var db = sql.AddDatabase("database");
