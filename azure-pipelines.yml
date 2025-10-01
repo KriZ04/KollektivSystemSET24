@@ -28,13 +28,16 @@ stages:
         packageType: 'sdk'
         version: '$(dotnetVersion)'
 
+    - script: mkdir -p $(Agent.HomeDirectory)/.nuget/packages
+      displayName: "Ensure NuGet cache folder exists"
+
     - task: Cache@2
       displayName: "Cache NuGet packages"
       inputs:
         key: 'nuget | "$(Agent.OS)" | **/*.csproj'
         restoreKeys: |
           nuget | "$(Agent.OS)"
-        path: $(NUGET_PACKAGES)
+        path: $(Agent.HomeDirectory)/.nuget/packages
 
     - script: dotnet restore
       displayName: "Restore dependencies"
