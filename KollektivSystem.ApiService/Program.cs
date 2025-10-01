@@ -18,6 +18,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
 
+    Console.WriteLine("ttt");
+
     //Example to add something to db :)
     //db.Add(new User { FirstName = "Christian", Role = KollektivSystem.ApiService.Models.Enums.Role.Developer });
     //await db.SaveChangesAsync();
