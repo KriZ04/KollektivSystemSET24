@@ -1,3 +1,4 @@
+using KollektivSystem.ApiService.Extensions;
 using KollektivSystem.ApiService.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,9 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
+
 builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "database");
+builder.Services.AddRepositories();
 
 var app = builder.Build();
 
