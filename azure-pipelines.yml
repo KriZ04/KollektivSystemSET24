@@ -34,7 +34,7 @@ stages:
         key: 'nuget | "$(Agent.OS)" | **/*.csproj'
         restoreKeys: |
           nuget | "$(Agent.OS)"
-        path: ~/.nuget/packages
+        path: $(NUGET_PACKAGES)
 
     - script: dotnet restore
       displayName: "Restore dependencies"
