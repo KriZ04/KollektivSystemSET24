@@ -1,4 +1,5 @@
-using KollektivSystem.ApiService.Extensions;
+using KollektivSystem.ApiService.Extensions.Endpoints;
+using KollektivSystem.ApiService.Extensions.ServiceExtensions;
 using KollektivSystem.ApiService.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,6 +32,8 @@ using (var scope = app.Services.CreateScope())
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+
+app.MapUserEndpoints();
 
 string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
 

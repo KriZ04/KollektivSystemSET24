@@ -1,7 +1,7 @@
 ﻿using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
 
-namespace KollektivSystem.ApiService.Extensions
+namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 {
     public static class ServiceCollectionExtensions
     {
