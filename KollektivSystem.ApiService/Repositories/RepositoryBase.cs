@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public abstract class EfRepository<T, TKey> : IRepository<T, TKey> where T : class
+    public abstract class RepositoryBase<T, TKey> : IRepository<T, TKey> where T : class
     {
         protected readonly ApplicationDbContext Db;
         protected readonly DbSet<T> Set;
 
-        protected EfRepository(ApplicationDbContext db)
+        protected RepositoryBase(ApplicationDbContext db)
         {
             Db = db;
             Set = db.Set<T>();

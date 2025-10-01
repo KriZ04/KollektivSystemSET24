@@ -8,7 +8,7 @@ namespace KollektivSystem.ApiService.Extensions
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, ApplicationUnitOfWork>();
-            services.AddScoped(typeof(IRepository<,>), typeof(EfRepository<,>));
+            services.AddScoped<IUserRepository, UserRepository>();
 
             // Example for domain-specific repos
             //services.AddScoped<IUserRepository, UserRepository>();
