@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36121.58 d17.14
+VisualStudioVersion = 17.14.36121.58
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.AppHost", "KollektivSystem.AppHost\KollektivSystem.AppHost.csproj", "{E8D6D7F3-78E9-442B-890F-15C4FFABF7AC}"
 EndProject
