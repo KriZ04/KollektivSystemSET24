@@ -10,9 +10,21 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
         {
             routes.MapPost("/users", async (User dto, IUserRepository users, IUnitOfWork uow, CancellationToken ct) =>
             {
-                var user = new User { FirstName = dto.FirstName, Role = dto.Role };
+                var user = new User { 
+                    display_name = dto.display_name, 
+                    Role = dto.Role, 
+                    provider = dto.provider,
+                    sub = dto.sub,
+                    created_at = dto.created_at,
+                    updated_at = dto.updated_at,
+                    last_login = dto.last_login,
+                    email = dto.email,
+                    role_id = dto.role_id,
+                };
+
                 await users.AddAsync(user, ct);
                 await uow.SaveChangesAsync(ct);
+
                 return Results.Created($"/users/{user.Id}", user);
             });
 
