@@ -19,7 +19,6 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                     updated_at = dto.updated_at,
                     last_login = dto.last_login,
                     email = dto.email,
-                    role_id = dto.role_id,
                 };
 
                 await users.AddAsync(user, ct);
