@@ -1,6 +1,6 @@
 using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Extensions.ServiceExtensions;
-using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

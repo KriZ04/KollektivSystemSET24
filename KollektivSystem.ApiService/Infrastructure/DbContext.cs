@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using KollektivSystem.ApiService.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace KollektivSystem.ApiService.Models
+namespace KollektivSystem.ApiService.Infrastructure
 {
     public class ApplicationDbContext : DbContext
     {

@@ -1,4 +1,5 @@
-﻿using KollektivSystem.ApiService.Models;
+﻿using KollektivSystem.ApiService.Infrastructure;
+using KollektivSystem.ApiService.Models;
 
 namespace KollektivSystem.ApiService.Repositories
 {
