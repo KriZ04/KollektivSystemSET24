@@ -1,6 +1,6 @@
 ﻿namespace KollektivSystem.ApiService.Models.Transport
 {
-    public class Route
+    public class TransitLine
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
