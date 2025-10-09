@@ -1,6 +1,6 @@
 ﻿namespace KollektivSystem.ApiService.Services
 {
-    public interface ILoginService
+    public class AuthService : IAuthService
     {
     }
 }

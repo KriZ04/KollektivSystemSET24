@@ -7,11 +7,18 @@ namespace KollektivSystem.ApiService.Models.Configs
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.Property(u => u.DisplayName)
-               .HasMaxLength(100)
-               .IsRequired();
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
+            builder.Property(x => x.Sub).HasMaxLength(200).IsRequired();
+            builder.HasIndex(x => new { x.Provider, x.Sub }).IsUnique();
 
-            builder.HasIndex(u => u.Role);
+            builder.Property(x => x.Role)
+                .HasConversion<string>()                   
+                .HasMaxLength(32);
+            builder.HasIndex(x => x.Role);
+
+            builder.Property(x => x.Email).HasMaxLength(320);
+            builder.HasIndex(x => x.Email);
         }
     }
 }
