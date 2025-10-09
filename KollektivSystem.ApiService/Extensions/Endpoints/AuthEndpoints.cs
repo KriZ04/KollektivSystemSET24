@@ -15,15 +15,10 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                 IUnitOfWork uow,
                 CancellationToken ct) =>
             {
-                // Find the user by email
                 var user = await users.Query()
                     .FirstOrDefaultAsync(u => u.Email == request.email, ct);
 
                 if (user == null)
-                    return Results.Unauthorized();
-
-                // For now, assume plain-text passwords (you can add hashing later)
-                if (user.password != request.password)
                     return Results.Unauthorized();
 
                 // Optionally update last_login timestamp

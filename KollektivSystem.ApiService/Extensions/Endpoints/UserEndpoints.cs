@@ -6,9 +6,9 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
 {
     public static class UserEndpoints
     {
-        public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder routes)
+        public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder endpointsBuilder)
         {
-            routes.MapPost("/users", async (User dto, IUserRepository users, IUnitOfWork uow, CancellationToken ct) =>
+            endpointsBuilder.MapPost("/users", async (User dto, IUserRepository users, IUnitOfWork uow, CancellationToken ct) =>
             {
                 var user = new User { 
                     DisplayName = dto.DisplayName, 
@@ -27,7 +27,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                 return Results.Created($"/users/{user.Id}", user);
             });
 
-            return routes;
+            return endpointsBuilder;
         }
     }
 }
