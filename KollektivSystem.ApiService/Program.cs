@@ -14,6 +14,7 @@ builder.Services.AddProblemDetails();
 
 builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "database");
 builder.Services.AddRepositories();
+builder.Services.AddAppAuth()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -45,7 +46,7 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandler();
 
 app.MapUserEndpoints();
-
+app.MapAuthEndpoints();
 
 app.MapDefaultEndpoints();
 

@@ -1,51 +1,27 @@
-﻿using KollektivSystem.ApiService.Models;
+﻿using KollektivSystem.ApiService.Infrastructure;
+using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints
 {
     public static class AuthEndpoints
     {
-        public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder routes)
+        public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
-            routes.MapPost("/auth/login", async (
-                LoginRequest request,
-                IUserRepository users,
-                IUnitOfWork uow,
-                CancellationToken ct) =>
+            var group = app.MapGroup("/auth");
+
+            group.MapGet("/login", (HttpRequest req, IAuthProvider authProvider, IMemoryCache cache) =>
             {
-                var user = await users.Query()
-                    .FirstOrDefaultAsync(u => u.Email == request.email, ct);
+                var callback = new Uri($"{req.Scheme}://{req.Host}/auth/callback");
+                var ch = authProvider.BuildAuthorizeRedirect(callback, ["openid", "email", "profile"]);
+                cache.Set($"oidc_state:{ch.State}", true, TimeSpan.FromMinutes(5));
+            });
 
-                if (user == null)
-                    return Results.Unauthorized();
 
-                // Optionally update last_login timestamp
-                user.LastLogin = DateTime.UtcNow;
-
-                // Persist the update through the Unit of Work
-                await uow.SaveChangesAsync(ct);
-
-                // Return basic user info
-                return Results.Ok(new
-                {
-                    message = "Login successful",
-                    user = new
-                    {
-                        user.Id,
-                        user.DisplayName,
-                        user.Email,
-                        user.Role,
-                        user.LastLogin
-                    }
-                });
-            })
-            .WithName("Login");
-
-            return routes;
+            return app;
         }
-
-        public record LoginRequest(string email, string password);
     }
 }

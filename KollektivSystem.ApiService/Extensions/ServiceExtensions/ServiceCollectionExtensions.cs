@@ -60,7 +60,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 
             services.AddSingleton<IJwtIssuer>(new JwtIssuer(apiIssuer, apiAudience, apiJwtKey));
             services.AddSingleton<IAuthProvider>(new MockAuthProvider(oidcIssuer, oidcClientId, oidcClientSecret, oidcSigningKey));
-            services.AddScoped<AuthService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             return services;
 
