@@ -2,7 +2,7 @@
 using KollektivSystem.ApiService.Repositories;
 
 namespace KollektivSystem.ApiService.Endpoints;
-
+/*
 public static class TransitLineEndpoints
 {
     public static void MapTransitLineEndpoints(this IEndpointRouteBuilder app) 
@@ -33,3 +33,5 @@ public static class TransitLineEndpoints
         });
     }
 }
+
+*/

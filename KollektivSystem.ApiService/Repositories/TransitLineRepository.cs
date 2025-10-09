@@ -1,12 +1,13 @@
-﻿using KollektivSystem.ApiService.Models.Transport;
+﻿using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Transport;
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public class TransitLineRepository : RepositoryBase<Route, int>, ITransitLineRepository
+    public class TransitLineRepository : RepositoryBase<TransitLine, int>, ITransitLineRepository
     {
         public TransitLineRepository(ApplicationDbContext db) : base(db)
         {
         }
+
     }
 }
-
