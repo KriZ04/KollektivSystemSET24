@@ -11,14 +11,14 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             routes.MapPost("/users", async (User dto, IUserRepository users, IUnitOfWork uow, CancellationToken ct) =>
             {
                 var user = new User { 
-                    display_name = dto.display_name, 
+                    DisplayName = dto.DisplayName, 
                     Role = dto.Role, 
-                    provider = dto.provider,
-                    sub = dto.sub,
-                    created_at = dto.created_at,
-                    updated_at = dto.updated_at,
-                    last_login = dto.last_login,
-                    email = dto.email,
+                    Provider = dto.Provider,
+                    Sub = dto.Sub,
+                    CreatedAt = dto.CreatedAt,
+                    UpdatedAt = dto.UpdatedAt,
+                    LastLogin = dto.LastLogin,
+                    Email = dto.Email,
                 };
 
                 await users.AddAsync(user, ct);

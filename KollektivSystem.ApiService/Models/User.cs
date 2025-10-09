@@ -5,13 +5,12 @@ namespace KollektivSystem.ApiService.Models;
 public class User
 {
     public Guid Id { get; set; }
-    public required string display_name { get; set; }
+    public required string DisplayName { get; set; }
     public Role Role { get; set; } = Role.None;
-    public string provider {  get; set; }
-    public string sub {  get; set; }
-    public DateTime created_at { get; set; }
-    public DateTime updated_at { get; set; }
-    public DateTime last_login { get; set; }
-    public string email { get; set; }
-    public string password { get; set; }
+    public string Provider {  get; set; }
+    public string Sub {  get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public DateTime LastLogin { get; set; }
+    public string? Email { get; set; } = null;
 }

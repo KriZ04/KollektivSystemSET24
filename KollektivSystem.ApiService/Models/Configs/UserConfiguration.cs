@@ -7,7 +7,7 @@ namespace KollektivSystem.ApiService.Models.Configs
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.Property(u => u.display_name)
+            builder.Property(u => u.DisplayName)
                .HasMaxLength(100)
                .IsRequired();
 

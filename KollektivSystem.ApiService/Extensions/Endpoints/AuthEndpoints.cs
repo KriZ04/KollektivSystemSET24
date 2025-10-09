@@ -17,7 +17,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             {
                 // Find the user by email
                 var user = await users.Query()
-                    .FirstOrDefaultAsync(u => u.email == request.email, ct);
+                    .FirstOrDefaultAsync(u => u.Email == request.email, ct);
 
                 if (user == null)
                     return Results.Unauthorized();
@@ -27,7 +27,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                     return Results.Unauthorized();
 
                 // Optionally update last_login timestamp
-                user.last_login = DateTime.UtcNow;
+                user.LastLogin = DateTime.UtcNow;
 
                 // Persist the update through the Unit of Work
                 await uow.SaveChangesAsync(ct);
@@ -39,10 +39,10 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                     user = new
                     {
                         user.Id,
-                        user.display_name,
-                        user.email,
+                        user.DisplayName,
+                        user.Email,
                         user.Role,
-                        user.last_login
+                        user.LastLogin
                     }
                 });
             })
