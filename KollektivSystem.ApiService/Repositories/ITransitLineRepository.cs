@@ -2,7 +2,7 @@
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public interface ITranzitLineRepository : IRepository<Route, int>
+    public interface ITransitLineRepository : IRepository<Route, int>
     {
         Task<bool> DeleteAsync(int id);
     }
