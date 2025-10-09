@@ -5,20 +5,28 @@ namespace KollektivSystem.ApiService.Endpoints;
 
 public static class TransitLineEndpoints
 {
-    public static void MapRouteEndpoints(this IEndpointRouteBuilder app)
+    public static void MapTransitLineEndpoints(this IEndpointRouteBuilder app) 
     {
-        app.MapGet("/routes", async (ITransitLineRepository repo) => await repo.GetAllAsync());
-        app.MapPost("/routes", async (ITransitLineRepository repo, Route route) =>
+        // Hent alle linjer
+        app.MapGet("/transitlines", async (ITransitLineRepository repo) =>
+            await repo.GetAllAsync());
+
+        // Legg til ny linje
+        app.MapPost("/transitlines", async (ITransitLineRepository repo, TransitLine line) =>
         {
-            var result = await repo.AddAsync(route);
-            return Results.Created($"/routes/{result.Id}", result);
+            var result = await repo.AddAsync(line);
+            return Results.Created($"/transitlines/{result.Id}", result);
         });
-        app.MapPut("/routes/{id}", async (ITransitLineRepository repo, int id, Route route) =>
+
+        // Oppdater eksisterende linje
+        app.MapPut("/transitlines/{id}", async (ITransitLineRepository repo, int id, TransitLine line) =>
         {
-            var result = await repo.UpdateAsync(id, route);
+            var result = await repo.UpdateAsync(id, line);
             return result is null ? Results.NotFound() : Results.Ok(result);
         });
-        app.MapDelete("/routes/{id}", async (ITransitLineRepository repo, int id) =>
+
+        // Slett en linje
+        app.MapDelete("/transitlines/{id}", async (ITransitLineRepository repo, int id) =>
         {
             var ok = await repo.DeleteAsync(id);
             return ok ? Results.NoContent() : Results.NotFound();
