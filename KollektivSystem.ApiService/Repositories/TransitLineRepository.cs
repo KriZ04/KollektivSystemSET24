@@ -9,5 +9,9 @@ namespace KollektivSystem.ApiService.Repositories
         {
         }
 
+        public Task SaveChanges()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

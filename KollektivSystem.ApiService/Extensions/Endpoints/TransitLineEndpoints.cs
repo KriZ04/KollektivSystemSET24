@@ -1,37 +1,26 @@
 ﻿using KollektivSystem.ApiService.Models.Transport;
 using KollektivSystem.ApiService.Repositories;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 
-namespace KollektivSystem.ApiService.Endpoints;
-/*
-public static class TransitLineEndpoints
+namespace KollektivSystem.ApiService.Extensions.Endpoints
 {
-    public static void MapTransitLineEndpoints(this IEndpointRouteBuilder app) 
+    public static class TransitLineEndpoints
     {
-        // Hent alle linjer
-        app.MapGet("/transitlines", async (ITransitLineRepository repo) =>
-            await repo.GetAllAsync());
-
-        // Legg til ny linje
-        app.MapPost("/transitlines", async (ITransitLineRepository repo, TransitLine line) =>
+        public static void MapTransitLineEndpoints(this IEndpointRouteBuilder app)
         {
-            var result = await repo.AddAsync(line);
-            return Results.Created($"/transitlines/{result.Id}", result);
-        });
+            app.MapPost("/transitlines", async (TransitLine line, ITransitLineRepository repo) =>
+            {
+                await repo.AddAsync(line);
+                await repo.SaveChanges();
+                return Results.Created($"/transitlines/{line.Id}", line);
+            });
 
-        // Oppdater eksisterende linje
-        app.MapPut("/transitlines/{id}", async (ITransitLineRepository repo, int id, TransitLine line) =>
-        {
-            var result = await repo.UpdateAsync(id, line);
-            return result is null ? Results.NotFound() : Results.Ok(result);
-        });
-
-        // Slett en linje
-        app.MapDelete("/transitlines/{id}", async (ITransitLineRepository repo, int id) =>
-        {
-            var ok = await repo.DeleteAsync(id);
-            return ok ? Results.NoContent() : Results.NotFound();
-        });
+            app.MapGet("/transitlines", async (ITransitLineRepository repo) =>
+            {
+                var lines = await repo.GetAllAsync();
+                return Results.Ok(lines);
+            });
+        }
     }
 }
-
-*/

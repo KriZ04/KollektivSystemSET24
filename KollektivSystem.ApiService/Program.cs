@@ -46,6 +46,7 @@ app.UseExceptionHandler();
 
 app.MapUserEndpoints();
 
+app.MapTransitLineEndpoints();
 
 app.MapDefaultEndpoints();
 

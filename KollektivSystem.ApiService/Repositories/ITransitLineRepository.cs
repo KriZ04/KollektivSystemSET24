@@ -6,5 +6,6 @@ namespace KollektivSystem.ApiService.Repositories
     {
         //new Task<int> AddAsync(TransitLine transitLine, CancellationToken ct = default);
         //Task<object?> UpdateAsync(int id, TransitLine line);
+        Task SaveChanges();
     }
 }
