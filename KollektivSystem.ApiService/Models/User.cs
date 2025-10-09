@@ -7,7 +7,7 @@ public class User
     public Guid Id { get; set; }
     public required string DisplayName { get; set; }
     public Role Role { get; set; } = Role.Customer;
-    public string Provider {  get; set; }
+    public AuthProvider Provider {  get; set; }
     public required string Sub {  get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

@@ -15,5 +15,10 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 
             return services;
         }
+
+        public static IServiceCollection AddAppAuth(this IServiceCollection services, IConfiguration config)
+        {
+            
+        }
     }
 }
