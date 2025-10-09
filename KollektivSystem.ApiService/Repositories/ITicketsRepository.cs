@@ -1,6 +1,9 @@
-﻿namespace KollektivSystem.ApiService.Repositories
+﻿using KollektivSystem.ApiService.Models.Transport;
+
+namespace KollektivSystem.ApiService.Repositories
 {
-    public class ITicketsRepository
+    public interface ITicketsRepository : IRepository<Tickets, int>
     {
+
     }
 }

@@ -2,7 +2,8 @@
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public class IRouteRepository
+    public interface IRouteRepository : IRepository<Route, int>
     {
+
     }
 }
