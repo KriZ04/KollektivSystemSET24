@@ -8,12 +8,12 @@ namespace KollektivSystem.ApiService.Repositories
         public TransitLineRepository(ApplicationDbContext db) : base(db)
         {
         }
-        /*
+        
         public Task SaveChanges()
         {
             throw new NotImplementedException();
         }
-        */
+        
 
         public async Task SaveChangesAsync(CancellationToken ct = default)
         {
