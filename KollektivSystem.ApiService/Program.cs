@@ -1,6 +1,7 @@
 using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Extensions.ServiceExtensions;
 using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,8 @@ builder.Services.AddProblemDetails();
 
 builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "database");
 builder.Services.AddRepositories();
+
+builder.Services.AddScoped<ITransitLineService, TransitLineService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
