@@ -1,5 +1,6 @@
 ﻿using KollektivSystem.ApiService.Models.Transport;
 using KollektivSystem.ApiService.Repositories;
+using KollektivSystem.ApiService.Services.Interfaces;
 
 namespace KollektivSystem.ApiService.Services.Implementations
 {
