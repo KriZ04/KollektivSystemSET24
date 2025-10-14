@@ -9,5 +9,5 @@ namespace KollektivSystem.ApiService.Services.Interfaces
         Task<TransitLine?> GetByIdAsync(int id);
         Task<bool> UpdateAsync(int id, TransitLine line);
         Task<bool> DeleteAsync(int id);
-}
+    }
 }
