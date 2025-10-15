@@ -22,7 +22,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             return services;
         }
 
-        public static IServiceCollection AddAppAuth(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddAuths(this IServiceCollection services, IConfiguration config)
         {
             var apiJwtKey = config["Jwt:SigningKey"] ?? "dev-api-hmac-key-change";
             var apiIssuer = config["Jwt:Issuer"] ?? "app";
@@ -56,6 +56,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
                 o.AddPolicy("Admin", p => p.RequireRole(nameof(Role.Admin)));
                 o.AddPolicy("Developer", p => p.RequireRole(nameof(Role.Developer)));
                 o.AddPolicy("Staff", p => p.RequireRole(nameof(Role.Admin), nameof(Role.Developer)));
+                o.AddPolicy("RegisteredUser", p => p.RequireRole(nameof(Role.Customer), nameof(Role.Admin), nameof(Role.Developer)));
             });
 
             services.AddSingleton<IJwtIssuer>(new JwtIssuer(apiIssuer, apiAudience, apiJwtKey));
