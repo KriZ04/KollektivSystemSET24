@@ -5,7 +5,6 @@
         IQueryable<T> Query();
         Task<T?> FindAsync(TKey id,  CancellationToken ct = default);
         Task<bool> ExistsAsync(TKey id, CancellationToken ct = default);
-
         Task AddAsync(T entity, CancellationToken ct = default);
         Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default);
         void Update(T entity);
