@@ -11,9 +11,7 @@ namespace KollektivSystem.ApiService.Repositories
         {
         }
 
-        public async Task<User?> GetByProviderSubAsync(AuthProvider provider, string sub, CancellationToken ct = default)
-        {
-            return await Query().SingleOrDefaultAsync(u => u.Provider == provider && u.Sub == sub, ct);
-        }
+        public async Task<User?> GetByProviderSubAsync(AuthProvider provider, string sub, CancellationToken ct = default) 
+            => await Set.SingleOrDefaultAsync(u => u.Provider == provider && u.Sub == sub, ct);
     }
 }
