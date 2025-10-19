@@ -47,6 +47,7 @@ app.UseExceptionHandler();
 
 app.MapUserEndpoints();
 app.MapAuthEndpoints();
+app.MapOidcEndpoints();
 
 app.MapDefaultEndpoints();
 

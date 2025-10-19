@@ -19,6 +19,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                 var callback = new Uri($"{req.Scheme}://{req.Host}/auth/callback");
                 var ch = authProvider.BuildAuthorizeRedirect(callback, ["openid", "email", "profile"]);
                 cache.Set($"oidc_state:{ch.State}", true, TimeSpan.FromMinutes(5));
+                return Results.Redirect(ch.RedirectUri.ToString());
             });
 
             group.MapGet("/callback", async (
