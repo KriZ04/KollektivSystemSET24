@@ -22,10 +22,8 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                 return Results.Redirect(ch.RedirectUri.ToString());
             });
 
-            group.MapGet("/callback", async (
-            string code, string state,
-            IMemoryCache cache, IAuthProvider provider, IAuthService auth, CancellationToken ct) =>
-            {
+            group.MapGet("/callback", async (string code, string state, IMemoryCache cache, IAuthProvider provider, IAuthService auth, CancellationToken ct) =>
+            { 
                 if (!cache.TryGetValue($"oidc_state:{state}", out _)) return Results.BadRequest("Invalid state");
 
                 var tokens = await provider.ExchangeCodeAsync(code, null, ct);
