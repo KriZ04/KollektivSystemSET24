@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using OidcStub.Models;
 
 namespace OidcStub.Endpoints
@@ -11,28 +12,17 @@ namespace OidcStub.Endpoints
         {
             var group = builder.MapGroup("/oidc");
 
-            group.MapGet("/personas", async (ApplicationDbContext db, CancellationToken ct) =>
-            {
-                var personas = await db.Personas
-                    .AsNoTracking()
-                    .Select(p => new { p.Key, p.Name, p.Email, p.Role })
-                    .ToListAsync(ct);
-                return Results.Json(personas);
-            });
+            group.MapGet("/personas", (IOptionsSnapshot<OidcOptions> opt) => Results.Json(opt.Value.Personas.Select(p => new { p.Key, p.Name, p.Email })));
 
-            group.MapGet("/authorize", (string client_id, string redirect_uri, string state, string? scope, string? email, string? name, IMemoryCache cache) =>
+            group.MapGet("/authorize", (string client_id, string redirect_uri, string state, string persona, IMemoryCache cache, IOptionsSnapshot<OidcOptions> opt) =>
             {
-                if (string.IsNullOrWhiteSpace(name))
-                    return Results.BadRequest("'name' query parameter is required.");
+                var p = opt.Value.Personas.FirstOrDefault(x => string.Equals(x.Key, persona, StringComparison.OrdinalIgnoreCase));
+                
+                if (p is null) 
+                    return Results.BadRequest($"Unknown login '{persona}'.");
 
                 var code = Guid.NewGuid().ToString("N");
-                var sub = email?.ToLowerInvariant() ?? name.ToLowerInvariant();
-
-                cache.Set(
-                    $"auth_code:{code}",
-                    new StubIdentity(sub, email, name),
-                    TimeSpan.FromMinutes(2));
-
+                cache.Set($"auth_code:{code}", new StubIdentity(p.Sub, p.Email, p.Name), TimeSpan.FromMinutes(2));
                 return Results.Redirect($"{redirect_uri}?code={code}&state={state}");
             });
 

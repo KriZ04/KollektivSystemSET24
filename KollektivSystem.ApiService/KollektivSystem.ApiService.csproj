@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KollektivSystem.ServiceDefaults\KollektivSystem.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\OidcStub\OidcStub.csproj" />
   </ItemGroup>
 
   <ItemGroup>

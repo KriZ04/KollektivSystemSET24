@@ -2,6 +2,8 @@ using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Extensions.ServiceExtensions;
 using KollektivSystem.ApiService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using OidcStub.Endpoints;
+using OidcStub.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,8 @@ builder.Services.AddProblemDetails();
 builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "database");
 builder.Services.AddRepositories();
 builder.Services.AddAuths(builder.Configuration);
+
+builder.Services.AddOidcStub();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
