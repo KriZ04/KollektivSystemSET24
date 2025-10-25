@@ -1,4 +1,6 @@
-﻿using OidcStub.Models;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using OidcStub.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

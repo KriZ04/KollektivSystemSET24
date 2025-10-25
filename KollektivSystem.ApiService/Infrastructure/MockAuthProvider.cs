@@ -26,14 +26,17 @@ namespace KollektivSystem.ApiService.Infrastructure
         public AuthChallenge BuildAuthorizeRedirect(Uri callback, string[] scopes)
         {
             var state = Guid.NewGuid().ToString("N");
-            var url = $"{callback.Scheme}://{callback.Host}/oidc/authorize"
+
+            // using Authority to preserve port
+            var baseUrl = $"{callback.Scheme}://{callback.Authority}/oidc/authorize";
+
+            var url = $"{baseUrl}"
                     + $"?client_id={Uri.EscapeDataString(_clientId)}"
                     + $"&redirect_uri={Uri.EscapeDataString(callback.ToString())}"
                     + $"&response_type=code"
                     + $"&scope={Uri.EscapeDataString(string.Join(' ', scopes))}"
                     + $"&state={state}";
 
-            // We’re not using PKCE here; set CodeVerifier to null.
             return new AuthChallenge(new Uri(url), state, null);
         }
 
