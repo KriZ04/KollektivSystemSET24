@@ -2,5 +2,4 @@
 {
     public record AuthChallenge(Uri RedirectUri, string State, string? CodeVerifier);
     public record TokenResult(string IdToken, string? AccessToken, string? RefreshToken);
-    public record StubIdentity(string Sub, string Email, string Name);
 }

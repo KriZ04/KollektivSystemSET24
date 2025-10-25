@@ -1,14 +1,24 @@
-﻿using KollektivSystem.ApiService.Infrastructure;
-using KollektivSystem.ApiService.Models.Domain;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Http;
+using OidcStub.Models;
 
-namespace KollektivSystem.ApiService.Extensions.Endpoints
+namespace OidcStub.Endpoints
 {
     public static class OidcEndpoints
     {
         public static IEndpointRouteBuilder MapOidcEndpoints(this IEndpointRouteBuilder builder)
         {
             var group = builder.MapGroup("/oidc");
+
+            group.MapGet("/personas", async (ApplicationDbContext db, CancellationToken ct) =>
+            {
+                var personas = await db.Personas
+                    .AsNoTracking()
+                    .Select(p => new { p.Key, p.Name, p.Email, p.Role })
+                    .ToListAsync(ct);
+                return Results.Json(personas);
+            });
 
             group.MapGet("/authorize", (string client_id, string redirect_uri, string state, string? scope, string? email, string? name, IMemoryCache cache) =>
             {
