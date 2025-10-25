@@ -37,7 +37,7 @@ namespace KollektivSystem.ApiService.Infrastructure
                     + $"&scope={Uri.EscapeDataString(string.Join(' ', scopes))}"
                     + $"&state={state}";
 
-            return new AuthChallenge(new Uri(url), state, null);
+            return new AuthChallenge(new Uri(url), state, CodeVerifier: null);
         }
 
         public Task<TokenResult> ExchangeCodeAsync(string code, string? codeVerifier, CancellationToken ct = default)

@@ -38,26 +38,40 @@ namespace OidcStub.Endpoints
                 return Results.Content(html, "text/html");
             });
 
-            group.MapGet("/authorize", (string client_id, string redirect_uri, string state, string? scope, IMemoryCache cache, IOptionsSnapshot<OidcOptions> opt) =>
+            group.MapGet("/authorize", (string client_id, string redirect_uri, string state, string? scope, string? persona, IMemoryCache cache, IOptionsSnapshot<OidcOptions> opt) =>
             {
                 var cfg = opt.Value;
 
-                // Resolve persona key by client_id
-                if (!cfg.ClientPersonas.TryGetValue(client_id, out var personaKey))
-                    return Results.BadRequest($"No persona configured for client_id '{client_id}'.");
+                // If persona isn't supplied, send user to the stub login UI
+                if (string.IsNullOrWhiteSpace(persona))
+                {
+                    var pickUrl =
+                        "/oidc/login"
+                        + $"?client_id={Uri.EscapeDataString(client_id)}"
+                        + $"&redirect_uri={Uri.EscapeDataString(redirect_uri)}"
+                        + $"&state={Uri.EscapeDataString(state)}"
+                        + (string.IsNullOrWhiteSpace(scope) ? "" : $"&scope={Uri.EscapeDataString(scope)}");
 
-                var persona = cfg.Personas.FirstOrDefault(x =>
-                    string.Equals(x.Key, personaKey, StringComparison.OrdinalIgnoreCase));
+                    return Results.Redirect(pickUrl);
+                }
 
-                if (persona is null)
-                    return Results.BadRequest($"Persona '{personaKey}' not found for client_id '{client_id}'.");
+                // Resolve the chosen persona key
+                var p = cfg.Personas.FirstOrDefault(x =>
+                    string.Equals(x.Key, persona, StringComparison.OrdinalIgnoreCase));
 
+                if (p is null)
+                    return Results.BadRequest($"Unknown login '{persona}'.");
+
+                // Issue code and cache identity
                 var code = Guid.NewGuid().ToString("N");
-                cache.Set($"auth_code:{code}", new Identity(persona.Sub, persona.Email, persona.Name), TimeSpan.FromMinutes(2));
+                cache.Set($"auth_code:{code}", new Identity(p.Sub, p.Email, p.Name), TimeSpan.FromMinutes(2));
 
-                return Results.Redirect($"{redirect_uri}?code={code}&state={state}");
+                var location = $"{redirect_uri}"
+                             + $"?code={Uri.EscapeDataString(code)}"
+                             + $"&state={Uri.EscapeDataString(state)}";
+
+                return Results.Redirect(location);
             });
-
 
             //group.MapPost("/token", async (HttpRequest req, IMemoryCache cache, IAuthProvider provider) =>
             //{
