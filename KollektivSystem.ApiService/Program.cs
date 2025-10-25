@@ -18,7 +18,7 @@ builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "database");
 builder.Services.AddRepositories();
 builder.Services.AddAuths(builder.Configuration);
 
-builder.Services.AddOidcStub();
+builder.Services.AddOidcStub(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

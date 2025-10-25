@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace OidcStub.Models
 {
-    public record StubIdentity(string Sub, string Email, string Name);
+    public record Identity(string Sub, string Email, string Name);
 }

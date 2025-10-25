@@ -22,7 +22,7 @@ namespace OidcStub.Endpoints
                     return Results.BadRequest($"Unknown login '{persona}'.");
 
                 var code = Guid.NewGuid().ToString("N");
-                cache.Set($"auth_code:{code}", new StubIdentity(p.Sub, p.Email, p.Name), TimeSpan.FromMinutes(2));
+                cache.Set($"auth_code:{code}", new Identity(p.Sub, p.Email, p.Name), TimeSpan.FromMinutes(2));
                 return Results.Redirect($"{redirect_uri}?code={code}&state={state}");
             });
 

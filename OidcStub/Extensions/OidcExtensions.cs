@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OidcStub.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace OidcStub.Extensions
         public static IServiceCollection AddOidcStub(this IServiceCollection services, IConfiguration config)
         {
             services.AddMemoryCache();
-            services.Configure<>();
+            services.Configure<OidcOptions>(config.GetSection("OidcStub"));
             return services;
         }
     }
