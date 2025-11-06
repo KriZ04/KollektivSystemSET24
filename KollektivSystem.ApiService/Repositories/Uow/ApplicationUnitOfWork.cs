@@ -1,4 +1,4 @@
-﻿using KollektivSystem.ApiService.Models;
+﻿using KollektivSystem.ApiService.Infrastructure;
 
 namespace KollektivSystem.ApiService.Repositories.Uow
 {

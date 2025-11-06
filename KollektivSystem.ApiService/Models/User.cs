@@ -4,7 +4,13 @@ namespace KollektivSystem.ApiService.Models;
 
 public class User
 {
-    public int Id { get; set; }
-    public required string FirstName { get; set; }
-    public Role Role { get; set; } = Role.None;
+    public Guid Id { get; set; }
+    public required string DisplayName { get; set; }
+    public Role Role { get; set; } = Role.Customer;
+    public AuthProvider Provider {  get; set; }
+    public required string Sub {  get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public DateTime LastLogin { get; set; }
+    public string? Email { get; set; } = null;
 }

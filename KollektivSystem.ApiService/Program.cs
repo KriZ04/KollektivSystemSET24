@@ -4,6 +4,10 @@ using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Services.Implementations;
 using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using KollektivSystem.ApiService.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using OidcStub.Endpoints;
+using OidcStub.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +21,9 @@ builder.Services.AddProblemDetails();
 builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "database");
 builder.Services.AddRepositories();
 
+builder.Services.AddAuths(builder.Configuration);
+
+builder.Services.AddOidcStub(builder.Configuration);
 builder.Services.AddDomainServices();
 
 builder.Services.AddScoped<ITransitLineService, TransitLineService>();
@@ -51,7 +58,8 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandler();
 
 app.MapUserEndpoints();
-
+app.MapAuthEndpoints();
+app.MapOidcEndpoints();
 app.MapTransitLineEndpoints();
 
 app.MapDefaultEndpoints();
