@@ -3,6 +3,7 @@
     public enum Role
     {
         None = 0,
+        Customer,
         Admin,
         Developer
     }

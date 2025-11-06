@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using KollektivSystem.ApiService.Models.Transport;
 
 namespace KollektivSystem.ApiService.Models
 {
@@ -7,6 +8,10 @@ namespace KollektivSystem.ApiService.Models
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public virtual DbSet<User> Users => Set<User>();
+        public virtual DbSet<TransitLine> TransitLine => Set<TransitLine>();
+        public virtual DbSet<Stop> Stops => Set<Stop>();
+        public virtual DbSet<Tickets> Tickets => Set<Tickets>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
