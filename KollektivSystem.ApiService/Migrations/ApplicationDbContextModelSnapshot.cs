@@ -120,10 +120,6 @@ namespace KollektivSystem.ApiService.Migrations
 
                     b.Property<string>("Sub")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("Role")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -131,6 +127,7 @@ namespace KollektivSystem.ApiService.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
                     b.HasIndex("Email");
 
                     b.HasIndex("Role");

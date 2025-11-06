@@ -1,32 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace KollektivSystem.ApiService.Migrations
 {
     /// <inheritdoc />
-    public partial class AddTransitLineStopTickets : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
-                table: "Users",
-                type: "nvarchar(100)",
-                maxLength: 100,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
-
             migrationBuilder.CreateTable(
                 name: "Tickets",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,12 +39,31 @@ namespace KollektivSystem.ApiService.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                    Provider = table.Column<int>(type: "int", nullable: false),
+                    Sub = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastLogin = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(320)", maxLength: 320, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Stops",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Order = table.Column<int>(type: "int", nullable: false),
                     RouteId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -68,14 +79,30 @@ namespace KollektivSystem.ApiService.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Role",
-                table: "Users",
-                column: "Role");
+                name: "IX_Stops_Name",
+                table: "Stops",
+                column: "Name");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Stops_RouteId",
                 table: "Stops",
                 column: "RouteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Provider_Sub",
+                table: "Users",
+                columns: new[] { "Provider", "Sub" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Role",
+                table: "Users",
+                column: "Role");
         }
 
         /// <inheritdoc />
@@ -88,20 +115,10 @@ namespace KollektivSystem.ApiService.Migrations
                 name: "Tickets");
 
             migrationBuilder.DropTable(
+                name: "Users");
+
+            migrationBuilder.DropTable(
                 name: "TransitLine");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Users_Role",
-                table: "Users");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
-                table: "Users",
-                type: "nvarchar(max)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
-                oldMaxLength: 100);
         }
     }
 }
