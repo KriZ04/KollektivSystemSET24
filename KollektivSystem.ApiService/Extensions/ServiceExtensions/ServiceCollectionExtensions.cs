@@ -59,8 +59,14 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
                 o.AddPolicy("RegisteredUser", p => p.RequireRole(nameof(Role.Customer), nameof(Role.Admin), nameof(Role.Developer)));
             });
 
+            services.AddHttpClient("oidc");
+
             services.AddSingleton<IJwtIssuer>(new JwtIssuer(apiIssuer, apiAudience, apiJwtKey));
-            services.AddSingleton<IAuthProvider>(new MockAuthProvider(oidcIssuer, oidcClientId, oidcClientSecret, oidcSigningKey));
+            services.AddSingleton<IAuthProvider>(sp =>
+            {
+                var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("oidc");
+                return new MockAuthProvider(oidcIssuer, oidcClientId, oidcClientSecret, oidcSigningKey, http);
+            });
             services.AddScoped<IAuthService, AuthService>();
 
             return services;

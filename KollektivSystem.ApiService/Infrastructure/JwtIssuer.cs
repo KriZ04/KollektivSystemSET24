@@ -26,12 +26,12 @@ namespace KollektivSystem.ApiService.Infrastructure
             var now = DateTime.UtcNow;
 
             var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, apiClaims.UserId.ToString()),
-            new(ClaimTypes.Role, apiClaims.Role),
-            new("provider", apiClaims.Provider),
-            new("sub", apiClaims.Sub)
-        };
+            {
+                new(ClaimTypes.NameIdentifier, apiClaims.UserId.ToString()),
+                new(ClaimTypes.Role, apiClaims.Role),
+                new("provider", apiClaims.Provider),
+                new("sub", apiClaims.Sub)
+            };
 
             var token = new JwtSecurityToken(
                 issuer: _issuer,

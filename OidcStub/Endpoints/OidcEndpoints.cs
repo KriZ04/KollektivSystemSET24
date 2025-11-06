@@ -37,7 +37,7 @@ namespace OidcStub.Endpoints
 
                 return Results.Content(html, "text/html");
             });
-
+             
             group.MapGet("/authorize", (string client_id, string redirect_uri, string state, string? scope, string? persona, IMemoryCache cache, IOptionsSnapshot<OidcOptions> opt) =>
             {
                 var cfg = opt.Value;
