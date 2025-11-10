@@ -57,7 +57,7 @@ namespace KollektivSystem.ApiService.Services
             {
                 user.DisplayName = name;
                 user.Email = email ?? user.Email;
-                user.LastLogin = DateTime.UtcNow;
+                user.UpdateLogin();
                 user.UpdatedAt = DateTime.UtcNow;
 
                 _userRepo.Update(user);
