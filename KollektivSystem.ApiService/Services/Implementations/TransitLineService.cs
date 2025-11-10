@@ -1,22 +1,30 @@
 ﻿using KollektivSystem.ApiService.Models.Transport;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Services.Interfaces;
+using KollektivSystem.ApiService.Infrastructure.Logging;
+using Microsoft.Extensions.Logging;
+
 
 namespace KollektivSystem.ApiService.Services.Implementations
 {
     public class TransitLineService : ITransitLineService
     {
         private readonly ITransitLineRepository _repo;
+        private readonly ILogger<TransitLineService> _logger;
 
-        public TransitLineService(ITransitLineRepository repo)
+        public TransitLineService(ITransitLineRepository repo, ILogger<TransitLineService> logger)
         {
             _repo = repo;
+            _logger = logger;
         }
 
         public async Task<TransitLine> CreateAsync(TransitLine line)
         {
             await _repo.AddAsync(line);
             await _repo.SaveChanges();
+
+            _logger.LogTransitLineCreated(line.Id, line.Name);
+
             return line;
         }
 
