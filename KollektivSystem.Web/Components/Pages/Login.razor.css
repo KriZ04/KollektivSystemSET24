@@ -1,0 +1,34 @@
+﻿.providers {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+}
+
+.provider {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+    .provider.disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+
+.card {
+    border: 1px solid #ddd;
+    padding: 16px;
+    border-radius: 12px;
+    max-width: 400px;
+}
+
+.divider {
+    margin: 16px 0;
+    opacity: .7;
+}
+
+.error {
+    color: #b00020;
+}

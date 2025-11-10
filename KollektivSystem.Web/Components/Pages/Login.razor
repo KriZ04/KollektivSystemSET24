@@ -1,15 +1,26 @@
 ﻿@page "/login"
 @attribute [StreamRendering(true)]
-@attribute [OutputCache(Duration = 5)]
-
 @using System.ComponentModel.DataAnnotations
-@inject AuthApiClient AuthApi
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.IAuthApiClient AuthApi
+@inject KollektivSystem.Web.AuthState Auth
 
 <PageTitle>Login</PageTitle>
 
-<h1>Login</h1>
+<h1>Choose login method</h1>
 
-<p>Please enter your email and password to login.</p>
+<!-- Provider-valg (kun Stub aktiv nå) -->
+<div class="providers">
+    <button class="provider disabled" disabled>Google</button>
+    <button class="provider disabled" disabled>Microsoft</button>
+    <button class="provider disabled" disabled>Facebook</button>
+    <button class="provider" @onclick="LoginViaStub">OIDC (Stub)</button>
+</div>
+
+<div class="divider"><span>or</span></div>
+
+<h2>Dev login</h2>
 
 @if (isLoading)
 {
@@ -39,11 +50,24 @@
 </EditForm>
 
 @code {
-    private LoginModel loginModel = new();
+    private LoginModel loginModel = new()
+    {
+        Email = "admin@example.com",   // valgfritt: forhåndsfyll for dev
+        Password = "admin123"
+    };
+
     private bool isLoading = false;
     private string message = string.Empty;
     private string messageClass = string.Empty;
 
+    // A) OIDC-stub (backenden viser stub-side og redirecter tilbake)
+    void LoginViaStub()
+    {
+        // juster path hvis backend har en annen sti for OIDC-stub
+        Nav.NavigateTo("/oidc", forceLoad: true);
+    }
+
+    // B) Direkte dev-login (kaller /auth/login og får token)
     private async Task HandleLogin()
     {
         isLoading = true;
@@ -51,14 +75,14 @@
 
         try
         {
-            bool success = await AuthApi.LoginAsync(loginModel.Email, loginModel.Password);
+            var res = await AuthApi.LoginAsync(loginModel.Email, loginModel.Password);
 
-            if (success)
+            if (res is not null)
             {
+                Auth.Set(res.accessToken, res.role);
                 message = "Login successful!";
                 messageClass = "alert-success";
-
-                // TODO: redirect the user or load user data
+                Nav.NavigateTo("/admin", true);
             }
             else
             {
