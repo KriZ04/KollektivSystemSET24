@@ -6,6 +6,7 @@ using KollektivSystem.ApiService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 
 namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 {
@@ -24,17 +25,18 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 
         public static IServiceCollection AddAuths(this IServiceCollection services, IConfiguration config)
         {
-            var apiJwtKey = config["Jwt:SigningKey"] ?? "dev-api-hmac-key-change";
+            var apiJwtKey = config["Jwt:SigningKey"] ?? "super-secret-and-long-secret-key-that-is-at-least-32-bytes";
             var apiIssuer = config["Jwt:Issuer"] ?? "app";
             var apiAudience = config["Jwt:Audience"] ?? "app-clients";
 
-            var oidcIssuer = config["Oidc:Issuer"] ?? "https://idp.local";
+            var oidcIssuer = config["Oidc:Issuer"] ?? "https://localhost";
             var oidcClientId = config["Oidc:ClientId"] ?? "demo-client";
             var oidcClientSecret = config["Oidc:ClientSecret"] ?? "demo-secret";
-            var oidcSigningKey = config["Oidc:SigningKey"] ?? "dev-idp-hmac-key";
+            var oidcSigningKey = config["Oidc:SigningKey"] ?? "super-secret-and-long-secret-key-that-is-at-least-32-bytes";
 
             services.AddMemoryCache();
 
+            
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(o =>
@@ -51,6 +53,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
                     };
                 });
 
+            
             services.AddAuthorization(o =>
             {
                 o.AddPolicy("Admin", p => p.RequireRole(nameof(Role.Admin)));

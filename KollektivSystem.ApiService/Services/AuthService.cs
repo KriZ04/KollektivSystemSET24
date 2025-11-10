@@ -27,9 +27,9 @@ namespace KollektivSystem.ApiService.Services
             ClaimsPrincipal id,
             CancellationToken ct)
         {
-            var sub = id.FindFirstValue("sub") ?? throw new Exception("missing sub");
-            var email = id.FindFirst("email")?.Value;
-            var name = id.FindFirst("name")?.Value ?? email ?? "user";
+            var sub = id.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("missing sub");
+            var email = id.FindFirst(ClaimTypes.Email)?.Value;
+            var name = id.FindFirst(ClaimTypes.Name)?.Value ?? email ?? "user";
 
             var user = await _userRepo.GetByProviderSubAsync(provider, sub, ct);
 

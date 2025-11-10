@@ -3,7 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using OidcStub.Exceptions;
 using OidcStub.Models;
+using OidcStub.Services;
+using System.Security.Claims;
+using System.Text;
 
 namespace OidcStub.Endpoints
 {
@@ -73,16 +77,19 @@ namespace OidcStub.Endpoints
                 return Results.Redirect(location);
             });
 
-            //group.MapPost("/token", async (HttpRequest req, IMemoryCache cache, IAuthProvider provider) =>
-            //{
-            //    var form = await req.ReadFormAsync();
-            //    var code = form["code"].ToString();
-            //    if (!cache.TryGetValue($"auth_code:{code}", out StubIdentity? ident) || ident is null)
-            //        return Results.BadRequest("invalid_code");
-
-            //    var tokens = ((MockAuthProvider)provider).IssueTokensFor(ident);
-            //    return Results.Json(new { id_token = tokens.IdToken, access_token = tokens.AccessToken, token_type = "Bearer", expires_in = 3600 });
-            //});
+            group.MapPost("/token", async (HttpRequest req, IOidcTokenService svc, CancellationToken ct) =>
+            {
+                try
+                {
+                    var form = await req.ReadFormAsync(ct);
+                    var tokens = await svc.ExchangeCodeAsync(form, ct);
+                    return Results.Json(tokens);
+                }
+                catch (OidcException ex)
+                {
+                    return Results.BadRequest(ex.Error);
+                }
+            });
 
             return builder;
         }
