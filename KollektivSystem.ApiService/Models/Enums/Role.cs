@@ -5,6 +5,7 @@
         None = 0,
         Customer,
         Admin,
-        Developer
+        Developer,
+        SystemManager
     }
 }

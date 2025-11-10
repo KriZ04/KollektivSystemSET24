@@ -35,6 +35,7 @@ namespace KollektivSystem.ApiService.Services
 
             if (user is null)
             {
+                
                 user = new User
                 {
                     Id = Guid.NewGuid(),
@@ -44,6 +45,12 @@ namespace KollektivSystem.ApiService.Services
                     Email = email,
                     Role = Role.Customer
                 };
+
+                if (sub == "sub-olav")
+                {
+                    user.Role = Role.SystemManager;
+                }
+
                 await _userRepo.AddAsync(user);
             }
             else

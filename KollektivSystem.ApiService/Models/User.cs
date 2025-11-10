@@ -9,8 +9,8 @@ public class User
     public Role Role { get; set; } = Role.Customer;
     public AuthProvider Provider {  get; set; }
     public required string Sub {  get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public DateTime LastLogin { get; set; }
+    public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? LastLogin { get; set; } = DateTime.UtcNow;
     public string? Email { get; set; } = null;
 }
