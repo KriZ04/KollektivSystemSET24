@@ -56,10 +56,11 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             
             services.AddAuthorization(o =>
             {
-                o.AddPolicy("Admin", p => p.RequireRole(nameof(Role.Admin)));
-                o.AddPolicy("Developer", p => p.RequireRole(nameof(Role.Developer)));
-                o.AddPolicy("Staff", p => p.RequireRole(nameof(Role.Admin), nameof(Role.Developer)));
-                o.AddPolicy("RegisteredUser", p => p.RequireRole(nameof(Role.Customer), nameof(Role.Admin), nameof(Role.Developer)));
+                o.AddPolicy("Admin", p => p.RequireRole(nameof(Role.Admin), nameof(Role.SystemManager)));
+                o.AddPolicy("Developer", p => p.RequireRole(nameof(Role.Developer), nameof(Role.SystemManager)));
+                o.AddPolicy("Staff", p => p.RequireRole(nameof(Role.Admin), nameof(Role.Developer), nameof(Role.SystemManager)));
+                o.AddPolicy("RegisteredUser", p => p.RequireRole(nameof(Role.Customer), nameof(Role.Admin), nameof(Role.Developer), nameof(Role.SystemManager)));
+                o.AddPolicy("Manager", p => p.RequireRole(nameof(Role.SystemManager)));
             });
 
             services.AddHttpClient("oidc");

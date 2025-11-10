@@ -2,6 +2,7 @@ using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Extensions.ServiceExtensions;
 using KollektivSystem.ApiService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OidcStub.Endpoints;
 using OidcStub.Extensions;
 
@@ -21,7 +22,29 @@ builder.Services.AddAuths(builder.Configuration);
 builder.Services.AddOidcStub(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "API", Version = "v1" });
+
+    // JWT Bearer in Swagger
+    c.AddSecurityDefinition("Bearer", new()
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter: Bearer {your JWT}"
+    });
+    c.AddSecurityRequirement(new()
+    {
+        {
+            new() { Reference = new()
+            { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -48,6 +71,8 @@ using (var scope = app.Services.CreateScope())
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+
+
 
 app.MapUserEndpoints();
 app.MapAuthEndpoints();
