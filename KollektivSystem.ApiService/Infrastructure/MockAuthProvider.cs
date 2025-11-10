@@ -8,7 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace KollektivSystem.ApiService.Infrastructure
 {
-    public class MockAuthProvider : IAuthProvider
+    public sealed class MockAuthProvider : IAuthProvider
     {
         private readonly string _issuer;
         private readonly string _clientId;
@@ -45,16 +45,14 @@ namespace KollektivSystem.ApiService.Infrastructure
         }
         sealed class TokenResponse
         {
-            public string? access_token { get; set; }
-            public string? id_token { get; set; }
-            public string? token_type { get; set; }
-            public int? expires_in { get; set; }
+            public string? AccessToken { get; set; }
+            public string? IdToken { get; set; }
+            public string? TokenType { get; set; }
+            public int? ExpiresIn { get; set; }
         }
         public async Task<TokenResult> ExchangeCodeAsync(string code, Uri? redirectUri, CancellationToken ct = default)
         {
-            var tokenEndpoint = redirectUri is not null 
-                ? new Uri(new Uri($"{redirectUri.Scheme}://{redirectUri.Authority}"), "/oidc/token")
-                : new Uri("/oidc/token", UriKind.Relative);
+            var tokenEndpoint = new Uri(new Uri($"{redirectUri!.Scheme}://{redirectUri.Authority}"), "/oidc/token");
 
             using var form = new FormUrlEncodedContent(new Dictionary<string, string?>
             {
@@ -69,12 +67,18 @@ namespace KollektivSystem.ApiService.Infrastructure
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             using var response = await _httpClient.SendAsync(request, ct);
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var err = await response.Content.ReadAsStringAsync(ct);
+                throw new HttpRequestException($"Token endpoint {response.StatusCode}: {err}");
+            }
+            //response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken: ct)
                        ?? throw new InvalidOperationException("Empty token response.");
 
-            return new TokenResult(json.access_token!, json.id_token!, null);
+            return new TokenResult(json.AccessToken!, json.IdToken!, null);
         }
         public ClaimsPrincipal ValidateAndReadIdToken(string idToken)
         {
@@ -88,7 +92,7 @@ namespace KollektivSystem.ApiService.Infrastructure
                 ValidAudience = _clientId,        // audience = client_id ok for stub
                 ValidateAudience = true,
 
-                IssuerSigningKey = _signingKey,   // symmetric HMAC key
+                IssuerSigningKey = _signingKey,  
                 ValidateIssuerSigningKey = true,
 
                 ValidateLifetime = true,

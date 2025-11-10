@@ -3,6 +3,7 @@ using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -27,14 +28,14 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                 if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
                     return Results.BadRequest("Missing 'code' or 'state'.");
 
-                if (!cache.TryGetValue($"oidc_state:{state}", out var redirectUri))
+                if (!cache.TryGetValue($"oidc_state:{state}", out Uri? redirectUri))
                     return Results.BadRequest("Invalid state.");
 
                 cache.Remove($"oidc_state:{state}");
 
-                var tokens = await provider.ExchangeCodeAsync(code, redirectUri: null, ct);
+                var tokens = await provider.ExchangeCodeAsync(code, redirectUri, ct);
 
-                var principal = provider.ValidateAndReadIdToken(tokens.IdToken);
+                var principal = provider.ValidateAndReadIdToken(tokens.AccessToken);
 
                 var (user, apiJwt) = await auth.SignInWithIdTokenAsync(provider.Provider, principal, ct);
 
