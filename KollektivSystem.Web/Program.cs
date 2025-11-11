@@ -1,5 +1,6 @@
 using KollektivSystem.Web;
 using KollektivSystem.Web.Components;
+using KollektivSystem.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,12 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<ITokenStore, TokenStore>();
+
 builder.Services.AddOutputCache();
+
+
+
 
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
     {
@@ -21,7 +27,7 @@ builder.Services.AddHttpClient<WeatherApiClient>(client =>
 
 builder.Services.AddHttpClient<AuthApiClient>(client =>
     {
-        client.BaseAddress = new("https+http://apiservice");
+        client.BaseAddress = new("https://localhost:7445");
     });
 
 var app = builder.Build();

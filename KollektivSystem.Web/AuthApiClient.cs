@@ -1,16 +1,16 @@
-﻿namespace KollektivSystem.Web;
+﻿using KollektivSystem.Web.Services;
 
-public class AuthApiClient(HttpClient httpClient)
+public sealed class AuthApiClient(HttpClient http, ITokenStore tokens)
 {
-    public async Task<bool> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
+    public Uri BaseAddress => http.BaseAddress!;
+
+    public async Task<HttpResponseMessage> GetProtectedAsync(string path, CancellationToken ct = default)
     {
-        var loginRequest = new LoginRequest(email, password);
+        var token = await tokens.GetAsync();
+        var req = new HttpRequestMessage(HttpMethod.Get, path);
+        if (!string.IsNullOrEmpty(token))
+            req.Headers.Authorization = new("Bearer", token);
 
-        var response = await httpClient.PostAsJsonAsync("/auth/login", loginRequest, cancellationToken);
-
-        // Return true if successful (HTTP 200 OK)
-        return response.IsSuccessStatusCode;
+        return await http.SendAsync(req, ct);
     }
 }
-
-public record LoginRequest(string email, string password);
