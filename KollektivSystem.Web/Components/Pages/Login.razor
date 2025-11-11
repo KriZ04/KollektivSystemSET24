@@ -1,113 +1,40 @@
 ﻿@page "/login"
-@attribute [StreamRendering(true)]
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Components.Forms
+@rendermode InteractiveServer
 @inject NavigationManager Nav
-@inject KollektivSystem.Web.IAuthApiClient AuthApi
+@inject IConfiguration Config
 @inject KollektivSystem.Web.AuthState Auth
 
 <PageTitle>Login</PageTitle>
 
 <h1>Choose login method</h1>
+<p>Select a persona to sign in (OIDC stub via API):</p>
 
-<!-- Provider-valg (kun Stub aktiv nå) -->
 <div class="providers">
-    <button class="provider disabled" disabled>Google</button>
-    <button class="provider disabled" disabled>Microsoft</button>
-    <button class="provider disabled" disabled>Facebook</button>
-    <button class="provider" @onclick="LoginViaStub">OIDC (Stub)</button>
+    <button type="button" class="provider" @onclick='() => LoginViaApi("Admin")'>Sign in as Admin</button>
+    <button type="button" class="provider" @onclick='() => LoginViaApi("Dispatcher")'>Sign in as Dispatcher</button>
+    <button type="button" class="provider" @onclick='() => LoginViaApi("Driver")'>Sign in as Driver</button>
+    <button type="button" class="provider" @onclick='() => LoginViaApi("User")'>Sign in as User</button>
 </div>
-
-<div class="divider"><span>or</span></div>
-
-<h2>Dev login</h2>
-
-@if (isLoading)
-{
-    <p><em>Loading...</em></p>
-}
 
 @if (!string.IsNullOrEmpty(message))
 {
     <div class="alert @messageClass">@message</div>
 }
 
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <InputText id="email" type="email" class="form-control" @bind-Value="loginModel.Email" />
-    </div>
-
-    <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Login</button>
-</EditForm>
-
 @code {
-    private LoginModel loginModel = new()
-    {
-        Email = "admin@example.com",   // valgfritt: forhåndsfyll for dev
-        Password = "admin123"
-    };
-
-    private bool isLoading = false;
     private string message = string.Empty;
     private string messageClass = string.Empty;
 
-    // A) OIDC-stub (backenden viser stub-side og redirecter tilbake)
-    void LoginViaStub()
+    private void LoginViaApi(string persona)
     {
-        // juster path hvis backend har en annen sti for OIDC-stub
-        Nav.NavigateTo("/oidc", forceLoad: true);
-    }
+        // Base-URL til API (fra appsettings.Development.json)
+        var apiBase = Config["Api:BaseUrl"] ?? "https://localhost:5001";
 
-    // B) Direkte dev-login (kaller /auth/login og får token)
-    private async Task HandleLogin()
-    {
-        isLoading = true;
-        message = string.Empty;
+        // Hvor API-et skal sende oss tilbake etter fullført OIDC-stub
+        var returnUrl = Nav.BaseUri.TrimEnd('/') + "/login/callback";
+        var redirect = $"{apiBase}/auth/login?persona={Uri.EscapeDataString(persona)}&returnUrl={Uri.EscapeDataString(returnUrl)}";
 
-        try
-        {
-            var res = await AuthApi.LoginAsync(loginModel.Email, loginModel.Password);
-
-            if (res is not null)
-            {
-                Auth.Set(res.accessToken, res.role);
-                message = "Login successful!";
-                messageClass = "alert-success";
-                Nav.NavigateTo("/admin", true);
-            }
-            else
-            {
-                message = "Login failed. Please check your email and password.";
-                messageClass = "alert-danger";
-            }
-        }
-        catch (Exception ex)
-        {
-            message = $"An error occurred: {ex.Message}";
-            messageClass = "alert-danger";
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-
-    public class LoginModel
-    {
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
-        public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Password is required")]
-        public string Password { get; set; } = string.Empty;
+        // Full nettleser-redirect til API-et
+        Nav.NavigateTo(redirect, forceLoad: true);
     }
 }

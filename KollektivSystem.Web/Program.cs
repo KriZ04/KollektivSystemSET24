@@ -10,14 +10,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddOutputCache();
 
-// Http clients
+// Example client you already had
 builder.Services.AddHttpClient<WeatherApiClient>(c =>
-{
-    c.BaseAddress = new("https+http://apiservice");
-});
-
-// Bind interface til implementasjon
-builder.Services.AddHttpClient<IAuthApiClient, AuthApiClient>(c =>
 {
     c.BaseAddress = new("https+http://apiservice");
 });
@@ -36,7 +30,6 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
-
 app.UseOutputCache();
 
 app.MapRazorComponents<App>()

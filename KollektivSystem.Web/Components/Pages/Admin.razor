@@ -1,0 +1,15 @@
+﻿@page "/admin"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.AuthState Auth
+
+<h1>Admin</h1>
+<p>Welcome to admin (dev).</p>
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAdmin)
+            Nav.NavigateTo("/login", true);
+    }
+}
