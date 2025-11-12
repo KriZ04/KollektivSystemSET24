@@ -26,8 +26,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                 await uow.SaveChangesAsync(ct);
 
                 return Results.Created($"/users/{user.Id}", user);
-            })
-                .RequireAuthorization("Staff");
+            }).RequireAuthorization("Staff");
 
             return builder;
         }

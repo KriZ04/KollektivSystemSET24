@@ -1,33 +1,33 @@
 ﻿@page "/auth/callback"
-@rendermode InteractiveServer
 @using KollektivSystem.Web.Services
+@rendermode InteractiveServer
 @inject NavigationManager Nav
 @inject ITokenStore Tokens
 
-<h3>Fullfører innlogging …</h3>
+<p>Fullfører innlogging …</p>
 
 @code {
-    protected override async Task OnInitializedAsync()
+    private string? _token;
+
+    protected override void OnInitialized()
     {
         var uri = new Uri(Nav.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        var token = query["token"];
+        var qs = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _token = qs["token"];
+    }
 
-        // Alternativt token i fragment (hvis API-et returnerer #id_token= eller #access_token=)
-        if (string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(uri.Fragment))
-        {
-            var frag = System.Web.HttpUtility.ParseQueryString(uri.Fragment.TrimStart('#'));
-            token = frag["id_token"] ?? frag["access_token"];
-        }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
 
-        if (!string.IsNullOrEmpty(token))
+        if (!string.IsNullOrEmpty(_token))
         {
-            await Tokens.SetAsync(token);
+            await Tokens.SetAsync(_token);
             Nav.NavigateTo("/", forceLoad: true);
         }
         else
         {
-            Nav.NavigateTo("/login");
+            Nav.NavigateTo("/login", forceLoad: true);
         }
     }
 }

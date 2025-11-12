@@ -12,7 +12,6 @@
 @code {
     private void OnLogin()
     {
-        // API-et håndterer redirect til sin OIDC-stub
         var callback = $"{Nav.BaseUri.TrimEnd('/')}/auth/callback";
         var url = $"{AuthClient.BaseAddress}auth/login?returnUrl={Uri.EscapeDataString(callback)}";
         Console.WriteLine(url);
