@@ -1,0 +1,93 @@
+﻿@using KollektivSystem.Web.Services
+@rendermode InteractiveServer
+@implements IDisposable
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject IConfiguration Config
+@inject ProfileClient Profiles
+
+<div class="d-flex align-items-center gap-2">
+    @if (_isAuth)
+    {
+        <span>Hei, @_displayName</span>
+        <button class="btn btn-outline" @onclick="Logout">Logout</button>
+    }
+    else
+    {
+        <button class="btn btn-primary" @onclick="GoLogin">Login</button>
+    }
+</div>
+
+@code {
+    private bool _isAuth;
+    private string _displayName = "bruker";
+    private bool _refreshInProgress;
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await RefreshFromLocalStorageAsync();
+    }
+
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        await RefreshFromLocalStorageAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshFromLocalStorageAsync()
+    {
+        if (_refreshInProgress)
+            return;
+
+        _refreshInProgress = true;
+        try
+        {
+            string? token;
+            try
+            {
+                token = await JS.InvokeAsync<string?>("localStorage.getItem", "api_jwt");
+            }
+            catch (InvalidOperationException)
+            {
+                return;
+            }
+
+            var authed = !string.IsNullOrWhiteSpace(token);
+            if (authed != _isAuth)
+            {
+                _isAuth = authed;
+
+                var me = await Profiles.GetMeAsync();
+                _displayName = me?.Name ?? me?.Email ?? "bruker";
+                StateHasChanged();
+            }
+        }
+        finally
+        {
+            _refreshInProgress = false;
+        }
+    }
+
+    private void GoLogin()
+    {
+        var api = (Config["Api:BaseUrl"] ?? throw new InvalidOperationException("Missing Api:BaseUrl")).TrimEnd('/');
+        var callback = $"{Nav.BaseUri.TrimEnd('/')}/auth/callback";
+        var url = $"{api}/auth/login?returnUrl={Uri.EscapeDataString(callback)}";
+        Nav.NavigateTo(url, true);
+    }
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "api_jwt");
+        _isAuth = false;
+        StateHasChanged();
+        Nav.NavigateTo("/", true);
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public class UserRepository: RepositoryBase<User, int>, IUserRepository
+    public class UserRepository: RepositoryBase<User, Guid>, IUserRepository
     {
         public UserRepository(ApplicationDbContext db) : base(db)
         {

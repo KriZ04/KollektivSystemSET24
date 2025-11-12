@@ -1,6 +1,7 @@
 ﻿using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
+using System.Security.Claims;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints
 {
@@ -27,6 +28,26 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
 
                 return Results.Created($"/users/{user.Id}", user);
             }).RequireAuthorization("Staff");
+
+            builder.MapGet("/users/me", async (ClaimsPrincipal user, IUserRepository repo, CancellationToken ct) =>
+            {
+                var id = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrWhiteSpace(id)) return Results.Unauthorized();
+
+                var guid = Guid.Parse(id);
+                var u = await repo.FindAsync(guid, ct);
+                if (u is null) return Results.NotFound();
+
+                return Results.Ok(new
+                {
+                    id = u.Id,
+                    name = u.DisplayName,
+                    email = u.Email
+                });
+            })
+            .RequireAuthorization(); 
+
 
             return builder;
         }

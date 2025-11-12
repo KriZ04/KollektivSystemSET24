@@ -3,7 +3,7 @@ using KollektivSystem.ApiService.Models.Enums;
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public interface IUserRepository : IRepository<User, int>
+    public interface IUserRepository : IRepository<User, Guid>
     {
         Task<User?> GetByProviderSubAsync(AuthProvider provider, string sub, CancellationToken ct = default);
     }

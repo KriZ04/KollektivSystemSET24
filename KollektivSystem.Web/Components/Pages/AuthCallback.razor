@@ -19,15 +19,14 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
-        if (!string.IsNullOrEmpty(_token))
+        if (!string.IsNullOrWhiteSpace(_token))
         {
             await Tokens.SetAsync(_token);
-            Nav.NavigateTo("/", forceLoad: true);
+            Nav.NavigateTo("/", replace: true);
         }
         else
         {
-            Nav.NavigateTo("/login", forceLoad: true);
+            Nav.NavigateTo("/login", replace: true);
         }
     }
 }
