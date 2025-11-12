@@ -57,15 +57,36 @@
                 return;
             }
 
-            var authed = !string.IsNullOrWhiteSpace(token);
-            if (authed != _isAuth)
+            if (string.IsNullOrWhiteSpace(token))
             {
-                _isAuth = authed;
+                if (_isAuth)
+                {
+                    _isAuth = false;
+                    _displayName = "bruker";
+                    StateHasChanged();
+                }
+                return;
+            }
 
-                var me = await Profiles.GetMeAsync();
-                _displayName = me?.Name ?? me?.Email ?? "bruker";
+            var (user, notFoundOrUnauthorized) = await Profiles.GetMeAsync(token);
+
+            if (notFoundOrUnauthorized)
+            {
+                await JS.InvokeVoidAsync("localStorage.removeItem", "api_jwt");
+                _isAuth = false;
+                _displayName = "bruker";
+                StateHasChanged();
+                return;
+            }
+
+            if (user is not null)
+            {
+                _isAuth = true;
+                _displayName = user.Name ?? user.Email ?? "bruker";
                 StateHasChanged();
             }
+
+
         }
         finally
         {

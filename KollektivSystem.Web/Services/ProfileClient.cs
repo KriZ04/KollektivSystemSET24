@@ -1,22 +1,35 @@
-﻿using Microsoft.JSInterop;
+﻿using KollektivSystem.Web.Models;
+using Microsoft.JSInterop;
 
-namespace KollektivSystem.Web.Services
+namespace KollektivSystem.Web.Services;
+
+public sealed class ProfileClient
 {
-    public sealed class ProfileClient(HttpClient http, IJSRuntime js)
+    private readonly HttpClient _http;
+
+    public ProfileClient(HttpClient http)
     {
-        public async Task<UserProfile?> GetMeAsync(CancellationToken ct = default)
-        {
-            var token = await js.InvokeAsync<string?>("localStorage.getItem", "api_jwt");
-            if (string.IsNullOrWhiteSpace(token)) return null;
-
-            using var req = new HttpRequestMessage(HttpMethod.Get, "/users/me");
-            req.Headers.Authorization = new("Bearer", token);
-            using var res = await http.SendAsync(req, ct);
-            if (!res.IsSuccessStatusCode) return null;
-
-            return await res.Content.ReadFromJsonAsync<UserProfile>(cancellationToken: ct);
-        }
+        _http = http;
     }
 
-    public sealed record UserProfile(Guid Id, string? Name, string? Email);
+    public async Task<(UserMeDto? user, bool notFoundOrUnauthorized)> GetMeAsync(string token, CancellationToken ct = default)
+    {
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/users/me");
+        req.Headers.Authorization = new("Bearer", token);
+
+        using var res = await _http.SendAsync(req, ct);
+
+        if (res.StatusCode is System.Net.HttpStatusCode.NotFound
+            or System.Net.HttpStatusCode.Unauthorized
+            or System.Net.HttpStatusCode.Forbidden)
+        {
+            return (user: null, true); // brukeren finnes ikke/token ugyldig
+        }
+
+        if (!res.IsSuccessStatusCode)
+            return (user: null, false); // annen feil, men ikke nødvendigvis logg ut
+
+        var dto = await res.Content.ReadFromJsonAsync<UserMeDto>(cancellationToken: ct);
+        return (dto, false);
+    }
 }
