@@ -6,14 +6,20 @@ namespace KollektivSystem.Web.Services;
 public sealed class ProfileClient
 {
     private readonly HttpClient _http;
+    private readonly AuthTokenService _authTokens;
 
-    public ProfileClient(HttpClient http)
+    public ProfileClient(HttpClient http, AuthTokenService authTokens)
     {
         _http = http;
+        _authTokens = authTokens;
     }
 
-    public async Task<(UserMeDto? user, bool notFoundOrUnauthorized)> GetMeAsync(string token, CancellationToken ct = default)
+    public async Task<(UserMeDto? user, bool notFoundOrUnauthorized)> GetMeAsync(CancellationToken ct = default)
     {
+        var token = await _authTokens.GetValidAccessTokenAsync(ct);
+        if (string.IsNullOrWhiteSpace(token))
+            return (null, true);
+
         using var req = new HttpRequestMessage(HttpMethod.Get, "/users/me");
         req.Headers.Authorization = new("Bearer", token);
 

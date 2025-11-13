@@ -36,6 +36,10 @@ builder.Services.AddHttpClient<ProfileClient>(c =>
     c.BaseAddress = new("https+http://apiservice");
 });
 
+builder.Services.AddHttpClient<AuthTokenService>(client =>
+{
+    client.BaseAddress = new("https+http://apiservice");
+});
 
 var app = builder.Build();
 

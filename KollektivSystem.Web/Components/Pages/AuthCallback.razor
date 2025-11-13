@@ -21,9 +21,11 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        if (!string.IsNullOrWhiteSpace(_token))
+
+        if (!string.IsNullOrWhiteSpace(_token) && !string.IsNullOrWhiteSpace(_refresh))
         {
             await Tokens.SetAsync(_token);
+            await Tokens.SetRefreshAsync(_refresh);
             Nav.NavigateTo("/", replace: true);
         }
         else

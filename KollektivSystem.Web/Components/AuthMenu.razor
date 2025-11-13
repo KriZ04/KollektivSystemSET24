@@ -5,6 +5,7 @@
 @inject IJSRuntime JS
 @inject IConfiguration Config
 @inject ProfileClient Profiles
+@inject AuthTokenService AuthTokens
 
 <div class="d-flex align-items-center gap-2">
     @if (_isAuth)
@@ -30,16 +31,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await RefreshFromLocalStorageAsync();
+        await RefreshAuthStateAsync();
     }
 
     private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        await RefreshFromLocalStorageAsync();
+        await RefreshAuthStateAsync();
         StateHasChanged();
     }
 
-    private async Task RefreshFromLocalStorageAsync()
+    private async Task RefreshAuthStateAsync()
     {
         if (_refreshInProgress)
             return;
@@ -47,18 +48,11 @@
         _refreshInProgress = true;
         try
         {
-            string? token;
-            try
-            {
-                token = await JS.InvokeAsync<string?>("localStorage.getItem", "api_jwt");
-            }
-            catch (InvalidOperationException)
-            {
-                return;
-            }
+            var (user, notFoundOrUnauthorized) = await Profiles.GetMeAsync();
 
-            if (string.IsNullOrWhiteSpace(token))
+            if (notFoundOrUnauthorized)
             {
+                //await AuthTokens.LogoutAsync();
                 if (_isAuth)
                 {
                     _isAuth = false;
@@ -66,24 +60,22 @@
                     StateHasChanged();
                 }
                 return;
-            }
-
-            var (user, notFoundOrUnauthorized) = await Profiles.GetMeAsync(token);
-
-            if (notFoundOrUnauthorized)
-            {
-                await JS.InvokeVoidAsync("localStorage.removeItem", "api_jwt");
-                _isAuth = false;
-                _displayName = "bruker";
-                StateHasChanged();
-                return;
-            }
+            } 
 
             if (user is not null)
             {
                 _isAuth = true;
                 _displayName = user.Name ?? user.Email ?? "bruker";
                 StateHasChanged();
+            }
+            else
+            {
+                if (_isAuth)
+                {
+                    _isAuth = false;
+                    _displayName = "bruker";
+                    StateHasChanged();
+                }
             }
 
 
@@ -104,8 +96,9 @@
 
     private async Task Logout()
     {
-        await JS.InvokeVoidAsync("localStorage.removeItem", "api_jwt");
+        await AuthTokens.LogoutAsync();
         _isAuth = false;
+        _displayName = "bruker";
         StateHasChanged();
         Nav.NavigateTo("/", true);
     }
