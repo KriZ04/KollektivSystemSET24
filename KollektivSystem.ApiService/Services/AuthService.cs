@@ -13,16 +13,18 @@ namespace KollektivSystem.ApiService.Services
     {
         private readonly IJwtIssuer _issuer;
         private readonly IUserRepository _userRepo;
+        private readonly IRefreshTokenRepository _refreshTokenRepo;
         private readonly IUnitOfWork _uow;
 
-        public AuthService(IJwtIssuer issuer, IUserRepository userRepo, IUnitOfWork uow)
+        public AuthService(IJwtIssuer issuer, IUserRepository userRepo, IRefreshTokenRepository refreshTokenRepo, IUnitOfWork uow)
         {
             _issuer = issuer;
             _userRepo = userRepo;
+            _refreshTokenRepo = refreshTokenRepo;
             _uow = uow;
         }
 
-        public async Task<(User user, string apiJwt)> SignInWithIdTokenAsync(
+        public async Task<(User user, string apiJwt, string refreshToken)> SignInWithIdTokenAsync(
             AuthProvider provider,
             ClaimsPrincipal id,
             CancellationToken ct)
@@ -58,7 +60,7 @@ namespace KollektivSystem.ApiService.Services
                 user.DisplayName = name;
                 user.Email = email ?? user.Email;
                 user.UpdateLogin();
-                user.UpdatedAt = DateTime.UtcNow;
+                //user.UpdatedAt = DateTime.UtcNow;
 
                 _userRepo.Update(user);
             }
@@ -66,7 +68,13 @@ namespace KollektivSystem.ApiService.Services
             await _uow.SaveChangesAsync(ct);
 
             var apiJwt = _issuer.Issue(new(user.Id, user.Role.ToString(), provider.ToString(), sub));
-            return (user, apiJwt);
+
+            var (refreshPlain, refreshEntity) = RefreshTokenFactory.CreateForUser(user);
+
+            await _refreshTokenRepo.AddAsync(refreshEntity, ct);
+            await _uow.SaveChangesAsync(ct);
+
+            return (user, apiJwt, refreshPlain);
         }
     }
 }
