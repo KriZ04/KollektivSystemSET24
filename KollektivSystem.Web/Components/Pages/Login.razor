@@ -1,40 +1,20 @@
 ﻿@page "/login"
 @rendermode InteractiveServer
 @inject NavigationManager Nav
-@inject IConfiguration Config
-@inject KollektivSystem.Web.AuthState Auth
+@inject AuthApiClient AuthClient
 
-<PageTitle>Login</PageTitle>
+<h3>Login</h3>
 
-<h1>Choose login method</h1>
-<p>Select a persona to sign in (OIDC stub via API):</p>
+<p>Trykk for å logge inn via API-et.</p>
 
-<div class="providers">
-    <button type="button" class="provider" @onclick='() => LoginViaApi("Admin")'>Sign in as Admin</button>
-    <button type="button" class="provider" @onclick='() => LoginViaApi("Dispatcher")'>Sign in as Dispatcher</button>
-    <button type="button" class="provider" @onclick='() => LoginViaApi("Driver")'>Sign in as Driver</button>
-    <button type="button" class="provider" @onclick='() => LoginViaApi("User")'>Sign in as User</button>
-</div>
-
-@if (!string.IsNullOrEmpty(message))
-{
-    <div class="alert @messageClass">@message</div>
-}
+<button class="btn btn-primary" @onclick="OnLogin">Login</button>
 
 @code {
-    private string message = string.Empty;
-    private string messageClass = string.Empty;
-
-    private void LoginViaApi(string persona)
+    private void OnLogin()
     {
-        // Base-URL til API (fra appsettings.Development.json)
-        var apiBase = Config["Api:BaseUrl"] ?? "https://localhost:5001";
-
-        // Hvor API-et skal sende oss tilbake etter fullført OIDC-stub
-        var returnUrl = Nav.BaseUri.TrimEnd('/') + "/login/callback";
-        var redirect = $"{apiBase}/auth/login?persona={Uri.EscapeDataString(persona)}&returnUrl={Uri.EscapeDataString(returnUrl)}";
-
-        // Full nettleser-redirect til API-et
-        Nav.NavigateTo(redirect, forceLoad: true);
+        var callback = $"{Nav.BaseUri.TrimEnd('/')}/auth/callback";
+        var url = $"{AuthClient.BaseAddress}auth/login?returnUrl={Uri.EscapeDataString(callback)}";
+        Console.WriteLine(url);
+        Nav.NavigateTo(url, forceLoad: true);
     }
 }

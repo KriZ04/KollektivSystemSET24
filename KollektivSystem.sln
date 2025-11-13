@@ -10,9 +10,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.ApiService"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.Web", "KollektivSystem.Web\KollektivSystem.Web.csproj", "{27BBD172-535E-2D79-F200-28BBC91D2060}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.Tests", "KollektivSystem.Tests\KollektivSystem.Tests.csproj", "{8DD46860-0482-80C3-E791-D1AC9A54DE2B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.UnitTests", "KollektivSystem.Tests\KollektivSystem.UnitTests.csproj", "{8DD46860-0482-80C3-E791-D1AC9A54DE2B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OidcStub", "OidcStub\OidcStub.csproj", "{DAF0C2A0-5ABC-448A-93FB-0489219D3AFC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		auth-overview.md = auth-overview.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.IntegrationTests", "IntegrationTests\KollektivSystem.IntegrationTests.csproj", "{C10602F3-622A-4B72-A135-57EAB4E00413}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +51,10 @@ Global
 		{DAF0C2A0-5ABC-448A-93FB-0489219D3AFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAF0C2A0-5ABC-448A-93FB-0489219D3AFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAF0C2A0-5ABC-448A-93FB-0489219D3AFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C10602F3-622A-4B72-A135-57EAB4E00413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C10602F3-622A-4B72-A135-57EAB4E00413}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C10602F3-622A-4B72-A135-57EAB4E00413}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C10602F3-622A-4B72-A135-57EAB4E00413}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,6 +12,7 @@ namespace KollektivSystem.ApiService.Infrastructure
         public virtual DbSet<TransitLine> TransitLine => Set<TransitLine>();
         public virtual DbSet<Stop> Stops => Set<Stop>();
         public virtual DbSet<Tickets> Tickets => Set<Tickets>();
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

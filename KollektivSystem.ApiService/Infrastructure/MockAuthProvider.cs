@@ -78,7 +78,7 @@ namespace KollektivSystem.ApiService.Infrastructure
             var json = await response.Content.ReadFromJsonAsync<TokenResponse>(cancellationToken: ct)
                        ?? throw new InvalidOperationException("Empty token response.");
 
-            return new TokenResult(json.AccessToken!, json.IdToken!, null);
+            return new TokenResult(IdToken: json.IdToken!, AccessToken: json.AccessToken!, null);
         }
         public ClaimsPrincipal ValidateAndReadIdToken(string idToken)
         {
