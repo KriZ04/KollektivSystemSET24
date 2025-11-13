@@ -46,7 +46,6 @@ namespace KollektivSystem.ApiService.Repositories
         public Task<int> SaveChangesAsync(CancellationToken ct = default)
     => Db.SaveChangesAsync(ct);
 
-
         public Task<List<T>> GetAllAsync(CancellationToken ct = default)
             => Set.ToListAsync(ct);
 
