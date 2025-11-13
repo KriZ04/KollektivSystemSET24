@@ -1,4 +1,5 @@
-﻿@using KollektivSystem.Web.Services
+﻿@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
 @rendermode InteractiveServer
 @implements IDisposable
 @inject NavigationManager Nav
@@ -24,6 +25,9 @@
     private string _displayName = "bruker";
     private bool _refreshInProgress;
 
+    private UserMeDto? _cachedUser;
+    private string? _lastToken;
+
     protected override void OnInitialized()
     {
         Nav.LocationChanged += OnLocationChanged;
@@ -48,35 +52,51 @@
         _refreshInProgress = true;
         try
         {
+            var token = await AuthTokens.GetValidAccessTokenAsync();
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                // Ikke logget inn
+                _isAuth = false;
+                _displayName = "bruker";
+                _cachedUser = null;
+                _lastToken = null;
+                return;
+            }
+            if (token == _lastToken && _cachedUser is not null)
+            {
+                _isAuth = true;
+                _displayName = _cachedUser.Name ?? _cachedUser.Email ?? "bruker";
+                return;
+            }
+
             var (user, notFoundOrUnauthorized) = await Profiles.GetMeAsync();
 
             if (notFoundOrUnauthorized)
             {
-                //await AuthTokens.LogoutAsync();
-                if (_isAuth)
-                {
-                    _isAuth = false;
-                    _displayName = "bruker";
-                    StateHasChanged();
-                }
+                _cachedUser = null;
+                _isAuth = false;
+                _displayName = "bruker";
+                _lastToken = null;
+                StateHasChanged();
                 return;
-            } 
+            }
 
             if (user is not null)
             {
+                _cachedUser = user;
+                _lastToken = token;
                 _isAuth = true;
                 _displayName = user.Name ?? user.Email ?? "bruker";
                 StateHasChanged();
+                return;
             }
-            else
-            {
-                if (_isAuth)
-                {
-                    _isAuth = false;
-                    _displayName = "bruker";
-                    StateHasChanged();
-                }
-            }
+
+
+            _cachedUser = null;
+            _lastToken = token;
+            _isAuth = false;
+            _displayName = "bruker";
+            StateHasChanged();
 
 
         }
@@ -97,6 +117,8 @@
     private async Task Logout()
     {
         await AuthTokens.LogoutAsync();
+        _cachedUser = null;
+        _lastToken = null;
         _isAuth = false;
         _displayName = "bruker";
         StateHasChanged();
