@@ -13,34 +13,7 @@ public static class AuthEndpoints
 
         group.MapGet("/login", HandleLogin);
 
-        group.MapGet("/callback", async (string? code, string? state, HttpRequest req, IMemoryCache cache, IAuthProvider provider, IAuthService auth, CancellationToken ct) =>
-        {
-            if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
-                return Results.BadRequest("Missing 'code' or 'state'.");
-
-            if (!cache.TryGetValue<string>($"oidc_state:{state}", out var returnUrl) || string.IsNullOrWhiteSpace(returnUrl))
-                return Results.BadRequest("Invalid state.");
-
-            cache.Remove($"oidc_state:{state}");
-
-            var redirectUri = new Uri($"{req.Scheme}://{req.Host}/auth/callback");
-
-            var tokens = await provider.ExchangeCodeAsync(code, redirectUri, ct);
-
-            var principal = provider.ValidateAndReadIdToken(tokens.IdToken);
-
-            var (user, apiJwt, refreshToken) = await auth.SignInWithIdTokenAsync(provider.Provider, principal, ct);
-
-
-            if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru) ||
-                (ru.Scheme != Uri.UriSchemeHttps && ru.Scheme != Uri.UriSchemeHttp))
-                return Results.BadRequest("invalid returnUrl");
-
-            var sep = returnUrl.Contains('?') ? "&" : "?";
-            var target = $"{returnUrl}{sep}token={Uri.EscapeDataString(apiJwt)}&refresh={Uri.EscapeDataString(refreshToken)}";
-
-            return Results.Redirect(target, permanent: false);
-        });
+        group.MapGet("/callback", HandleCallback);
 
         group.MapPost("/refresh", async (RefreshRequest req, ITokenService tokenService, CancellationToken ct) =>
         {
@@ -67,8 +40,7 @@ public static class AuthEndpoints
         if (string.IsNullOrWhiteSpace(returnUrl))
             return Results.BadRequest("missing returnUrl");
 
-        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru) ||
-            (ru.Scheme != Uri.UriSchemeHttps && ru.Scheme != Uri.UriSchemeHttp))
+        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru) || (ru.Scheme != Uri.UriSchemeHttps && ru.Scheme != Uri.UriSchemeHttp))
             return Results.BadRequest("invalid returnUrl");
 
         var callback = new Uri($"{req.Scheme}://{req.Host}/auth/callback");
@@ -79,6 +51,34 @@ public static class AuthEndpoints
         return Results.Redirect(authorizeUrl);
     }
 
+    internal static async Task<IResult> HandleCallback(string? code, string? state, HttpRequest req, IMemoryCache cache, IAuthProvider provider, IAuthService auth, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
+            return Results.BadRequest("Missing 'code' or 'state'.");
+
+        if (!cache.TryGetValue<string>($"oidc_state:{state}", out var returnUrl) || string.IsNullOrWhiteSpace(returnUrl))
+            return Results.BadRequest("Invalid state.");
+
+        cache.Remove($"oidc_state:{state}");
+
+        var redirectUri = new Uri($"{req.Scheme}://{req.Host}/auth/callback");
+
+        var tokens = await provider.ExchangeCodeAsync(code, redirectUri, ct);
+
+        var principal = provider.ValidateAndReadIdToken(tokens.IdToken);
+
+        var (user, apiJwt, refreshToken) = await auth.SignInWithIdTokenAsync(provider.Provider, principal, ct);
+
+
+        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru) ||
+            (ru.Scheme != Uri.UriSchemeHttps && ru.Scheme != Uri.UriSchemeHttp))
+            return Results.BadRequest("invalid returnUrl");
+
+        var sep = returnUrl.Contains('?') ? "&" : "?";
+        var target = $"{returnUrl}{sep}token={Uri.EscapeDataString(apiJwt)}&refresh={Uri.EscapeDataString(refreshToken)}";
+
+        return Results.Redirect(target, permanent: false);
+    }
 
     public sealed record RefreshRequest(string RefreshToken);
 }

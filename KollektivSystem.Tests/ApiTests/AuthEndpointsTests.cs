@@ -135,12 +135,89 @@ namespace KollektivSystem.UnitTests.Api_tests
         [Fact]
         void Login_ValidReturnUrl_StoresStateInCache()
         {
-            Assert.Fail();
+            // Arrange
+            var context = new DefaultHttpContext();
+            context.Request.Scheme = "https";
+            context.Request.Host = new HostString("localhost");
+
+            var returnUrl = "https://localhost:7151/home";
+            context.Request.QueryString = new QueryString($"?returnUrl={Uri.EscapeDataString(returnUrl)}");
+
+            var request = context.Request;
+
+            var authProvider = new Mock<IAuthProvider>();
+
+            var state = "abc123";
+            var authUrl = new Uri($"htttps://oidc.local/authorize?state={state}");
+
+            var challenge = new AuthChallenge(authUrl, state, null);
+
+            authProvider.Setup(p => p.BuildAuthorizeRedirect(
+                It.IsAny<Uri>(),
+                It.IsAny<string[]>()))
+                .Returns(challenge);
+
+
+            var cache = new MemoryCache(new MemoryCacheOptions());
+
+            // Act
+            var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache);
+
+            // Assert
+
+            var cacheKey = $"oidc_state:{state}";
+            Assert.True(cache.TryGetValue(cacheKey, out var cachedValue));
+            Assert.Equal(returnUrl, cachedValue);
+
+            Assert.IsType<RedirectHttpResult>(result);
+
         }
         [Fact]
         void Login_ValidReturnUrl_UsesAuthProviderToBuildAuthorizeUrl()
         {
-            Assert.Fail();
+            // Arrange
+            var context = new DefaultHttpContext();
+            context.Request.Scheme = "https";
+            context.Request.Host = new HostString("localhost");
+
+            var returnUrl = "https://localhost:7151/home";
+            context.Request.QueryString = new QueryString($"?returnUrl={Uri.EscapeDataString(returnUrl)}");
+
+            var request = context.Request;
+
+            var authProvider = new Mock<IAuthProvider>();
+
+            var state = "abc123";
+            var authUrl = new Uri($"htttps://oidc.local/authorize?state={state}");
+
+            var challenge = new AuthChallenge(authUrl, state, null);
+
+            authProvider.Setup(p => p.BuildAuthorizeRedirect(
+                It.IsAny<Uri>(),
+                It.IsAny<string[]>()))
+                .Returns(challenge);
+
+
+            var cache = new MemoryCache(new MemoryCacheOptions());
+
+            // Act
+            var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache);
+
+            // Assert
+            authProvider.Verify(p => p.BuildAuthorizeRedirect(
+                It.Is<Uri>(u =>
+                    u.Scheme == "https" &&
+                    u.Host == "localhost" &&
+                    u.AbsolutePath.EndsWith("/auth/callback")),
+                It.Is<string[]>(scopes =>
+                    scopes.Contains("openid") &&
+                    scopes.Contains("email") &&
+                    scopes.Contains("profile"))),
+                Times.Once);
+
+            authProvider.VerifyNoOtherCalls();
+
+            Assert.NotNull(result);
         }
         [Fact]
         void Callback_MissingCodeOrState_ReturnsBadRequest()
