@@ -8,6 +8,8 @@ namespace KollektivSystem.ApiService.Infrastructure
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public virtual DbSet<User> Users => Set<User>();
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -16,6 +16,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
         {
             services.AddScoped<IUnitOfWork, ApplicationUnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             // Example for domain-specific repos
             //services.AddScoped<IUserRepository, UserRepository>();
@@ -72,6 +73,8 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
                 return new MockAuthProvider(oidcIssuer, oidcClientId, oidcClientSecret, oidcSigningKey, http);
             });
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ITokenService, TokenService>();
+
 
             return services;
 

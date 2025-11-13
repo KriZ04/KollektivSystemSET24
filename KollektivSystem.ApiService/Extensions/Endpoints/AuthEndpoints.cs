@@ -4,6 +4,7 @@ using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -49,7 +50,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
 
                 var principal = provider.ValidateAndReadIdToken(tokens.IdToken);
 
-                var (user, apiJwt) = await auth.SignInWithIdTokenAsync(provider.Provider, principal, ct);
+                var (user, apiJwt, refreshToken) = await auth.SignInWithIdTokenAsync(provider.Provider, principal, ct);
 
 
                 if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru) ||
@@ -57,26 +58,29 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                     return Results.BadRequest("invalid returnUrl");
 
                 var sep = returnUrl.Contains('?') ? "&" : "?";
-                var target = $"{returnUrl}{sep}token={Uri.EscapeDataString(apiJwt)}";
+                var target = $"{returnUrl}{sep}token={Uri.EscapeDataString(apiJwt)}&refresh={Uri.EscapeDataString(refreshToken)}";
 
                 return Results.Redirect(target, permanent: false);
+            });
 
-                //return Results.Ok(new
-                //{
-                //    token = apiJwt,
-                //    user = new
-                //    {
-                //        user.Id,
-                //        user.DisplayName,
-                //        role = user.Role.ToString(),
-                //        user.Email
-                //    }
-                //});
+            group.MapPost("/refresh", async (RefreshRequest req, ITokenService tokenService, CancellationToken ct) =>
+            {
+                var (success, access, refresh) = await tokenService.RefreshAsync(req.RefreshToken, ct);
+
+                if (!success)
+                    return Results.Unauthorized();
+
+                return Results.Ok(new
+                {
+                    access_token = access,
+                    refresh_token = refresh
+                });
             });
 
 
 
             return app;
         }
+        public sealed record RefreshRequest(string RefreshToken);
     }
 }

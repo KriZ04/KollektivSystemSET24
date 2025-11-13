@@ -6,6 +6,6 @@ namespace KollektivSystem.ApiService.Services
 {
     public interface IAuthService
     {
-        Task<(User user, string apiJwt)> SignInWithIdTokenAsync(AuthProvider provider, ClaimsPrincipal principal, CancellationToken ct);
+        Task<(User user, string apiJwt, string refreshToken)> SignInWithIdTokenAsync(AuthProvider provider, ClaimsPrincipal principal, CancellationToken ct);
     }
 }

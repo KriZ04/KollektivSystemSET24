@@ -8,12 +8,14 @@
 
 @code {
     private string? _token;
+    private string? _refresh;
 
     protected override void OnInitialized()
     {
         var uri = new Uri(Nav.Uri);
         var qs = System.Web.HttpUtility.ParseQueryString(uri.Query);
         _token = qs["token"];
+        _refresh = qs["refresh"];
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
