@@ -1,0 +1,46 @@
+﻿.toolbar {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+}
+
+.tbl {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .tbl th, .tbl td {
+        border-bottom: 1px solid #eee;
+        padding: 8px;
+        text-align: left;
+    }
+
+.row-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #f6f6f6;
+    cursor: pointer;
+}
+
+    .btn:hover {
+        background: #eee;
+    }
+
+    .btn.sm {
+        padding: 6px 10px;
+    }
+
+    .btn.danger {
+        border-color: #c0392b;
+    }
+
+.btn-secondary {
+    background: #fafafa;
+}

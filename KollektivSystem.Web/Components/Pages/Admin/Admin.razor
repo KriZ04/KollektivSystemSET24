@@ -1,0 +1,29 @@
+﻿@page "/admin"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<h1>Admin</h1>
+<p>Velg hva du vil administrere.</p>
+
+<div class="admin-grid">
+    <section class="card">
+        <h2>Varsler</h2>
+        <p>Opprett, rediger og arkiver systemvarsler.</p>
+        <div class="actions">
+            <button class="btn" @onclick="OpenAlerts">Åpne varsler</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Rutetabeller</h2>
+        <p>Administrer linjer, avganger og publisering.</p>
+        <div class="actions">
+            <button class="btn" @onclick="OpenRoutes">Åpne rutetabeller</button>
+        </div>
+    </section>
+</div>
+
+@code {
+    private void OpenAlerts() => Nav.NavigateTo("/admin/alerts", true);
+    private void OpenRoutes() => Nav.NavigateTo("/admin/routes", true);
+}

@@ -1,0 +1,47 @@
+﻿@page "/admin/routes"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<h1>Rutetabeller</h1>
+<div class="toolbar">
+    <button class="btn" @onclick="Create">Ny linje</button>
+    <button class="btn" @onclick="Publish">Publiser</button>
+    <button class="btn btn-secondary" @onclick="Back">Tilbake</button>
+</div>
+
+<table class="tbl">
+    <thead><tr><th>Linje-id</th><th>Navn</th><th>Aktiv</th><th>Avganger</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var r in routes)
+        {
+            <tr>
+                <td>@r.Id</td>
+                <td>@r.Name</td>
+                <td>@(r.Active ? "Ja" : "Nei")</td>
+                <td>@r.Departures</td>
+                <td class="row-actions">
+                    <button class="btn sm" @onclick="() => Edit(r.Id)">Rediger</button>
+                    <button class="btn sm" @onclick="() => Toggle(r.Id)">@((r.Active) ? "Deaktiver" : "Aktiver")</button>
+                    <button class="btn sm danger" @onclick="() => Delete(r.Id)">Slett</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<RouteDto> routes = new()
+    {
+        new(1,"Linje 1 – Sentrum–Sykehus",true,18),
+        new(2,"Linje 3 – Sentrum–Stadion",true,22),
+        new(3,"Linje 9 – Nattbuss",false,6)
+    };
+    public record RouteDto(int Id, string Name, bool Active, int Departures);
+
+    private void Back() => Nav.NavigateTo("/admin", true);
+    private void Create() { var id = routes.Count == 0 ? 1 : routes.Max(r => r.Id) + 1; routes.Add(new(id, "Ny linje", false, 0)); }
+    private void Edit(int id) { var r = routes.First(x => x.Id == id); routes[routes.IndexOf(r)] = r with { Name = r.Name + " (redigert)" }; }
+    private void Toggle(int id) { var r = routes.First(x => x.Id == id); routes[routes.IndexOf(r)] = r with { Active = !r.Active }; }
+    private void Delete(int id) { routes.RemoveAll(x => x.Id == id); }
+    private void Publish() { /* TODO: kall API for publisering */ }
+}

@@ -1,35 +1,28 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">KollektivSystem</a>
-    </div>
-</div>
+﻿@using Microsoft.AspNetCore.Components.Routing
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
+<nav class="flex-column">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+                <span class="oi oi-home" aria-hidden="true"></span> Home
             </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
+        </li>
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill" aria-hidden="true"></span> Counter
+                <span class="oi oi-plus" aria-hidden="true"></span> Counter
             </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
+        </li>
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested" aria-hidden="true"></span> Weather
+                <span class="oi oi-cloud" aria-hidden="true"></span> Weather
             </NavLink>
-        </div>
+        </li>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="login">
-                <span class="bi bi-key" aria-hidden="true"></span> Login
+        <!-- Admin (alltid synlig for test) -->
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="admin" Match="NavLinkMatch.Prefix">
+                <span class="oi oi-shield" aria-hidden="true"></span> Admin
             </NavLink>
-        </div>
-    </nav>
-</div>
+        </li>
+    </ul>
+</nav>
