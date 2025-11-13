@@ -40,6 +40,9 @@ namespace KollektivSystem.ApiService.Repositories
         public void RemoveRange(IEnumerable<T> entities)
             => Set.RemoveRange(entities);
 
+        public Task SaveChanges(CancellationToken ct = default)
+    => Db.SaveChangesAsync(ct);
+
         public Task<List<T>> GetAllAsync(CancellationToken ct = default)
             => Set.ToListAsync(ct);
 
@@ -47,5 +50,8 @@ namespace KollektivSystem.ApiService.Repositories
         {
             throw new NotImplementedException();
         }
+
+
+
     }
 }
