@@ -9,6 +9,8 @@ using System.Runtime.CompilerServices;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints;
 
+public sealed class AuthEndpointsLoggerCategory { }
+
 public static class AuthEndpoints
 {
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
@@ -24,7 +26,7 @@ public static class AuthEndpoints
         return app;
     }
 
-    internal static IResult HandleLogin(HttpRequest req, IAuthProvider authProvider, IMemoryCache cache, ILogger logger)
+    internal static IResult HandleLogin(HttpRequest req, IAuthProvider authProvider, IMemoryCache cache, ILogger<AuthEndpointsLoggerCategory> logger)
     {
         var returnUrl = req.Query["returnUrl"].ToString();
         if (string.IsNullOrWhiteSpace(returnUrl))
@@ -50,7 +52,7 @@ public static class AuthEndpoints
         return Results.Redirect(authorizeUrl);
     }
 
-    internal static async Task<IResult> HandleCallback(string? code, string? state, HttpRequest req, IMemoryCache cache, IAuthProvider provider, IAuthService auth, ILogger logger, CancellationToken ct)
+    internal static async Task<IResult> HandleCallback(string? code, string? state, HttpRequest req, IMemoryCache cache, IAuthProvider provider, IAuthService auth, ILogger<AuthEndpointsLoggerCategory> logger, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
         {
@@ -96,7 +98,7 @@ public static class AuthEndpoints
         return Results.Redirect(target, permanent: false);
     }
 
-    internal static async Task<IResult> HandleRefresh(RefreshRequest req, ITokenService tokenService, ILogger logger, CancellationToken ct)
+    internal static async Task<IResult> HandleRefresh(RefreshRequest req, ITokenService tokenService, ILogger<AuthEndpointsLoggerCategory> logger, CancellationToken ct)
     {
         var (success, access, refresh) = await tokenService.RefreshAsync(req.RefreshToken, ct);
 

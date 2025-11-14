@@ -22,7 +22,7 @@ public class AuthEndpointsTests
     public void Login_MissingReturnUrl_ReturnsBadRequest()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -51,7 +51,7 @@ public class AuthEndpointsTests
     public void Login_InvalidReturnUrl_ReturnsBadRequest()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -80,7 +80,7 @@ public class AuthEndpointsTests
     public void Login_ReturnUrlWithUnsupportedScheme_ReturnsBadRequest()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -110,7 +110,7 @@ public class AuthEndpointsTests
     public void Login_ValidReturnUrl_ReturnsRedirectResult()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -149,7 +149,7 @@ public class AuthEndpointsTests
     public void Login_ValidReturnUrl_StoresStateInCache()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -190,7 +190,7 @@ public class AuthEndpointsTests
     public void Login_ValidReturnUrl_UsesAuthProviderToBuildAuthorizeUrl()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -237,7 +237,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_MissingCode_ReturnsBadRequest()
     {
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -267,7 +267,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_MissingState_ReturnsBadRequest()
     {
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -297,7 +297,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_StateNotInCache_ReturnsBadRequest()
     {
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -327,7 +327,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_EmptyReturnUrlInCache_ReturnsBadRequest()
     {
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -362,7 +362,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_InvalidReturnUrlInCache_ReturnsBadRequest()
     {
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -399,7 +399,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_ExchangesCodeViaAuthProvider()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -471,7 +471,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_ValidatesIdTokenAndSignsInUser()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -542,7 +542,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_CreatesRedirectWithTokenAndRefreshToken()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -615,7 +615,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_RemovesStateFromCache()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -682,7 +682,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_ReturnsTemporaryRedirect()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -749,7 +749,7 @@ public class AuthEndpointsTests
     public async Task Refresh_RefreshFails_ReturnsUnauthorized()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var req = new AuthEndpoints.RefreshRequest("bad-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
@@ -783,7 +783,7 @@ public class AuthEndpointsTests
     public async Task Refresh_ValidRefreshToken_ReturnsOk()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
@@ -810,7 +810,7 @@ public class AuthEndpointsTests
     public async Task Refresh_ValidRefreshToken_ReturnsNewAccessAndRefreshTokens()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
@@ -840,7 +840,7 @@ public class AuthEndpointsTests
     public async Task Refresh_ValidRefreshToken_CallsTokenServiceOnce()
     {
         // Arrange
-        ILogger logger = NullLogger.Instance;
+        ILogger<AuthEndpointsLoggerCategory> logger = NullLogger<AuthEndpointsLoggerCategory>.Instance;
         var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
