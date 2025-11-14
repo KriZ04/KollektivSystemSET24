@@ -1,11 +1,6 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
-using KollektivSystem.ApiService.Infrastructure.Logging;
-using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Services;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Runtime.CompilerServices;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints;
 
