@@ -1,5 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Components.Routing
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Components
+@implements IDisposable
+@inject NavigationManager Nav
 @inject KollektivSystem.Web.Services.AuthState Auth
 
 <nav class="flex-column">
@@ -29,19 +32,40 @@
 
 @code {
     private bool _isAdmin;
+    private bool _initialized;
+
+    protected override void OnInitialized()
+    {
+        // Lytt på url-endringer (etter login/logout)
+        Nav.LocationChanged += OnLocationChanged;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Viktig pga prerendering + JS interop
-        if (!firstRender)
-            return;
+        // Første gang komponenten er blitt interaktiv → hent rolle
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+            await RefreshRoleAsync();
+            StateHasChanged();
+        }
+    }
 
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // Kalles hver gang du navigerer (inkl. etter login/logout)
+        await RefreshRoleAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshRoleAsync()
+    {
         var claims = await Auth.GetClaimsAsync();
 
         string? role = null;
         if (claims != null)
         {
-            // Prøv begge varianter
+            // Prøv ClaimTypes.Role først, så "role"
             if (!claims.TryGetValue(ClaimTypes.Role, out role))
                 claims.TryGetValue("role", out role);
         }
@@ -50,7 +74,10 @@
             !string.IsNullOrWhiteSpace(role) &&
             (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
              role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase));
+    }
 
-        StateHasChanged();
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
     }
 }
