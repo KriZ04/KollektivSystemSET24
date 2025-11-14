@@ -54,5 +54,38 @@ namespace KollektivSystem.UnitTests.ApiTest
 
         }
 
+        [Fact]
+        public async Task GetByIdAsync_WithExistingLine_ReturnsTransitLine()
+        {
+            // Arrange
+            var repoMock = new Mock<ITransitLineRepository>();
+            var loggerMock = new Mock<ILogger<TransitLineService>>();
+
+            var testLine = new TransitLine
+            {
+                Id = 1,
+                Name = "Blue Line",
+                Stops = new List<Stop>()
+            };
+
+            repoMock
+                .Setup(r => r.FindAsync(1, default))
+                .ReturnsAsync(testLine);
+
+            var service = new TransitLineService(repoMock.Object, loggerMock.Object);
+
+            // Act
+            var result = await service.GetByIdAsync(1);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().Be(testLine);
+            result!.Name.Should().Be("Blue Line");
+
+            repoMock.Verify(r => r.FindAsync(1, default), Times.Once);
+        }
+
+
+
     }
 }
