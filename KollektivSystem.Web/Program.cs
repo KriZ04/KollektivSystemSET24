@@ -2,6 +2,9 @@ using KollektivSystem.Web;
 using KollektivSystem.Web.Components;
 using KollektivSystem.Web.Services;
 
+// === Velg hvilken AuthState som skal brukes (alias fjerner konflikt) ===
+using AuthState = KollektivSystem.Web.Services.AuthState;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
@@ -12,24 +15,15 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<ITokenStore, TokenStore>();
-builder.Services.AddScoped<AuthState>();
+builder.Services.AddScoped<AuthState>();   // <-- bruker aliaset over
 
 builder.Services.AddOutputCache();
 
-
-
-
-//builder.Services.AddHttpClient<WeatherApiClient>(client =>
-//    {
-//        // This URL uses "https+http://" to indicate HTTPS is preferred over HTTP.
-//        // Learn more about service discovery scheme resolution at https://aka.ms/dotnet/sdschemes.
-//        client.BaseAddress = new("https+http://apiservice");
-//    });
-
+// HttpClients (testoppsett)
 builder.Services.AddHttpClient<AuthApiClient>(client =>
-    {
-        client.BaseAddress = new("https://localhost:7445");
-    });
+{
+    client.BaseAddress = new("https://localhost:7445");
+});
 
 builder.Services.AddHttpClient<ProfileClient>(c =>
 {
@@ -46,12 +40,10 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
 
@@ -60,6 +52,7 @@ app.UseOutputCache();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Enkel redirect til APIets login-endepunkt (test)
 app.MapGet("/login/redirect", (HttpContext ctx, IConfiguration cfg) =>
 {
     var api = (cfg["Api:BaseUrl"] ?? "https://localhost:7445").TrimEnd('/');
@@ -68,7 +61,5 @@ app.MapGet("/login/redirect", (HttpContext ctx, IConfiguration cfg) =>
     return Results.Redirect(url);
 });
 
-
 app.MapDefaultEndpoints();
-
 app.Run();

@@ -1,0 +1,23 @@
+﻿.providers {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+}
+
+.provider {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.alert {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.alert-success {
+    border: 1px solid #7cb342;
+}

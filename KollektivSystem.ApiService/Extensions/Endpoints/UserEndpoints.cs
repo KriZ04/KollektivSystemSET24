@@ -43,7 +43,8 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
                 {
                     id = u.Id,
                     name = u.DisplayName,
-                    email = u.Email
+                    email = u.Email,
+                    role = u.Role
                 });
             })
             .RequireAuthorization(); 

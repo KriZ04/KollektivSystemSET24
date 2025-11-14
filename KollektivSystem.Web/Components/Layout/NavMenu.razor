@@ -1,23 +1,83 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">KollektivSystem</a>
-    </div>
-</div>
+﻿@using Microsoft.AspNetCore.Components.Routing
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components
+@implements IDisposable
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.AuthState Auth
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
+<nav class="flex-column">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+                <span class="oi oi-home" aria-hidden="true"></span> Home
             </NavLink>
-        </div>
+        </li>
 
-        <div class="nav-item px-3">
+        @if (_isAdmin)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="admin" Match="NavLinkMatch.Prefix">
+                    <span class="oi oi-shield" aria-hidden="true"></span> Admin
+                </NavLink>
+            </li>
+        }
+
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="login">
                 <span class="bi bi-key" aria-hidden="true"></span> Login
             </NavLink>
-        </div>
-    </nav>
-</div>
+        </li>
+    </ul>
+</nav>
+
+@code {
+    private bool _isAdmin;
+    private bool _initialized;
+
+    protected override void OnInitialized()
+    {
+        // Lytt på url-endringer (etter login/logout)
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Første gang komponenten er blitt interaktiv → hent rolle
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+            await RefreshRoleAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // Kalles hver gang du navigerer (inkl. etter login/logout)
+        await RefreshRoleAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshRoleAsync()
+    {
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            // Prøv ClaimTypes.Role først, så "role"
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        _isAdmin =
+            !string.IsNullOrWhiteSpace(role) &&
+            (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+             role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}
