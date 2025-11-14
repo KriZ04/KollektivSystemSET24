@@ -1,5 +1,4 @@
-﻿using k8s.Models;
-using KollektivSystem.ApiService.Extensions.Endpoints;
+﻿using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Infrastructure;
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Domain;
@@ -8,6 +7,8 @@ using KollektivSystem.ApiService.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ public class AuthEndpointsTests
     public void Login_MissingReturnUrl_ReturnsBadRequest()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -31,7 +33,7 @@ public class AuthEndpointsTests
         var cache = new Mock<IMemoryCache>(MockBehavior.Strict);
 
         // Act
-        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache.Object);
+        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache.Object, logger);
 
         // Assert
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
@@ -49,6 +51,7 @@ public class AuthEndpointsTests
     public void Login_InvalidReturnUrl_ReturnsBadRequest()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -61,7 +64,7 @@ public class AuthEndpointsTests
         var cache = new Mock<IMemoryCache>(MockBehavior.Strict);
 
         // Act
-        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache.Object);
+        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache.Object, logger);
 
         // Assert
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
@@ -77,6 +80,7 @@ public class AuthEndpointsTests
     public void Login_ReturnUrlWithUnsupportedScheme_ReturnsBadRequest()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -90,7 +94,7 @@ public class AuthEndpointsTests
 
 
         // Act
-        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache.Object);
+        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache.Object, logger);
 
         // Assert
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
@@ -106,6 +110,7 @@ public class AuthEndpointsTests
     public void Login_ValidReturnUrl_ReturnsRedirectResult()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -131,7 +136,7 @@ public class AuthEndpointsTests
         var cache = new MemoryCache(new MemoryCacheOptions());
 
         // Act
-        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache);
+        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache, logger);
 
         // Assert
 
@@ -144,6 +149,7 @@ public class AuthEndpointsTests
     public void Login_ValidReturnUrl_StoresStateInCache()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -169,7 +175,7 @@ public class AuthEndpointsTests
         var cache = new MemoryCache(new MemoryCacheOptions());
 
         // Act
-        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache);
+        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache, logger);
 
         // Assert
 
@@ -184,6 +190,7 @@ public class AuthEndpointsTests
     public void Login_ValidReturnUrl_UsesAuthProviderToBuildAuthorizeUrl()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -209,7 +216,7 @@ public class AuthEndpointsTests
         var cache = new MemoryCache(new MemoryCacheOptions());
 
         // Act
-        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache);
+        var result = AuthEndpoints.HandleLogin(request, authProvider.Object, cache, logger);
 
         // Assert
         authProvider.Verify(p => p.BuildAuthorizeRedirect(
@@ -230,6 +237,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_MissingCode_ReturnsBadRequest()
     {
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -243,7 +251,7 @@ public class AuthEndpointsTests
         string? code = null;
         string? state = "some-state";
 
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
         Assert.Equal(StatusCodes.Status400BadRequest, statusResult.StatusCode);
@@ -259,6 +267,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_MissingState_ReturnsBadRequest()
     {
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -272,7 +281,7 @@ public class AuthEndpointsTests
         string? code = "some-code";
         string? state = null;
 
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
         Assert.Equal(StatusCodes.Status400BadRequest, statusResult.StatusCode);
@@ -288,6 +297,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_StateNotInCache_ReturnsBadRequest()
     {
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -301,7 +311,7 @@ public class AuthEndpointsTests
         string? code = "some-code";
         string? state = "some-state";
 
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
         Assert.Equal(StatusCodes.Status400BadRequest, statusResult.StatusCode);
@@ -317,6 +327,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_EmptyReturnUrlInCache_ReturnsBadRequest()
     {
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -333,7 +344,7 @@ public class AuthEndpointsTests
         var cacheKey = $"oidc_state:{state}";
         cache.Set(cacheKey, "");
 
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
         Assert.Equal(StatusCodes.Status400BadRequest, statusResult.StatusCode);
@@ -351,6 +362,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Callback_InvalidReturnUrlInCache_ReturnsBadRequest()
     {
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -368,7 +380,7 @@ public class AuthEndpointsTests
         var invalidReturnUrl = "not-valid-url";
         cache.Set(cacheKey, invalidReturnUrl);
 
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
         Assert.Equal(StatusCodes.Status400BadRequest, statusResult.StatusCode);
@@ -387,6 +399,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_ExchangesCodeViaAuthProvider()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -442,7 +455,7 @@ public class AuthEndpointsTests
             .ReturnsAsync((fakeUser, apiJwt, refreshToken));
 
         // Act
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         // Assert
         provider.Verify(p => p.ExchangeCodeAsync(
@@ -458,6 +471,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_ValidatesIdTokenAndSignsInUser()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -513,7 +527,7 @@ public class AuthEndpointsTests
             .ReturnsAsync((fakeUser, apiJwt, refreshToken));
 
         // Act
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         // Assert
         provider.Verify(p => p.ValidateAndReadIdToken(tokens.IdToken), Times.Once);
@@ -528,6 +542,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_CreatesRedirectWithTokenAndRefreshToken()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -583,7 +598,7 @@ public class AuthEndpointsTests
             .ReturnsAsync((fakeUser, apiJwt, refreshToken));
 
         // Act
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         // Assert
         var redirect = Assert.IsType<RedirectHttpResult>(result);
@@ -600,6 +615,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_RemovesStateFromCache()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -655,7 +671,7 @@ public class AuthEndpointsTests
             .ReturnsAsync((fakeUser, apiJwt, refreshToken));
 
         // Act
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         // Assert
         Assert.False(cache.TryGetValue(cacheKey, out _));
@@ -666,6 +682,7 @@ public class AuthEndpointsTests
     public async Task Callback_ValidRequest_ReturnsTemporaryRedirect()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
         context.Request.Host = new HostString("localhost");
@@ -721,7 +738,7 @@ public class AuthEndpointsTests
             .ReturnsAsync((fakeUser, apiJwt, refreshToken));
 
         // Act
-        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, logger, CancellationToken.None);
 
         // Assert
         var redirect = Assert.IsType<RedirectHttpResult>(result);
@@ -732,6 +749,7 @@ public class AuthEndpointsTests
     public async Task Refresh_RefreshFails_ReturnsUnauthorized()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var req = new AuthEndpoints.RefreshRequest("bad-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
@@ -746,7 +764,7 @@ public class AuthEndpointsTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((isSuccess, accessToken, refreshToken));
         // Act
-        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, logger, CancellationToken.None);
 
         // Assert
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
@@ -765,6 +783,7 @@ public class AuthEndpointsTests
     public async Task Refresh_ValidRefreshToken_ReturnsOk()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
@@ -779,7 +798,7 @@ public class AuthEndpointsTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((isSuccess, accessToken, refreshToken));
         // Act
-        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, logger, CancellationToken.None);
 
         // Assert
         var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
@@ -791,6 +810,7 @@ public class AuthEndpointsTests
     public async Task Refresh_ValidRefreshToken_ReturnsNewAccessAndRefreshTokens()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
@@ -805,7 +825,7 @@ public class AuthEndpointsTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((isSuccess, accessToken, refreshToken));
         // Act
-        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, logger, CancellationToken.None);
 
         // Assert
         var valueResult = Assert.IsType<IValueHttpResult>(result, exactMatch: false);
@@ -820,6 +840,7 @@ public class AuthEndpointsTests
     public async Task Refresh_ValidRefreshToken_CallsTokenServiceOnce()
     {
         // Arrange
+        ILogger logger = NullLogger.Instance;
         var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
 
         var tokenService = new Mock<ITokenService>();
@@ -834,7 +855,7 @@ public class AuthEndpointsTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((isSuccess, accessToken, refreshToken));
         // Act
-        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, logger, CancellationToken.None);
 
         // Assert
         tokenService.Verify(s => s.RefreshAsync(

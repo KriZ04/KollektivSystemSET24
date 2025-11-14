@@ -53,7 +53,7 @@ namespace KollektivSystem.ApiService.Services
                     user.Role = Role.SystemManager;
                 }
 
-                await _userRepo.AddAsync(user);
+                await _userRepo.AddAsync(user, ct);
             }
             else
             {
