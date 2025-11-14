@@ -1,0 +1,179 @@
+﻿@page "/sysutvikler/rolemanagment"
+@rendermode InteractiveServer
+
+@using System.Security.Claims
+@using KollektivSystem.Web.Models
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.UsersAdminClient UsersClient
+@inject KollektivSystem.Web.Services.AuthState Auth
+
+@if (!_loaded)
+{
+    <p>Sjekker tilgang …</p>
+}
+else if (!_isSysUtvikler)
+{
+    <p>Du har ikke tilgang til denne siden.</p>
+}
+else
+{
+    <h1>Rolleadministrasjon (SysUtvikler)</h1>
+    <p>Her kan du som systemutvikler endre roller for brukere i systemet.</p>
+
+    <div class="toolbar mb-3">
+        <button class="btn btn-secondary" @onclick="Back">Tilbake</button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_statusMessage))
+    {
+        <div class="alert @( _statusIsError ? "alert-danger" : "alert-success")" role="alert">
+            @_statusMessage
+        </div>
+    }
+
+    @if (_loading)
+    {
+        <p>Laster brukere…</p>
+    }
+    else if (_users.Count == 0)
+    {
+        <p>Ingen brukere funnet.</p>
+    }
+    else
+    {
+        <table class="tbl table">
+            <thead>
+                <tr>
+                    <th>Navn</th>
+                    <th>E-post</th>
+                    <th>Nåværende rolle</th>
+                    <th>Provider</th>
+                    <th>Sist innlogget</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in _users)
+                {
+                    <tr>
+                        <td>@u.Name</td>
+                        <td>@u.Email</td>
+                        <td>
+                            <select @onchange="e => OnRoleChanged(u, e)">
+                                @foreach (var r in _allRoles)
+                                {
+                                    <option value="@r" selected="@(u.Role == r)">
+                                        @r
+                                    </option>
+                                }
+                            </select>
+                        </td>
+                        <td>@u.Provider</td>
+                        <td>@u.LastLogin?.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => Save(u)">Lagre</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private readonly List<string> _allRoles =
+        new() { "Customer", "Admin", "Developer", "SystemManager" };
+
+    private List<AdminUserDto> _users = new();
+    private bool _loading = true;
+    private bool _loaded;
+    private bool _isSysUtvikler; // KUN SystemManager
+
+    private string? _statusMessage;
+    private bool _statusIsError;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _loaded)
+            return;
+
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        _isSysUtvikler =
+            !string.IsNullOrWhiteSpace(role) &&
+            role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase);
+
+        _loaded = true;
+
+        if (_isSysUtvikler)
+        {
+            await LoadUsersAsync();
+        }
+        else
+        {
+            Nav.NavigateTo("/", replace: true);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _loading = true;
+        _statusMessage = null;
+        _statusIsError = false;
+
+        _users = (await UsersClient.GetUsersAsync()).ToList();
+
+        _loading = false;
+    }
+
+    private void Back()
+    {
+        Nav.NavigateTo("/", true);
+    }
+
+    private void OnRoleChanged(AdminUserDto user, ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            var i = _users.FindIndex(x => x.Id == user.Id);
+            if (i >= 0)
+            {
+                _users[i] = user with { Role = value };
+            }
+        }
+    }
+
+    private async Task Save(AdminUserDto user)
+    {
+        _statusMessage = null;
+        _statusIsError = false;
+
+        var ok = await UsersClient.UpdateRoleAsync(user.Id, user.Role);
+
+        if (ok)
+        {
+            _statusMessage = $"Lagret rolle «{user.Role}» for {user.Name}.";
+            _statusIsError = false;
+
+            // Hent på nytt fra API, så vi viser det som faktisk er lagret
+            await LoadUsersAsync();
+        }
+        else
+        {
+            _statusMessage = $"Kunne ikke lagre rolle for {user.Name}.";
+            _statusIsError = true;
+        }
+
+        StateHasChanged();
+    }
+}
