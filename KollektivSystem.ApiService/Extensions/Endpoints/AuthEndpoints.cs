@@ -15,21 +15,7 @@ public static class AuthEndpoints
 
         group.MapGet("/callback", HandleCallback);
 
-        group.MapPost("/refresh", async (RefreshRequest req, ITokenService tokenService, CancellationToken ct) =>
-        {
-            var (success, access, refresh) = await tokenService.RefreshAsync(req.RefreshToken, ct);
-
-            if (!success)
-                return Results.Unauthorized();
-
-            return Results.Ok(new
-            {
-                access_token = access,
-                refresh_token = refresh
-            });
-        });
-
-
+        group.MapPost("/refresh", HandleRefresh);
 
         return app;
     }
@@ -77,6 +63,20 @@ public static class AuthEndpoints
         var target = $"{returnUrl}{sep}token={Uri.EscapeDataString(apiJwt)}&refresh={Uri.EscapeDataString(refreshToken)}";
 
         return Results.Redirect(target, permanent: false);
+    }
+
+    internal static async Task<IResult> HandleRefresh(RefreshRequest req, ITokenService tokenService, CancellationToken ct)
+    {
+        var (success, access, refresh) = await tokenService.RefreshAsync(req.RefreshToken, ct);
+
+        if (!success)
+            return Results.Unauthorized();
+
+        return Results.Ok(new
+        {
+            access_token = access,
+            refresh_token = refresh
+        });
     }
 
     public sealed record RefreshRequest(string RefreshToken);

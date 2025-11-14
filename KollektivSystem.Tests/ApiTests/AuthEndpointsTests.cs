@@ -1,4 +1,5 @@
-﻿using KollektivSystem.ApiService.Extensions.Endpoints;
+﻿using k8s.Models;
+using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Infrastructure;
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Domain;
@@ -728,29 +729,120 @@ public class AuthEndpointsTests
         Assert.False(redirect.Permanent);
     }
     [Fact]
-    void Refresh_InvalidRefreshToken_ReturnsUnauthorized()
+    public async Task Refresh_RefreshFails_ReturnsUnauthorized()
     {
-        Assert.Fail();
+        // Arrange
+        var req = new AuthEndpoints.RefreshRequest("bad-refresh-token");
+
+        var tokenService = new Mock<ITokenService>();
+
+        bool isSuccess = false;
+        string? accessToken = null;
+        string? refreshToken = null;
+
+        tokenService
+            .Setup(s => s.RefreshAsync(
+                req.RefreshToken,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((isSuccess, accessToken, refreshToken));
+        // Act
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+
+        // Assert
+        var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
+        Assert.Equal(StatusCodes.Status401Unauthorized, statusResult.StatusCode);
+
+        Assert.IsType<UnauthorizedHttpResult>(result);
+
+        tokenService.Verify(s => s.RefreshAsync(
+            req.RefreshToken,
+            It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        tokenService.VerifyNoOtherCalls();
     }
     [Fact]
-    void Refresh_RefreshFails_ReturnsUnauthorized()
+    public async Task Refresh_ValidRefreshToken_ReturnsOk()
     {
-        Assert.Fail();
+        // Arrange
+        var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
+
+        var tokenService = new Mock<ITokenService>();
+
+        bool isSuccess = true;
+        string? accessToken = "access.token.abc";
+        string? refreshToken = "valid-refresh-token";
+
+        tokenService
+            .Setup(s => s.RefreshAsync(
+                req.RefreshToken,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((isSuccess, accessToken, refreshToken));
+        // Act
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+
+        // Assert
+        var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
+        Assert.Equal(StatusCodes.Status200OK, statusResult.StatusCode);
+
+
     }
     [Fact]
-    void Refresh_ValidRefreshToken_ReturnsOk()
+    public async Task Refresh_ValidRefreshToken_ReturnsNewAccessAndRefreshTokens()
     {
-        Assert.Fail();
+        // Arrange
+        var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
+
+        var tokenService = new Mock<ITokenService>();
+
+        bool isSuccess = true;
+        string? accessToken = "access.token.abc";
+        string? refreshToken = "valid-refresh-token";
+
+        tokenService
+            .Setup(s => s.RefreshAsync(
+                req.RefreshToken,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((isSuccess, accessToken, refreshToken));
+        // Act
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+
+        // Assert
+        var valueResult = Assert.IsType<IValueHttpResult>(result, exactMatch: false);
+        Assert.NotNull(valueResult.Value);
+
+        dynamic body = valueResult.Value;
+
+        Assert.Equal(accessToken, (string)body.access_token);
+        Assert.Equal(refreshToken, (string)body.refresh_token);
     }
     [Fact]
-    void Refresh_ValidRefreshToken_ReturnsNewAccessAndRefreshTokens()
+    public async Task Refresh_ValidRefreshToken_CallsTokenServiceOnce()
     {
-        Assert.Fail();
-    }
-    [Fact]
-    void Refresh_ValidRefreshToken_CallsTokenServiceOnce()
-    {
-        Assert.Fail();
+        // Arrange
+        var req = new AuthEndpoints.RefreshRequest("valid-refresh-token");
+
+        var tokenService = new Mock<ITokenService>();
+
+        bool isSuccess = true;
+        string? accessToken = "access.token.abc";
+        string? refreshToken = "valid-refresh-token";
+
+        tokenService
+            .Setup(s => s.RefreshAsync(
+                req.RefreshToken,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((isSuccess, accessToken, refreshToken));
+        // Act
+        var result = await AuthEndpoints.HandleRefresh(req, tokenService.Object, CancellationToken.None);
+
+        // Assert
+        tokenService.Verify(s => s.RefreshAsync(
+            req.RefreshToken,
+            It.IsAny<CancellationToken>()),
+        Times.Once);
+
+        tokenService.VerifyNoOtherCalls();
     }
 
 
