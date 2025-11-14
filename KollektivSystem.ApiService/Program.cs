@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OidcStub.Endpoints;
 using OidcStub.Extensions;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,9 +72,22 @@ using (var scope = app.Services.CreateScope())
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+app.Use(async (context, next) =>
+{
+    var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown";
 
+    var logger = context.RequestServices
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("UserScope");
 
-
+    using (logger.BeginScope(new Dictionary<string, object>
+    {
+        ["user_id"] = userId
+    }))
+    {
+        await next();
+    }
+});
 app.MapUserEndpoints();
 app.MapAuthEndpoints();
 app.MapOidcEndpoints();
