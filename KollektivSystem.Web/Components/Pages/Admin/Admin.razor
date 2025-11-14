@@ -1,29 +1,75 @@
 ﻿@page "/admin"
 @rendermode InteractiveServer
+@using System.Security.Claims
 @inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.AuthState Auth
 
-<h1>Admin</h1>
-<p>Velg hva du vil administrere.</p>
+@if (!_loaded)
+{
+    <p>Sjekker tilgang …</p>
+}
+else if (!_isAdmin)
+{
+    <p>Du har ikke tilgang til denne siden.</p>
+}
+else
+{
+    <h1>Admin</h1>
+    <p>Velg hva du vil administrere.</p>
 
-<div class="admin-grid">
-    <section class="card">
-        <h2>Varsler</h2>
-        <p>Opprett, rediger og arkiver systemvarsler.</p>
-        <div class="actions">
-            <button class="btn" @onclick="OpenAlerts">Åpne varsler</button>
-        </div>
-    </section>
+    <div class="admin-grid">
+        <section class="card">
+            <h2>Varsler</h2>
+            <p>Opprett, rediger og arkiver systemvarsler.</p>
+            <div class="actions">
+                <button class="btn" @onclick="OpenAlerts">Åpne varsler</button>
+            </div>
+        </section>
 
-    <section class="card">
-        <h2>Rutetabeller</h2>
-        <p>Administrer linjer, avganger og publisering.</p>
-        <div class="actions">
-            <button class="btn" @onclick="OpenRoutes">Åpne rutetabeller</button>
-        </div>
-    </section>
-</div>
+        <section class="card">
+            <h2>Rutetabeller</h2>
+            <p>Administrer linjer, avganger og publisering.</p>
+            <div class="actions">
+                <button class="btn" @onclick="OpenRoutes">Åpne rutetabeller</button>
+            </div>
+        </section>
+    </div>
+}
 
 @code {
+    private bool _loaded;
+    private bool _isAdmin;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _loaded)
+            return;
+
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        _isAdmin =
+            !string.IsNullOrWhiteSpace(role) &&
+            (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+             role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase));
+
+        _loaded = true;
+
+        if (!_isAdmin)
+        {
+            // Ikke admin → send til login-siden
+            Nav.NavigateTo("/login", replace: true);
+        }
+
+        StateHasChanged();
+    }
+
     private void OpenAlerts() => Nav.NavigateTo("/admin/alerts", true);
     private void OpenRoutes() => Nav.NavigateTo("/admin/routes", true);
 }

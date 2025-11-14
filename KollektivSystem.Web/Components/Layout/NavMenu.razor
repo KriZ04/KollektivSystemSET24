@@ -1,19 +1,24 @@
 ﻿@using Microsoft.AspNetCore.Components.Routing
+@using System.Security.Claims
+@inject KollektivSystem.Web.Services.AuthState Auth
 
 <nav class="flex-column">
     <ul class="nav flex-column">
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink></li>
-
-        <!-- Admin (alltid synlig for test) -->
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="admin" Match="NavLinkMatch.Prefix">
-                <span class="oi oi-shield" aria-hidden="true"></span> Admin
-
-        </NavLink>
+            </NavLink>
         </li>
+
+        @if (_isAdmin)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="admin" Match="NavLinkMatch.Prefix">
+                    <span class="oi oi-shield" aria-hidden="true"></span> Admin
+                </NavLink>
+            </li>
+        }
+
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="login">
                 <span class="bi bi-key" aria-hidden="true"></span> Login
@@ -21,3 +26,31 @@
         </li>
     </ul>
 </nav>
+
+@code {
+    private bool _isAdmin;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Viktig pga prerendering + JS interop
+        if (!firstRender)
+            return;
+
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            // Prøv begge varianter
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        _isAdmin =
+            !string.IsNullOrWhiteSpace(role) &&
+            (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+             role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase));
+
+        StateHasChanged();
+    }
+}
