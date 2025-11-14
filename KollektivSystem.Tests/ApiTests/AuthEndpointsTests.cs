@@ -1,11 +1,14 @@
 ﻿using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Infrastructure;
+using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Domain;
+using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -344,61 +347,411 @@ public class AuthEndpointsTests
         provider.VerifyNoOtherCalls();
         auth.VerifyNoOtherCalls();
     }
-    //[Fact]
-    //void Callback_InvalidReturnUrlInCache_ReturnsBadRequest()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Callback_ValidRequest_ExchangesCodeViaAuthProvider()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Callback_ValidRequest_ValidatesIdTokenAndSignsInUser()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Callback_ValidRequest_CreatesRedirectWithTokenAndRefreshToken()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Callback_ValidRequest_RemovesStateFromCache()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Callback_ValidRequest_ReturnsTemporaryRedirect()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Refresh_InvalidRefreshToken_ReturnsUnauthorized()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Refresh_RefreshFails_ReturnsUnauthorized()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Refresh_ValidRefreshToken_ReturnsOk()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Refresh_ValidRefreshToken_ReturnsNewAccessAndRefreshTokens()
-    //{
-    //    Assert.Fail();
-    //}
-    //[Fact]
-    //void Refresh_ValidRefreshToken_CallsTokenServiceOnce()
-    //{
-    //    Assert.Fail();
-    //}
+    [Fact]
+    public async Task Callback_InvalidReturnUrlInCache_ReturnsBadRequest()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("localhost");
+
+        var request = context.Request;
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var provider = new Mock<IAuthProvider>(MockBehavior.Strict);
+        var auth = new Mock<IAuthService>(MockBehavior.Strict);
+
+        string? code = "some-code";
+        string? state = "some-state";
+
+        var cacheKey = $"oidc_state:{state}";
+        var invalidReturnUrl = "not-valid-url";
+        cache.Set(cacheKey, invalidReturnUrl);
+
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+
+        var statusResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
+        Assert.Equal(StatusCodes.Status400BadRequest, statusResult.StatusCode);
+
+
+        var valueResult = Assert.IsType<IValueHttpResult>(result, exactMatch: false);
+        Assert.NotNull(valueResult.Value);
+
+        Assert.True(cache.TryGetValue(cacheKey, out var cachedValue));
+        Assert.Equal(invalidReturnUrl, cachedValue);
+
+        provider.VerifyNoOtherCalls();
+        auth.VerifyNoOtherCalls();
+    }
+    [Fact]
+    public async Task Callback_ValidRequest_ExchangesCodeViaAuthProvider()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("localhost");
+
+        var request = context.Request;
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+
+        string? code = "valid-auth-code-123";
+        string? state = "valid-state-abc";
+
+        var cacheKey = $"oidc_state:{state}";
+        var returnUrl = "https://localhost:7151/home";
+        cache.Set(cacheKey, returnUrl);
+
+        var provider = new Mock<IAuthProvider>();
+
+        var redurectUriExpected = new Uri("https://localhost/auth/callback");
+
+        var tokens = new TokenResult("id-token-123", "access.token", "refresh-token");
+
+        provider.Setup(p => p.ExchangeCodeAsync(
+            It.IsAny<string>(),
+            It.IsAny<Uri>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tokens);
+
+        var fakeUser = new User { Id = Guid.Parse("A9AFB356-2ED5-461D-838C-87208F45D589"), DisplayName = "User Name", Sub = "sub-user", Role = Role.Customer };
+
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, fakeUser.Id.ToString()),
+                new Claim(ClaimTypes.Role, fakeUser.Role.ToString())
+            }, "oidc"));
+
+
+        provider.Setup(p => p.ValidateAndReadIdToken(tokens.IdToken)).Returns(principal);
+
+        var auth = new Mock<IAuthService>();
+
+        var apiJwt = "api-jwt-abc";
+        var refreshToken = "refresh-xyz";
+        var providerType = AuthProvider.Mock;
+
+        provider.SetupGet(p => p.Provider).Returns(providerType);
+
+        auth
+            .Setup(a => a.SignInWithIdTokenAsync(
+                providerType,
+                principal,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((fakeUser, apiJwt, refreshToken));
+
+        // Act
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+
+        // Assert
+        provider.Verify(p => p.ExchangeCodeAsync(
+                code,
+                It.Is<Uri>(u =>
+                    u.Scheme == "https" &&
+                    u.Host == "localhost" &&
+                    u.AbsolutePath.EndsWith("/auth/callback")),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+    [Fact]
+    public async Task Callback_ValidRequest_ValidatesIdTokenAndSignsInUser()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("localhost");
+
+        var request = context.Request;
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+
+        string? code = "valid-auth-code-123";
+        string? state = "valid-state-abc";
+
+        var cacheKey = $"oidc_state:{state}";
+        var returnUrl = "https://localhost:7151/home";
+        cache.Set(cacheKey, returnUrl);
+
+        var provider = new Mock<IAuthProvider>();
+
+        var redurectUriExpected = new Uri("https://localhost/auth/callback");
+
+        var tokens = new TokenResult("id-token-123", "access.token", "refresh-token");
+
+        provider.Setup(p => p.ExchangeCodeAsync(
+            It.IsAny<string>(),
+            It.IsAny<Uri>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tokens);
+
+        var fakeUser = new User { Id = Guid.Parse("A9AFB356-2ED5-461D-838C-87208F45D589"), DisplayName = "User Name", Sub = "sub-user", Role = Role.Customer };
+
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, fakeUser.Id.ToString()),
+                new Claim(ClaimTypes.Role, fakeUser.Role.ToString())
+            }, "oidc"));
+
+
+        provider.Setup(p => p.ValidateAndReadIdToken(tokens.IdToken)).Returns(principal);
+
+        var auth = new Mock<IAuthService>();
+
+        var apiJwt = "api-jwt-abc";
+        var refreshToken = "refresh-xyz";
+        var providerType = AuthProvider.Mock;
+
+        provider.SetupGet(p => p.Provider).Returns(providerType);
+
+        auth
+            .Setup(a => a.SignInWithIdTokenAsync(
+                providerType,
+                principal,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((fakeUser, apiJwt, refreshToken));
+
+        // Act
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+
+        // Assert
+        provider.Verify(p => p.ValidateAndReadIdToken(tokens.IdToken), Times.Once);
+        
+        auth.Verify(a => a.SignInWithIdTokenAsync(
+        providerType,
+        principal,
+        It.IsAny<CancellationToken>()),
+    Times.Once);
+    }
+    [Fact]
+    public async Task Callback_ValidRequest_CreatesRedirectWithTokenAndRefreshToken()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("localhost");
+
+        var request = context.Request;
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+
+        string? code = "valid-auth-code-123";
+        string? state = "valid-state-abc";
+
+        var cacheKey = $"oidc_state:{state}";
+        var returnUrl = "https://localhost:7151/home";
+        cache.Set(cacheKey, returnUrl);
+
+        var provider = new Mock<IAuthProvider>();
+
+        var redurectUriExpected = new Uri("https://localhost/auth/callback");
+
+        var tokens = new TokenResult("id-token-123", "access.token", "refresh-token");
+
+        provider.Setup(p => p.ExchangeCodeAsync(
+            It.IsAny<string>(),
+            It.IsAny<Uri>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tokens);
+
+        var fakeUser = new User { Id = Guid.Parse("A9AFB356-2ED5-461D-838C-87208F45D589"), DisplayName = "User Name", Sub = "sub-user", Role = Role.Customer };
+
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, fakeUser.Id.ToString()),
+                new Claim(ClaimTypes.Role, fakeUser.Role.ToString())
+            }, "oidc"));
+
+
+        provider.Setup(p => p.ValidateAndReadIdToken(tokens.IdToken)).Returns(principal);
+
+        var auth = new Mock<IAuthService>();
+
+        var apiJwt = "api-jwt-abc";
+        var refreshToken = "refresh-xyz";
+        var providerType = AuthProvider.Mock;
+
+        provider.SetupGet(p => p.Provider).Returns(providerType);
+
+        auth
+            .Setup(a => a.SignInWithIdTokenAsync(
+                providerType,
+                principal,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((fakeUser, apiJwt, refreshToken));
+
+        // Act
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectHttpResult>(result);
+
+        var url = redirect.Url;
+        Assert.NotNull(url);
+
+        Assert.Contains(apiJwt, url);
+        Assert.Contains(refreshToken, url);
+
+        Assert.StartsWith(returnUrl, url);
+    }
+    [Fact]
+    public async Task Callback_ValidRequest_RemovesStateFromCache()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("localhost");
+
+        var request = context.Request;
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+
+        string? code = "valid-auth-code-123";
+        string? state = "valid-state-abc";
+
+        var cacheKey = $"oidc_state:{state}";
+        var returnUrl = "https://localhost:7151/home";
+        cache.Set(cacheKey, returnUrl);
+
+        var provider = new Mock<IAuthProvider>();
+
+        var redurectUriExpected = new Uri("https://localhost/auth/callback");
+
+        var tokens = new TokenResult("id-token-123", "access.token", "refresh-token");
+
+        provider.Setup(p => p.ExchangeCodeAsync(
+            It.IsAny<string>(),
+            It.IsAny<Uri>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tokens);
+
+        var fakeUser = new User { Id = Guid.Parse("A9AFB356-2ED5-461D-838C-87208F45D589"), DisplayName = "User Name", Sub = "sub-user", Role = Role.Customer };
+
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, fakeUser.Id.ToString()),
+                new Claim(ClaimTypes.Role, fakeUser.Role.ToString())
+            }, "oidc"));
+
+
+        provider.Setup(p => p.ValidateAndReadIdToken(tokens.IdToken)).Returns(principal);
+
+        var auth = new Mock<IAuthService>();
+
+        var apiJwt = "api-jwt-abc";
+        var refreshToken = "refresh-xyz";
+        var providerType = AuthProvider.Mock;
+
+        provider.SetupGet(p => p.Provider).Returns(providerType);
+
+        auth
+            .Setup(a => a.SignInWithIdTokenAsync(
+                providerType,
+                principal,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((fakeUser, apiJwt, refreshToken));
+
+        // Act
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+
+        // Assert
+        Assert.False(cache.TryGetValue(cacheKey, out _));
+
+
+    }
+    [Fact]
+    public async Task Callback_ValidRequest_ReturnsTemporaryRedirect()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("localhost");
+
+        var request = context.Request;
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+
+        string? code = "valid-auth-code-123";
+        string? state = "valid-state-abc";
+
+        var cacheKey = $"oidc_state:{state}";
+        var returnUrl = "https://localhost:7151/home";
+        cache.Set(cacheKey, returnUrl);
+
+        var provider = new Mock<IAuthProvider>();
+
+        var redurectUriExpected = new Uri("https://localhost/auth/callback");
+
+        var tokens = new TokenResult("id-token-123", "access.token", "refresh-token");
+
+        provider.Setup(p => p.ExchangeCodeAsync(
+            It.IsAny<string>(),
+            It.IsAny<Uri>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tokens);
+
+        var fakeUser = new User { Id = Guid.Parse("A9AFB356-2ED5-461D-838C-87208F45D589"), DisplayName = "User Name", Sub = "sub-user", Role = Role.Customer };
+
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, fakeUser.Id.ToString()),
+                new Claim(ClaimTypes.Role, fakeUser.Role.ToString())
+            }, "oidc"));
+
+
+        provider.Setup(p => p.ValidateAndReadIdToken(tokens.IdToken)).Returns(principal);
+
+        var auth = new Mock<IAuthService>();
+
+        var apiJwt = "api-jwt-abc";
+        var refreshToken = "refresh-xyz";
+        var providerType = AuthProvider.Mock;
+
+        provider.SetupGet(p => p.Provider).Returns(providerType);
+
+        auth
+            .Setup(a => a.SignInWithIdTokenAsync(
+                providerType,
+                principal,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((fakeUser, apiJwt, refreshToken));
+
+        // Act
+        var result = await AuthEndpoints.HandleCallback(code, state, request, cache, provider.Object, auth.Object, CancellationToken.None);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectHttpResult>(result);
+        Assert.NotNull(redirect.Url);
+        Assert.False(redirect.Permanent);
+    }
+    [Fact]
+    void Refresh_InvalidRefreshToken_ReturnsUnauthorized()
+    {
+        Assert.Fail();
+    }
+    [Fact]
+    void Refresh_RefreshFails_ReturnsUnauthorized()
+    {
+        Assert.Fail();
+    }
+    [Fact]
+    void Refresh_ValidRefreshToken_ReturnsOk()
+    {
+        Assert.Fail();
+    }
+    [Fact]
+    void Refresh_ValidRefreshToken_ReturnsNewAccessAndRefreshTokens()
+    {
+        Assert.Fail();
+    }
+    [Fact]
+    void Refresh_ValidRefreshToken_CallsTokenServiceOnce()
+    {
+        Assert.Fail();
+    }
 
 
 }
