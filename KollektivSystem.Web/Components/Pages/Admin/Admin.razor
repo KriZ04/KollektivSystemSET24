@@ -8,7 +8,7 @@
 {
     <p>Sjekker tilgang …</p>
 }
-else if (!_isAdmin)
+else if (!_hasAdminAccess)
 {
     <p>Du har ikke tilgang til denne siden.</p>
 }
@@ -38,7 +38,7 @@ else
 
 @code {
     private bool _loaded;
-    private bool _isAdmin;
+    private bool _hasAdminAccess;   // Admin ELLER SystemManager
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -54,16 +54,15 @@ else
                 claims.TryGetValue("role", out role);
         }
 
-        _isAdmin =
+        _hasAdminAccess =
             !string.IsNullOrWhiteSpace(role) &&
             (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
              role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase));
 
         _loaded = true;
 
-        if (!_isAdmin)
+        if (!_hasAdminAccess)
         {
-            // Ikke admin → send til login-siden
             Nav.NavigateTo("/login", replace: true);
         }
 
