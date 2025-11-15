@@ -8,6 +8,7 @@ public sealed class AuthEndpointsLoggerCategory { }
 
 public static class AuthEndpoints
 {
+    private static readonly string[] DefaultScopes = ["openid", "email", "profile"];
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/auth");
@@ -31,15 +32,16 @@ public static class AuthEndpoints
 
         }
 
-        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru) || (ru.Scheme != Uri.UriSchemeHttps && ru.Scheme != Uri.UriSchemeHttp))
+        if (!IsValidReturnUrl(returnUrl, out _))
         {
             logger.LoginInvalidReturnUrl(returnUrl);
             return Results.BadRequest("invalid returnUrl");
         }
 
         var callback = new Uri($"{req.Scheme}://{req.Host}/auth/callback");
-        var ch = authProvider.BuildAuthorizeRedirect(callback, ["openid", "email", "profile"]);
-        cache.Set($"oidc_state:{ch.State}", returnUrl, TimeSpan.FromMinutes(5));
+        var ch = authProvider.BuildAuthorizeRedirect(callback, DefaultScopes);
+        var cacheKey = GetStateCacheKey(ch.State);
+        cache.Set(cacheKey, returnUrl, TimeSpan.FromMinutes(5));
 
         logger.LoginRedirecting(ch.State, returnUrl);
 
@@ -55,7 +57,9 @@ public static class AuthEndpoints
             return Results.BadRequest("Missing 'code' or 'state'.");
         }
 
-        if (!cache.TryGetValue<string>($"oidc_state:{state}", out var returnUrl))
+        var cacheKey = GetStateCacheKey(state);
+
+        if (!cache.TryGetValue<string>(cacheKey, out var returnUrl))
         {
             logger.CallbackInvalidState(state);
             return Results.BadRequest("Invalid state.");
@@ -67,13 +71,13 @@ public static class AuthEndpoints
             return Results.BadRequest("Missing return url.");
         }
         
-        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru) || (ru.Scheme != Uri.UriSchemeHttps && ru.Scheme != Uri.UriSchemeHttp))
+        if (!IsValidReturnUrl(returnUrl, out _))
         {
             logger.CallbackInvalidReturnUrl(state, returnUrl);
             return Results.BadRequest("invalid returnUrl");
         }
 
-        cache.Remove($"oidc_state:{state}");
+        cache.Remove(cacheKey);
 
         var redirectUri = new Uri($"{req.Scheme}://{req.Host}/auth/callback");
 
@@ -110,6 +114,26 @@ public static class AuthEndpoints
             refresh_token = refresh
         });
     }
+
+    private static bool IsValidReturnUrl(string returnUrl, out Uri? uri)
+    {
+        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var ru))
+        {
+            uri = null;
+            return false;
+        }
+
+        if (ru.Scheme != Uri.UriSchemeHttps && ru.Scheme != Uri.UriSchemeHttp)
+        {
+            uri = null;
+            return false;
+        }
+
+        uri = ru;
+        return true;
+    }
+
+    private static string GetStateCacheKey(string state) => $"oidc_state:{state}";
 
     public sealed record RefreshRequest(string RefreshToken);
 }
