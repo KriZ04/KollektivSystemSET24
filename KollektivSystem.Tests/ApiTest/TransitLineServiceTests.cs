@@ -115,10 +115,10 @@ namespace KollektivSystem.UnitTests.ApiTest
             var loggerMock = new Mock<ILogger<TransitLineService>>();
 
             var linesInRepo = new List<TransitLine>
-    {
-        new TransitLine { Id = 1, Name = "Line 1", Stops = new List<Stop>() },
-        new TransitLine { Id = 2, Name = "Line 2", Stops = new List<Stop>() }
-    };
+            {
+                new TransitLine { Id = 1, Name = "Line 1", Stops = new List<Stop>() },
+                new TransitLine { Id = 2, Name = "Line 2", Stops = new List<Stop>() }
+            };
 
             // Repository mock
             repoMock
