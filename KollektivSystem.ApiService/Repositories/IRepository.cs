@@ -11,9 +11,7 @@
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);
         Task<List<T>> GetAllAsync(CancellationToken ct = default);
-        Task<bool> RemoveByIdAsync(TKey id, CancellationToken ct = default); 
-        Task SaveChanges(CancellationToken ct = default);
-        Task<int> SaveChangesAsync(CancellationToken ct = default);
+        Task<bool> RemoveByIdAsync(TKey id, CancellationToken ct = default);
 
     }
 }

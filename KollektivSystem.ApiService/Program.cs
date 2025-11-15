@@ -29,9 +29,7 @@ public class Program
         builder.Services.AddAuths(builder.Configuration);
 
         builder.Services.AddOidcStub(builder.Configuration);
-builder.Services.AddDomainServices();
-
-builder.Services.AddScoped<ITransitLineService, TransitLineService>();
+        builder.Services.AddDomainServices();
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -105,7 +103,7 @@ builder.Services.AddScoped<ITransitLineService, TransitLineService>();
         app.MapUserEndpoints();
         app.MapAuthEndpoints();
         app.MapOidcEndpoints();
-app.MapTransitLineEndpoints();
+        app.MapTransitLineEndpoints();
 
         app.MapDefaultEndpoints();
 

@@ -1,8 +1,11 @@
-﻿using Moq;
-using KollektivSystem.ApiService.Services.Implementations;
-using KollektivSystem.ApiService.Repositories;
+﻿using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Models.Transport;
+using KollektivSystem.ApiService.Repositories;
+using KollektivSystem.ApiService.Repositories.Uow;
+using KollektivSystem.ApiService.Services.Implementations;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace KollektivSystem.UnitTests.ApiTests
 {
@@ -12,7 +15,10 @@ namespace KollektivSystem.UnitTests.ApiTests
         {
             // Arrange
             var repoMock = new Mock<ITransitLineRepository>();
-            var loggerMock = new Mock<ILogger<TransitLineService>>();
+            var uowMock = new Mock<IUnitOfWork>();
+            ILogger<TransitLineService> logger = NullLogger<TransitLineService>.Instance;
+
+            uowMock.SetupGet(u => u.TransitLines).Returns(repoMock.Object);
 
             var testLine = new TransitLine
             {
@@ -21,13 +27,12 @@ namespace KollektivSystem.UnitTests.ApiTests
                 Stops = new List<Stop>()
             };
 
-            repoMock.Setup(r => r.AddAsync(It.IsAny<TransitLine>(), default))
-                    .Returns(Task.CompletedTask);
+            repoMock.Setup(r => r.AddAsync(It.IsAny<TransitLine>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-            repoMock.Setup(r => r.SaveChanges())
-                    .Returns(Task.CompletedTask);
+            uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-            var service = new TransitLineService(repoMock.Object, loggerMock.Object);
+            var service = new TransitLineService(uowMock.Object, logger);
 
             // Act
             var result = await service.CreateAsync(testLine);
@@ -40,11 +45,8 @@ namespace KollektivSystem.UnitTests.ApiTests
 
 
 
-            repoMock.Verify(r => r.AddAsync(It.IsAny<TransitLine>(), default), Times.Once);
-            repoMock.Verify(r => r.SaveChanges(), Times.Once);
-
-
-
+            repoMock.Verify(r => r.AddAsync(It.IsAny<TransitLine>(), It.IsAny<CancellationToken>()), Times.Once);
+            uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -52,7 +54,10 @@ namespace KollektivSystem.UnitTests.ApiTests
         {
             // Arrange
             var repoMock = new Mock<ITransitLineRepository>();
-            var loggerMock = new Mock<ILogger<TransitLineService>>();
+            var uowMock = new Mock<IUnitOfWork>();
+            ILogger<TransitLineService> logger = NullLogger<TransitLineService>.Instance;
+
+            uowMock.SetupGet(u => u.TransitLines).Returns(repoMock.Object);
 
             var testLine = new TransitLine
             {
@@ -60,12 +65,11 @@ namespace KollektivSystem.UnitTests.ApiTests
                 Name = "Blue Line",
                 Stops = new List<Stop>()
             };
-
-            repoMock
-                .Setup(r => r.FindAsync(1, default))
+            repoMock.Setup(r => r.FindAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(testLine);
 
-            var service = new TransitLineService(repoMock.Object, loggerMock.Object);
+            uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            var service = new TransitLineService(uowMock.Object, logger);
 
             // Act
             var result = await service.GetByIdAsync(1);
@@ -75,7 +79,7 @@ namespace KollektivSystem.UnitTests.ApiTests
             Assert.Equal(testLine, result);
             Assert.Equal("Blue Line", result.Name);
 
-            repoMock.Verify(r => r.FindAsync(1, default), Times.Once);
+            repoMock.Verify(r => r.FindAsync(1, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -83,13 +87,16 @@ namespace KollektivSystem.UnitTests.ApiTests
         {
             // Arrange
             var repoMock = new Mock<ITransitLineRepository>();
-            var loggerMock = new Mock<ILogger<TransitLineService>>();
+            var uowMock = new Mock<IUnitOfWork>();
+            ILogger<TransitLineService> logger = NullLogger<TransitLineService>.Instance;
 
-            repoMock
-                .Setup(r => r.FindAsync(999, default))
+            uowMock.SetupGet(u => u.TransitLines).Returns(repoMock.Object);
+
+            repoMock.Setup(r => r.FindAsync(999, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((TransitLine?)null);
 
-            var service = new TransitLineService(repoMock.Object, loggerMock.Object);
+            uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            var service = new TransitLineService(uowMock.Object, logger);
 
             // Act
             var result = await service.GetByIdAsync(999);
@@ -97,7 +104,7 @@ namespace KollektivSystem.UnitTests.ApiTests
             // Assert
             Assert.Null(result);
 
-            repoMock.Verify(r => r.FindAsync(999, default), Times.Once);
+            repoMock.Verify(r => r.FindAsync(999, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -105,7 +112,10 @@ namespace KollektivSystem.UnitTests.ApiTests
         {
             // Arrange
             var repoMock = new Mock<ITransitLineRepository>();
-            var loggerMock = new Mock<ILogger<TransitLineService>>();
+            var uowMock = new Mock<IUnitOfWork>();
+            ILogger<TransitLineService> logger = NullLogger<TransitLineService>.Instance;
+
+            uowMock.SetupGet(u => u.TransitLines).Returns(repoMock.Object);
 
             var linesInRepo = new List<TransitLine>
             {
@@ -118,7 +128,8 @@ namespace KollektivSystem.UnitTests.ApiTests
                 .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(linesInRepo);
 
-            var service = new TransitLineService(repoMock.Object, loggerMock.Object);
+            uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            var service = new TransitLineService(uowMock.Object, logger);
 
             // Act
             var result = await service.GetAllAsync();

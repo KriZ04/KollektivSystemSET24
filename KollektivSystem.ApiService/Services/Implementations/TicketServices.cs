@@ -3,17 +3,18 @@ using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
+using KollektivSystem.ApiService.Repositories.Uow;
 
 namespace KollektivSystem.ApiService.Services.Implementations
 {
     public class TicketService : ITicketService
     {
-        private readonly ITicketsRepository _repo;
+        private readonly IUnitOfWork _uow;
         private readonly ILogger<TicketService> _logger;
 
-        public TicketService(ITicketsRepository repo, ILogger<TicketService> logger)
+        public TicketService(IUnitOfWork uow, ILogger<TicketService> logger)
         {
-            _repo = repo;
+            _uow = uow;
             _logger = logger;
         }
 
@@ -21,8 +22,8 @@ namespace KollektivSystem.ApiService.Services.Implementations
         {
             try
             {
-                await _repo.AddAsync(ticket);
-                await _repo.SaveChanges();
+                await _uow.Tickets.AddAsync(ticket);
+                await _uow.SaveChangesAsync();
 
                 _logger.LogTicketCreated(ticket.Id);
                 return ticket;
@@ -36,12 +37,12 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
         public async Task<IEnumerable<Tickets>> GetAllAsync()
         {
-            return await _repo.GetAllAsync();
+            return await _uow.Tickets.GetAllAsync();
         }
 
         public async Task<Tickets?> GetByIdAsync(int id)
         {
-            var ticket = await _repo.FindAsync(id);
+            var ticket = await _uow.Tickets.FindAsync(id);
 
             if (ticket == null)
                 _logger.LogTicketNotFound(id);
@@ -51,15 +52,15 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var existing = await _repo.FindAsync(id);
+            var existing = await _uow.Tickets.FindAsync(id);
             if (existing == null)
             {
                 _logger.LogTicketNotFound(id);
                 return false;
             }
 
-            _repo.Remove(existing);
-            await _repo.SaveChanges();
+            _uow.Tickets.Remove(existing);
+            await _uow.SaveChangesAsync();
 
             _logger.LogTicketDeleted(id);
             return true;
