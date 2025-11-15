@@ -1,17 +1,8 @@
-﻿using Xunit;
-using Moq;
-using FluentAssertions;
+﻿using Moq;
 using KollektivSystem.ApiService.Services.Implementations;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Models.Transport;
 using Microsoft.Extensions.Logging;
-
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KollektivSystem.UnitTests.ApiTests
 {
@@ -43,9 +34,11 @@ namespace KollektivSystem.UnitTests.ApiTests
 
 
             // Assert
-            result.Should().NotBeNull();
-            result.Should().Be(testLine);
-            result.Name.Should().Be("Test Line");
+            Assert.NotNull(result);
+            Assert.Equal(testLine, result);
+            Assert.Equal("Test Line", result.Name);
+
+
 
             repoMock.Verify(r => r.AddAsync(It.IsAny<TransitLine>(), default), Times.Once);
             repoMock.Verify(r => r.SaveChanges(), Times.Once);
@@ -78,9 +71,9 @@ namespace KollektivSystem.UnitTests.ApiTests
             var result = await service.GetByIdAsync(1);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Should().Be(testLine);
-            result!.Name.Should().Be("Blue Line");
+            Assert.NotNull(result);
+            Assert.Equal(testLine, result);
+            Assert.Equal("Blue Line", result.Name);
 
             repoMock.Verify(r => r.FindAsync(1, default), Times.Once);
         }
@@ -102,7 +95,7 @@ namespace KollektivSystem.UnitTests.ApiTests
             var result = await service.GetByIdAsync(999);
 
             // Assert
-            result.Should().BeNull();
+            Assert.Null(result);
 
             repoMock.Verify(r => r.FindAsync(999, default), Times.Once);
         }
@@ -131,9 +124,9 @@ namespace KollektivSystem.UnitTests.ApiTests
             var result = await service.GetAllAsync();
 
             // Assert
-            result.Should().NotBeNull();
-            result.Should().HaveCount(2);
-            result.Should().BeEquivalentTo(linesInRepo);
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+            Assert.Equivalent(linesInRepo, result);
 
             repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
