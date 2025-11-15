@@ -1,4 +1,6 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
+using KollektivSystem.ApiService.Services;
+using KollektivSystem.IntegrationTests.ApiTests.TestClasses;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -26,6 +28,23 @@ namespace KollektivSystem.IntegrationTests.ApiTests.Setup
                 {
                     options.UseInMemoryDatabase("AuthIntegrationTestsDb");
                 });
+
+                var authProviderDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAuthProvider));
+
+                if (authProviderDescriptor != null)
+                    services.Remove(authProviderDescriptor);
+
+                services.AddSingleton<IAuthProvider, TestAuthProvider>();
+
+                var tokenServiceDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(ITokenService));
+
+                if (tokenServiceDescriptor != null)
+                    services.Remove(tokenServiceDescriptor);
+                
+
+                services.AddSingleton<ITokenService, TestTokenService>();
+
 
                 using var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
