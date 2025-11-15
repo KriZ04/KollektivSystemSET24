@@ -5,7 +5,7 @@ using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using KollektivSystem.ApiService.Repositories.Uow;
 
-namespace KollektivSystem.ApiService.Services.Implementations
+namespace KollektivSystem.ApiService.Services
 {
     public class TransitLineService : ITransitLineService
     {

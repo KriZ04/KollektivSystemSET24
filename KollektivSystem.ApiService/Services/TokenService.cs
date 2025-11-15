@@ -3,6 +3,7 @@ using KollektivSystem.ApiService.Infrastructure;
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
+using KollektivSystem.ApiService.Services.Interfaces;
 
 namespace KollektivSystem.ApiService.Services
 {

@@ -1,5 +1,5 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
-using KollektivSystem.ApiService.Services;
+using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints;

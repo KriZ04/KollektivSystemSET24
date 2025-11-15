@@ -1,4 +1,4 @@
-﻿namespace KollektivSystem.ApiService.Services
+﻿namespace KollektivSystem.ApiService.Services.Interfaces
 {
     public interface ITokenService
     {

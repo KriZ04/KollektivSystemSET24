@@ -2,7 +2,6 @@
 using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
-using KollektivSystem.ApiService.Services.Implementations;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

@@ -3,6 +3,7 @@ using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
+using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Security.Claims;

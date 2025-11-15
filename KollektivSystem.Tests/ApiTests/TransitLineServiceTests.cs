@@ -2,7 +2,7 @@
 using KollektivSystem.ApiService.Models.Transport;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
-using KollektivSystem.ApiService.Services.Implementations;
+using KollektivSystem.ApiService.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;

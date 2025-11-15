@@ -11,10 +11,10 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
 {
     public static class UserEndpoints
     {
-        public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder builder)
+        public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
         {
             // Opprett ny bruker (lar det stå, men låser til Staff)
-            builder.MapPost("/users", async (User dto, IUserRepository users, IUnitOfWork uow, CancellationToken ct) =>
+            app.MapPost("/users", async (User dto, IUserRepository users, IUnitOfWork uow, CancellationToken ct) =>
             {
                 var user = new User
                 {
@@ -36,7 +36,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             .RequireAuthorization("Staff");
 
             // Hent info om innlogget bruker
-            builder.MapGet("/users/me", async (ClaimsPrincipal user, IUserRepository repo, CancellationToken ct) =>
+            app.MapGet("/users/me", async (ClaimsPrincipal user, IUserRepository repo, CancellationToken ct) =>
             {
                 var id = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -60,7 +60,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             .RequireAuthorization();
 
             // Liste ALLE brukere – for admin/sysutvikler-UI
-            builder.MapGet("/users", async (IUserRepository users, CancellationToken ct) =>
+            app.MapGet("/users", async (IUserRepository users, CancellationToken ct) =>
             {
                 var list = await users.GetAllAsync(ct);
 
@@ -81,7 +81,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             .RequireAuthorization("Staff");
 
             // Endre rollen til en bruker (kun SystemManager / "Manager"-policy)
-            builder.MapPut("/users/{id:guid}/role", async (
+            app.MapPut("/users/{id:guid}/role", async (
                 Guid id,
                 [FromBody] UpdateUserRoleRequest request,
                 IUserRepository users,
@@ -112,7 +112,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             })
             .RequireAuthorization("Manager"); // SystemManager
 
-            return builder;
+            return app;
         }
     }
 
