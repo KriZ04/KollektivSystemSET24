@@ -73,6 +73,7 @@
 
             if (notFoundOrUnauthorized)
             {
+                await AuthTokens.LogoutAsync();
                 _cachedUser = null;
                 _isAuth = false;
                 _displayName = "bruker";
