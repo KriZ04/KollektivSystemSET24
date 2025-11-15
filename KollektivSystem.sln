@@ -17,7 +17,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.IntegrationTests", "IntegrationTests\KollektivSystem.IntegrationTests.csproj", "{C10602F3-622A-4B72-A135-57EAB4E00413}"
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KollektivSystem.UnitTests", "KollektivSystem.Tests\KollektivSystem.UnitTests.csproj", "{8DD46860-0482-80C3-E791-D1AC9A54DE2B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
