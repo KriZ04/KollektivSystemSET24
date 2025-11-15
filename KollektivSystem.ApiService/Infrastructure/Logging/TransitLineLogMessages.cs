@@ -19,6 +19,8 @@ namespace KollektivSystem.ApiService.Infrastructure.Logging
             (Level = LogLevel.Error,
             Message = "Error updating transit line {lineId}: {errorMessage}")]
         internal static partial void LogTransitLineUpdateFailed(this ILogger<TransitLineService> logger, int lineId, string errorMessage);
+
+
     }
 }
 

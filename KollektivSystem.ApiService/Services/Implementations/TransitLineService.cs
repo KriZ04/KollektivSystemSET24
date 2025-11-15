@@ -31,7 +31,7 @@ namespace KollektivSystem.ApiService.Services.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating transit line {LineName}", line.Name);
+                _logger.LogError(ex, "Error while creating transit line {LineName}: {Message}", line.Name, ex.Message);
                 throw;
             }
         }
