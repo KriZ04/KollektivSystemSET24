@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KollektivSystem.UnitTests.ApiTest
+namespace KollektivSystem.UnitTests.ApiTests
 {
     public class TransitLineServiceTests    {
         [Fact]
