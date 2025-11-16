@@ -1,9 +1,9 @@
-﻿using KollektivSystem.ApiService.Models.Transport;
-using KollektivSystem.ApiService.Repositories;
+﻿using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using KollektivSystem.ApiService.Repositories.Uow;
+using KollektivSystem.ApiService.Models;
 
 namespace KollektivSystem.ApiService.Services
 {

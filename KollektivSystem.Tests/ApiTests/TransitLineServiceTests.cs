@@ -1,5 +1,5 @@
 ﻿using KollektivSystem.ApiService.Extensions.Endpoints;
-using KollektivSystem.ApiService.Models.Transport;
+using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services;
