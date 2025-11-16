@@ -1,4 +1,4 @@
-﻿using KollektivSystem.ApiService.Models.Transport;
+﻿using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 
