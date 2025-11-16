@@ -17,6 +17,10 @@ public sealed class TicketTypeConfiguration : IEntityTypeConfiguration<TicketTyp
             .IsRequired();
 
         builder.Property(t => t.AliveTime)
-            .IsRequired();
+            .IsRequired()
+            .HasConversion(
+                v => (int)v.TotalMinutes,
+                v => TimeSpan.FromMinutes(v))
+            .HasColumnType("int");        
     }
 }

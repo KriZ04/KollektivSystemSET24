@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KollektivSystem.ApiService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251116020546_ChangedTicketInfoToTicketType")]
-    partial class ChangedTicketInfoToTicketType
+    [Migration("20251116185302_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -128,16 +128,19 @@ namespace KollektivSystem.ApiService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<TimeSpan>("AliveTime")
-                        .HasColumnType("time");
+                    b.Property<int>("AliveTime")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
 
                     b.HasKey("Id");
 

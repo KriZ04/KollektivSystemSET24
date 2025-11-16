@@ -125,8 +125,8 @@ namespace KollektivSystem.ApiService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<TimeSpan>("AliveTime")
-                        .HasColumnType("time");
+                    b.Property<int>("AliveTime")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -136,8 +136,8 @@ namespace KollektivSystem.ApiService.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
 
                     b.HasKey("Id");
 
