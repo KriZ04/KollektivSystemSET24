@@ -24,8 +24,6 @@
         // Naviger til riktig sted (admin → /admin, ellers forsiden)
         if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
             Nav.NavigateTo("/admin", true);
-        else if (string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase))
-            Nav.NavigateTo("/user", true);
         else
             Nav.NavigateTo("/", true);
 
