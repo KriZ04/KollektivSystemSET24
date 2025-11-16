@@ -1,4 +1,10 @@
-﻿namespace KollektivSystem.ApiService.Extensions.Endpoints;
+﻿using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Dtos.Tickets;
+using KollektivSystem.ApiService.Models.Mappers;
+using KollektivSystem.ApiService.Services.Interfaces;
+using System.Security.Claims;
+
+namespace KollektivSystem.ApiService.Extensions.Endpoints;
 
 public static class PurchasedTicketEndpoints
 {
@@ -19,28 +25,66 @@ public static class PurchasedTicketEndpoints
 
         return app;
     }
-    internal static async Task<IResult> HandleBuyTicket()
+    internal static async Task<IResult> HandleBuyTicket(PurchaseTicketRequest req, IPurchasedTicketService ticketService, ClaimsPrincipal user, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var userId = user.GetUserId();
+
+        var purchasedTicket = await ticketService.PurchaseAsync(userId, req.TicketTypeId, ct);
+        var dto = purchasedTicket.ToResponse();
+        return Results.Created($"me/{dto.Id}", dto);
     }
-    internal static async Task<IResult> HandleTicketValidation()
+    internal static async Task<IResult> HandleTicketValidation(ValidateTicketRequest req, IPurchasedTicketService ticketService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var (isValid, ticket, reason) = await ticketService.ValidateAsync(req.ValidationCode, ct);
+
+        if (!isValid || ticket is null)
+        {
+            return Results.Ok(new ValidateTicketResponse
+            {
+                IsValid = false,
+                Reason = reason ?? "Invalid or expired ticket"
+            });
+        }
+
+        return Results.Ok(new ValidateTicketResponse
+        {
+            IsValid = true,
+            TicketId = ticket.Id,
+            ExpireAt = ticket.ExpireAt
+        });
     }
-    internal static async Task<IResult> HandleGetMe()
+    internal static async Task<IResult> HandleGetMe(bool includeExpired, IPurchasedTicketService ticketService, ClaimsPrincipal user, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var userId = user.GetUserId();
+        var tickets = await ticketService.GetByUserAsync(userId, includeExpired, ct);
+        var dtos = tickets.Select(t => t.ToResponse());
+        return Results.Ok(dtos);
     }
-    internal static async Task<IResult> HandleGetMeById()
+    internal static async Task<IResult> HandleGetMeById(Guid id, IPurchasedTicketService ticketService, ClaimsPrincipal user, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var userId = user.GetUserId();
+
+        var ticket = await ticketService.GetForUserByIdAsync(userId, id, ct);
+
+        if (ticket is null)
+            return Results.NotFound();
+
+        return Results.Ok(ticket.ToResponse());
+
+
     }
-    internal static async Task<IResult> HandleRevoke()
+    internal static async Task<IResult> HandleRevoke(Guid id, IPurchasedTicketService ticketService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var isSuccess = await ticketService.RevokeAsync(id, ct);
+        if (!isSuccess)
+            return Results.NotFound();
+        return Results.NoContent();
     }
-    internal static async Task<IResult> HandleGetById()
+    internal static async Task<IResult> HandleGetById(Guid id, IPurchasedTicketService ticketService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var ticket = await ticketService.GetByIdAsync(id, ct);
+        if (ticket == null)
+            return Results.NotFound();
+        return Results.Ok(ticket.ToResponse());
     }
 }
