@@ -4,8 +4,8 @@
 @using KollektivSystem.Web.Models
 @using KollektivSystem.Web.Services
 @inject ITicketApiClient TicketApi
-@inject KollektivSystem.Web.Services.AuthState Auth
 @inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.AuthState Auth
 
 <h1>Kundeoversikt</h1>
 <p class="text-muted">Velkommen! Her kan du kjøpe og se billetter.</p>
@@ -20,9 +20,9 @@ else if (!_isCustomer)
 }
 else
 {
-    <!-- dashboard content -->
     <div class="dashboard-grid">
 
+       
         <section class="card p-3">
             <h3>Kjøp billett</h3>
 
@@ -55,11 +55,12 @@ else
                                 <td>@t.Type</td>
                                 <td>@t.Price.ToString("0.00") kr</td>
                                 <td>
-                                    <button class="btn btn-primary btn-sm"
+                                    <button class="btn btn-primary"
                                             @onclick="() => PurchaseAsync(t.Id)"
                                             disabled="@_isPurchasing">
                                         Kjøp
                                     </button>
+
                                 </td>
                             </tr>
                         }
@@ -68,6 +69,7 @@ else
             }
         </section>
 
+        
         @if (_lastPurchase is not null)
         {
             <section class="card p-3">
@@ -76,6 +78,7 @@ else
                 <div class="card border mt-2" style="max-width: 360px;">
                     <div class="card-body">
                         <h5>@_lastPurchase.Type</h5>
+
                         <p>
                             Pris: @_lastPurchase.Price.ToString("0.00") kr<br />
                             Kjøpt: @_lastPurchase.PurchasedAtUtc.ToLocalTime():g<br />
@@ -93,22 +96,104 @@ else
             </section>
         }
 
-        <!-- Simplified: remove history if not implemented -->
+        <!-- NEW SECTION: AKTIVE BILLETTER -->
+        <section class="card p-3">
+            <h3>Aktive billetter</h3>
+
+            @if (_activeLoading)
+            {
+                <p>Laster aktive billetter…</p>
+            }
+            else if (_activeError != null)
+            {
+                <p class="text-danger">@_activeError</p>
+            }
+            else if (_activeTickets.Count == 0)
+            {
+                <p>Ingen aktive billetter.</p>
+            }
+            else
+            {
+                <ul class="list-group">
+                    @foreach (var a in _activeTickets)
+                    {
+                        <li class="list-group-item small">
+                            <strong>@a.Type</strong>  
+                            – gyldig til @a.ValidUntilUtc.ToLocalTime():g  
+                            <br />
+                            <span class="text-muted">Kode: @a.Code</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <!-- NEW SECTION: RUTESØK -->
+        <section class="card p-3">
+            <h3>Rutesøk</h3>
+
+            <input class="form-control"
+                   placeholder="Søk etter stopp eller rutenavn"
+                   @bind="_routeSearch"
+                   @bind:event="oninput" />
+
+            <button class="btn btn-secondary mt-2"
+                    @onclick="SearchRoutes"
+                    disabled="@_routeSearching">
+                Søk
+            </button>
+
+            @if (_routeSearching)
+            {
+                <p>Laster ruter...</p>
+            }
+            else if (_routesError != null)
+            {
+                <p class="text-danger">@_routesError</p>
+            }
+            else if (_routes.Count > 0)
+            {
+                <ul class="list-group mt-2">
+                    @foreach (var r in _routes)
+                    {
+                        <li class="list-group-item">@r</li>
+                    }
+                </ul>
+            }
+        </section>
     </div>
 }
 
-
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+</style>
 
 @code {
     private bool _accessChecked;
     private bool _isCustomer;
 
-    // Ticketing
+    // ticket buy
     private List<TicketDto> _tickets = new();
     private PurchasedTicketDto? _lastPurchase;
     private bool _isLoading;
     private bool _isPurchasing;
     private string? _loadError;
+
+    // ACTIVE TICKETS
+    private List<PurchasedTicketDto> _activeTickets = new();
+    private bool _activeLoading;
+    private string? _activeError;
+
+    // ROUTE SEARCH
+    private string _routeSearch = "";
+    private List<string> _routes = new();
+    private string? _routesError;
+    private bool _routeSearching;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -124,7 +209,7 @@ else
                 claims.TryGetValue("role", out role);
         }
 
-        role = role?.Trim().Trim('"', '\'');
+        
         _isCustomer = string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
 
         _accessChecked = true;
@@ -132,7 +217,7 @@ else
         if (!_isCustomer)
         {
             Nav.NavigateTo("/login", replace: true);
-            return;
+            
         }
 
         await LoadTicketsAsync();
@@ -159,6 +244,31 @@ else
         }
     }
 
+
+
+    private async Task SearchRoutes()
+    {
+        _routeSearching = true;
+        _routesError = null;
+        _routes.Clear();
+
+        try
+        {
+            // TODO: Replace with your real API client call
+            _routes = new List<string> {
+                $"Rute for '{_routeSearch}' – eksempeldata"
+            };
+        }
+        catch
+        {
+            _routesError = "Kunne ikke hente ruter.";
+        }
+        finally
+        {
+            _routeSearching = false;
+        }
+    }
+
     private async Task PurchaseAsync(int ticketId)
     {
         _isPurchasing = true;
@@ -179,4 +289,6 @@ else
             _isPurchasing = false;
         }
     }
+
+    
 }
