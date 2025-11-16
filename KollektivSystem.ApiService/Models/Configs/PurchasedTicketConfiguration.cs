@@ -19,9 +19,9 @@ public sealed class PurchasedTicketConfiguration : IEntityTypeConfiguration<Purc
         builder.Property(t => t.PurchasedAt)
             .HasDefaultValueSql("SYSUTCDATETIME()");
 
-        builder.HasOne(t => t.TicketInfo)
+        builder.HasOne(t => t.TicketType)
             .WithMany()
-            .HasForeignKey(t => t.TicketInfoId)
+            .HasForeignKey(t => t.TicketTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(t => t.User)

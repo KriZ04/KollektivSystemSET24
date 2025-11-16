@@ -6,8 +6,8 @@ namespace KollektivSystem.ApiService.Models
     public class PurchasedTicket
     {
         public Guid Id {  get; init; }
-        public required int TicketInfoId { get; init; }
-        public TicketInfo TicketInfo { get; init; } = null!;
+        public required int TicketTypeId { get; init; }
+        public TicketType TicketType { get; init; } = null!;
         public required Guid UserId { get; init; }
         public User User { get; init; } = null!;
         [StringLength(8)]

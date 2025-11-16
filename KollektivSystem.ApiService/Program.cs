@@ -103,7 +103,7 @@ public class Program
         app.MapAuthEndpoints();
         app.MapOidcEndpoints();
         app.MapStopEndpoints();
-        app.MapTicketEndpoints();
+        app.MapTicketTypeEndpoints();
         app.MapTransitLineEndpoints();
 
         app.MapDefaultEndpoints();

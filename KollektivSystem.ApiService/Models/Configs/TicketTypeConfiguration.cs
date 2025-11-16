@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KollektivSystem.ApiService.Models.Configs;
 
-public sealed class TicketInfoConfiguration : IEntityTypeConfiguration<TicketInfo>
+public sealed class TicketTypeConfiguration : IEntityTypeConfiguration<TicketType>
 {
-    public void Configure(EntityTypeBuilder<TicketInfo> builder)
+    public void Configure(EntityTypeBuilder<TicketType> builder)
     {
         builder.HasKey(t => t.Id);
 
