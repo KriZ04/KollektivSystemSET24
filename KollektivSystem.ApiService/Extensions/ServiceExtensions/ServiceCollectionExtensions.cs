@@ -31,9 +31,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
         {
             // Domain Services
             services.AddScoped<ITransitLineService, TransitLineService>();
-
-            // Example for domain-specific repos
-            //services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }
