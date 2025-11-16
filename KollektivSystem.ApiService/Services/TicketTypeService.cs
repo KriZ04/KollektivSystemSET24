@@ -41,6 +41,18 @@ namespace KollektivSystem.ApiService.Services
             await _uow.SaveChangesAsync(ct);
             return true;
         }
+        public async Task<bool> ActivateAsync(int id, CancellationToken ct)
+        {
+            var ticketType = await _uow.TicketTypes.FindAsync(id, ct);
+            if (ticketType == null)
+                return false;
+
+            ticketType.IsActive = true;
+            _uow.TicketTypes.Update(ticketType);
+            await _uow.SaveChangesAsync(ct);
+
+            return true;
+        }
         public async Task<TicketType?> GetByIdAsync(int id, CancellationToken ct)
         {
             var ticketType = await _uow.TicketTypes.FindAsync(id, ct);

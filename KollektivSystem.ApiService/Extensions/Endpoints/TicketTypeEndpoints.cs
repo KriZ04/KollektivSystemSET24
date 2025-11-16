@@ -17,11 +17,12 @@ public static class TicketTypeEndpoints
         group.MapGet("", HandleGetAllActive);
         group.MapGet("{id:int}", HandleGetActiveTicketById);
 
-        var admin = group.MapGroup("/admin").RequireAuthorization("Staff");
-        admin.MapGet("", HandleGetAll).RequireAuthorization("Staff");
-        admin.MapGet("{id:int}", HandleGetTicketById).RequireAuthorization("Staff");
-        admin.MapPost("", HandleCreateNew).RequireAuthorization("Staff");
-        admin.MapDelete("{id:int}", HandleDelete).RequireAuthorization("Staff");
+        var admin = group.MapGroup("/admin");
+        admin.MapGet("", HandleGetAll);
+        admin.MapGet("{id:int}", HandleGetTicketById);
+        admin.MapPost("", HandleCreateNew);
+        admin.MapDelete("{id:int}", HandleDelete);
+        admin.MapPost("{id:int}/activate", HandleActivate);
 
         return app;
 
@@ -75,5 +76,13 @@ public static class TicketTypeEndpoints
         if(!isSuccess) 
             return Results.NotFound();
         return Results.Ok($"Successfully deactivated ticket. {id}");
+    }
+    private static async Task<IResult> HandleActivate(int id, ITicketTypeService ttService, CancellationToken ct)
+    {
+        var success = await ttService.ActivateAsync(id, ct);
+        if (!success)
+            return Results.NotFound();
+
+        return Results.NoContent();
     }
 }

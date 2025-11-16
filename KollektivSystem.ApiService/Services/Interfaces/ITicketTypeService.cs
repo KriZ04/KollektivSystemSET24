@@ -11,5 +11,6 @@ namespace KollektivSystem.ApiService.Services.Interfaces
         Task<TicketType?> GetByIdAsync(int id, CancellationToken ct);      // staff
         Task<TicketType> CreateAsync(CreateTicketTypeRequest request, CancellationToken ct);
         Task<bool> DeactivateAsync(int id, CancellationToken ct);
+        Task<bool> ActivateAsync(int id, CancellationToken ct);
     }
 }
