@@ -23,51 +23,16 @@ else
     <div class="dashboard-grid">
 
        
-        <section class="card p-3">
-            <h3>Kjøp billett</h3>
+            <section class="card p-3">
+                <h3>Kjøp billett</h3>
+                <p>Trykk på knappen under for å kjøpe billetter.</p>
 
-            @if (_isLoading)
-            {
-                <p>Laster billetter…</p>
-            }
-            else if (_loadError != null)
-            {
-                <p class="text-danger">@_loadError</p>
-            }
-            else if (_tickets.Count == 0)
-            {
-                <p>Ingen billetter tilgjengelig.</p>
-            }
-            else
-            {
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Pris</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var t in _tickets)
-                        {
-                            <tr>
-                                <td>@t.Type</td>
-                                <td>@t.Price.ToString("0.00") kr</td>
-                                <td>
-                                    <button class="btn btn-primary"
-                                            @onclick="() => PurchaseAsync(t.Id)"
-                                            disabled="@_isPurchasing">
-                                        Kjøp
-                                    </button>
+                <button class="btn btn-primary"
+                        @onclick="OpenTicketPage">
+                    Gå til billettsiden
+                </button>
+            </section>
 
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-        </section>
 
         
         @if (_lastPurchase is not null)
@@ -194,6 +159,11 @@ else
     private List<string> _routes = new();
     private string? _routesError;
     private bool _routeSearching;
+
+    private void OpenTicketPage()
+    {
+        Nav.NavigateTo("/kunde/billetter");
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
