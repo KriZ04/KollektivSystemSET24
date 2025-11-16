@@ -10,14 +10,14 @@ namespace KollektivSystem.ApiService.Repositories.Uow
             IUserRepository userRepository, 
             IRefreshTokenRepository refreshTokenRepository, 
             IStopRepository stopRepository,
-            ITicketsRepository ticketsRepository,
+            //ITicketsRepository ticketsRepository,
             ITransitLineRepository transitLineRepository)
         {
             _db = db;
             Users = userRepository;
             RefreshTokens = refreshTokenRepository;
             Stops = stopRepository;
-            Tickets = ticketsRepository;
+            //Tickets = ticketsRepository;
             TransitLines = transitLineRepository;
         }
 
@@ -27,7 +27,7 @@ namespace KollektivSystem.ApiService.Repositories.Uow
 
         public IStopRepository Stops { get; }
 
-        public ITicketsRepository Tickets { get; }
+        //public ITicketsRepository Tickets { get; }
 
         public ITransitLineRepository TransitLines { get; }
 

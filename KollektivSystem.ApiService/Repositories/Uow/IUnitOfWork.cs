@@ -5,7 +5,7 @@
         IUserRepository Users { get; }
         IRefreshTokenRepository RefreshTokens { get; }
         IStopRepository Stops { get; }
-        ITicketsRepository Tickets { get; }
+        //ITicketsRepository Tickets { get; }
         ITransitLineRepository TransitLines { get; }
 
 

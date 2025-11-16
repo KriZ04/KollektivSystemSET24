@@ -19,7 +19,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITransitLineRepository, TransitLineRepository>();
-            services.AddScoped<ITicketsRepository, TicketsRepository>();
+            //services.AddScoped<ITicketsRepository, TicketsRepository>();
             services.AddScoped<IStopRepository, StopRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
