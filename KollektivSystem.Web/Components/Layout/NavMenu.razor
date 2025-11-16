@@ -42,12 +42,23 @@
                 <span class="bi bi-key" aria-hidden="true"></span> Login
             </NavLink>
         </li>
+
+        @if (_isCustomer)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="kunde" Match="NavLinkMatch.Prefix">
+                    <span class="oi oi-credit-card" aria-hidden="true"></span> Dashboard
+                </NavLink>
+            </li>
+        }
+
     </ul>
 </nav>
 
 @code {
     private bool _hasAdminAccess; // Admin eller SystemManager
     private bool _isSysUtvikler;  // KUN SystemManager
+    private bool _isCustomer; // KUN Kunder
     private bool _initialized;
 
     protected override void OnInitialized()
@@ -90,6 +101,10 @@
         _isSysUtvikler =
             !string.IsNullOrWhiteSpace(role) &&
             role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase);
+            
+        _isCustomer = 
+            !string.IsNullOrWhiteSpace(role) &&
+            role.Equals("Customer", StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose()

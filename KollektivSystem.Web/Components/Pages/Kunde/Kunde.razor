@@ -1,0 +1,192 @@
+﻿@page "/kunde"
+@rendermode InteractiveServer
+@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+@inject ITicketApiClient TicketApi
+
+<h1>Kundeoversikt</h1>
+<p class="text-muted">Velkommen! Her kan du kjøpe og se billetter.</p>
+
+<div class="dashboard-grid">
+
+    <!-- Buy Ticket Card -->
+    <section class="card p-3">
+        <h3>Kjøp billett</h3>
+
+        @if (_isLoading)
+        {
+            <p>Laster billetter…</p>
+        }
+        else if (_loadError != null)
+        {
+            <p class="text-danger">@_loadError</p>
+        }
+        else if (_tickets.Count == 0)
+        {
+            <p>Ingen billetter tilgjengelig.</p>
+        }
+        else
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Pris</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in _tickets)
+                    {
+                        <tr>
+                            <td>@t.Type</td>
+                            <td>@t.Price.ToString("0.00") kr</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm"
+                                        @onclick="() => PurchaseAsync(t.Id)"
+                                        disabled="@_isPurchasing">
+                                    Kjøp
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </section>
+
+    <!-- Last purchased ticket -->
+    @if (_lastPurchase is not null)
+    {
+        <section class="card p-3">
+            <h3>Siste kjøpte billett</h3>
+
+            <div class="card border mt-2" style="max-width: 360px;">
+                <div class="card-body">
+                    <h5>@_lastPurchase.Type</h5>
+                    <p>
+                        Pris: @_lastPurchase.Price.ToString("0.00") kr<br />
+                        Kjøpt: @_lastPurchase.PurchasedAtUtc.ToLocalTime():g<br />
+                        Gyldig til: @_lastPurchase.ValidUntilUtc.ToLocalTime():g
+                    </p>
+
+                    <p>
+                        Kontrollkode:<br />
+                        <span style="letter-spacing:0.15rem; font-size:1.2rem;">
+                            @_lastPurchase.Code
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </section>
+    }
+
+    <!-- Ticket history -->
+    <section class="card p-3">
+        <h3>Kjøpshistorikk</h3>
+
+        @if (_historyLoading)
+        {
+            <p>Laster historikk…</p>
+        }
+        else if (_historyError != null)
+        {
+            <p class="text-danger">@_historyError</p>
+        }
+        else if (_history.Count == 0)
+        {
+            <p>Ingen tidligere kjøp.</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var h in _history)
+                {
+                    <li class="list-group-item small">
+                        <strong>@h.Type</strong> – @h.Price.ToString("0.00") kr
+                        <span class="text-muted">
+                            (@h.PurchasedAtUtc.ToLocalTime():g)
+                        </span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+</div>
+
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+</style>
+
+@code {
+    // Ticket data
+    private List<TicketDto> _tickets = new();
+    private PurchasedTicketDto? _lastPurchase;
+
+    // Ticket history
+    private List<PurchasedTicketDto> _history = new();
+
+    // Loading flags
+    private bool _isLoading;
+    private bool _isPurchasing;
+    private bool _historyLoading;
+    private string? _loadError;
+    private string? _historyError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTicketsAsync();
+
+    }
+
+    private async Task LoadTicketsAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+
+        try
+        {
+            var tickets = await TicketApi.GetTicketsAsync();
+            _tickets = tickets.ToList();
+        }
+        catch
+        {
+            _loadError = "Kunne ikke laste billetter.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    
+
+    private async Task PurchaseAsync(int ticketId)
+    {
+        _isPurchasing = true;
+
+        try
+        {
+            var result = await TicketApi.PurchaseTicketAsync(ticketId);
+            if (result is null)
+            {
+                _loadError = "Klarte ikke å kjøpe billetten.";
+                return;
+            }
+
+            _lastPurchase = result;
+
+
+        }
+        finally
+        {
+            _isPurchasing = false;
+        }
+    }
+}
