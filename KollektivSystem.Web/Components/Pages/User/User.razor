@@ -1,0 +1,76 @@
+﻿@page "/user"
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.AuthState Auth
+
+@if (!_loaded)
+{
+    <p>Sjekker tilgang …</p>
+}
+else if (!_isUser)
+{
+    <p>Du har ikke tilgang til denne siden.</p>
+}
+else
+{
+    <h1>Brukerside</h1>
+    <p>Velg hva du vil gjøre.</p>
+
+    <div class="user-grid">
+        <section class="card">
+            <h2>Mine billetter</h2>
+            <p>Se og administrer dine billetter.</p>
+            <div class="actions">
+                <button class="btn" @onclick="OpenTickets">Åpne billetter</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Profil</h2>
+            <p>Oppdater dine personlige innstillinger.</p>
+            <div class="actions">
+                <button class="btn" @onclick="OpenProfile">Åpne profil</button>
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    private bool _loaded;
+    private bool _isUser;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _loaded)
+            return;
+
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        // ⬇️ Change the allowed roles for your user type
+        _isUser =
+            !string.IsNullOrWhiteSpace(role) &&
+            (role.Equals("User", StringComparison.OrdinalIgnoreCase) ||
+             role.Equals("Passenger", StringComparison.OrdinalIgnoreCase));
+
+        _loaded = true;
+
+        if (!_isUser)
+        {
+            // Ikke bruker → send til login-siden
+            Nav.NavigateTo("/login", replace: true);
+        }
+
+        StateHasChanged();
+    }
+
+    private void OpenTickets() => Nav.NavigateTo("/user/tickets", true);
+    private void OpenProfile() => Nav.NavigateTo("/user/profile", true);
+}
