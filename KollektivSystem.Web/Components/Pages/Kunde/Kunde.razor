@@ -96,7 +96,7 @@ else
             </section>
         }
 
-        <!-- NEW SECTION: AKTIVE BILLETTER -->
+        
         <section class="card p-3">
             <h3>Aktive billetter</h3>
 
@@ -128,7 +128,7 @@ else
             }
         </section>
 
-        <!-- NEW SECTION: RUTESØK -->
+       
         <section class="card p-3">
             <h3>Rutesøk</h3>
 
@@ -138,7 +138,7 @@ else
                    @bind:event="oninput" />
 
             <button class="btn btn-secondary mt-2"
-                    @onclick="SearchRoutes"
+
                     disabled="@_routeSearching">
                 Søk
             </button>
@@ -246,28 +246,7 @@ else
 
 
 
-    private async Task SearchRoutes()
-    {
-        _routeSearching = true;
-        _routesError = null;
-        _routes.Clear();
 
-        try
-        {
-            // TODO: Replace with your real API client call
-            _routes = new List<string> {
-                $"Rute for '{_routeSearch}' – eksempeldata"
-            };
-        }
-        catch
-        {
-            _routesError = "Kunne ikke hente ruter.";
-        }
-        finally
-        {
-            _routeSearching = false;
-        }
-    }
 
     private async Task PurchaseAsync(int ticketId)
     {
