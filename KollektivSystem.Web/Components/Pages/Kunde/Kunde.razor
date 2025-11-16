@@ -1,148 +1,142 @@
 ﻿@page "/kunde"
 @rendermode InteractiveServer
+@using System.Security.Claims
 @using KollektivSystem.Web.Models
 @using KollektivSystem.Web.Services
 @inject ITicketApiClient TicketApi
+@inject KollektivSystem.Web.Services.AuthState Auth
+@inject NavigationManager Nav
 
 <h1>Kundeoversikt</h1>
 <p class="text-muted">Velkommen! Her kan du kjøpe og se billetter.</p>
 
-<div class="dashboard-grid">
+@if (!_accessChecked)
+{
+    <p>Sjekker tilgang…</p>
+}
+else if (!_isCustomer)
+{
+    <p>Ingen tilgang. Sender deg til innlogging …</p>
+}
+else
+{
+    <!-- dashboard content -->
+    <div class="dashboard-grid">
 
-    <!-- Buy Ticket Card -->
-    <section class="card p-3">
-        <h3>Kjøp billett</h3>
-
-        @if (_isLoading)
-        {
-            <p>Laster billetter…</p>
-        }
-        else if (_loadError != null)
-        {
-            <p class="text-danger">@_loadError</p>
-        }
-        else if (_tickets.Count == 0)
-        {
-            <p>Ingen billetter tilgjengelig.</p>
-        }
-        else
-        {
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Pris</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var t in _tickets)
-                    {
-                        <tr>
-                            <td>@t.Type</td>
-                            <td>@t.Price.ToString("0.00") kr</td>
-                            <td>
-                                <button class="btn btn-primary btn-sm"
-                                        @onclick="() => PurchaseAsync(t.Id)"
-                                        disabled="@_isPurchasing">
-                                    Kjøp
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-    </section>
-
-    <!-- Last purchased ticket -->
-    @if (_lastPurchase is not null)
-    {
         <section class="card p-3">
-            <h3>Siste kjøpte billett</h3>
+            <h3>Kjøp billett</h3>
 
-            <div class="card border mt-2" style="max-width: 360px;">
-                <div class="card-body">
-                    <h5>@_lastPurchase.Type</h5>
-                    <p>
-                        Pris: @_lastPurchase.Price.ToString("0.00") kr<br />
-                        Kjøpt: @_lastPurchase.PurchasedAtUtc.ToLocalTime():g<br />
-                        Gyldig til: @_lastPurchase.ValidUntilUtc.ToLocalTime():g
-                    </p>
-
-                    <p>
-                        Kontrollkode:<br />
-                        <span style="letter-spacing:0.15rem; font-size:1.2rem;">
-                            @_lastPurchase.Code
-                        </span>
-                    </p>
-                </div>
-            </div>
+            @if (_isLoading)
+            {
+                <p>Laster billetter…</p>
+            }
+            else if (_loadError != null)
+            {
+                <p class="text-danger">@_loadError</p>
+            }
+            else if (_tickets.Count == 0)
+            {
+                <p>Ingen billetter tilgjengelig.</p>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Pris</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in _tickets)
+                        {
+                            <tr>
+                                <td>@t.Type</td>
+                                <td>@t.Price.ToString("0.00") kr</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm"
+                                            @onclick="() => PurchaseAsync(t.Id)"
+                                            disabled="@_isPurchasing">
+                                        Kjøp
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         </section>
-    }
 
-    <!-- Ticket history -->
-    <section class="card p-3">
-        <h3>Kjøpshistorikk</h3>
+        @if (_lastPurchase is not null)
+        {
+            <section class="card p-3">
+                <h3>Siste kjøpte billett</h3>
 
-        @if (_historyLoading)
-        {
-            <p>Laster historikk…</p>
-        }
-        else if (_historyError != null)
-        {
-            <p class="text-danger">@_historyError</p>
-        }
-        else if (_history.Count == 0)
-        {
-            <p>Ingen tidligere kjøp.</p>
-        }
-        else
-        {
-            <ul class="list-group">
-                @foreach (var h in _history)
-                {
-                    <li class="list-group-item small">
-                        <strong>@h.Type</strong> – @h.Price.ToString("0.00") kr
-                        <span class="text-muted">
-                            (@h.PurchasedAtUtc.ToLocalTime():g)
-                        </span>
-                    </li>
-                }
-            </ul>
-        }
-    </section>
+                <div class="card border mt-2" style="max-width: 360px;">
+                    <div class="card-body">
+                        <h5>@_lastPurchase.Type</h5>
+                        <p>
+                            Pris: @_lastPurchase.Price.ToString("0.00") kr<br />
+                            Kjøpt: @_lastPurchase.PurchasedAtUtc.ToLocalTime():g<br />
+                            Gyldig til: @_lastPurchase.ValidUntilUtc.ToLocalTime():g
+                        </p>
 
-</div>
+                        <p>
+                            Kontrollkode:<br />
+                            <span style="letter-spacing:0.15rem; font-size:1.2rem;">
+                                @_lastPurchase.Code
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+        }
 
-<style>
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
-</style>
+        <!-- Simplified: remove history if not implemented -->
+    </div>
+}
+
+
 
 @code {
-    // Ticket data
+    private bool _accessChecked;
+    private bool _isCustomer;
+
+    // Ticketing
     private List<TicketDto> _tickets = new();
     private PurchasedTicketDto? _lastPurchase;
-
-    // Ticket history
-    private List<PurchasedTicketDto> _history = new();
-
-    // Loading flags
     private bool _isLoading;
     private bool _isPurchasing;
-    private bool _historyLoading;
     private string? _loadError;
-    private string? _historyError;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await LoadTicketsAsync();
+        if (!firstRender || _accessChecked)
+            return;
 
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        role = role?.Trim().Trim('"', '\'');
+        _isCustomer = string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
+
+        _accessChecked = true;
+
+        if (!_isCustomer)
+        {
+            Nav.NavigateTo("/login", replace: true);
+            return;
+        }
+
+        await LoadTicketsAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadTicketsAsync()
@@ -165,8 +159,6 @@
         }
     }
 
-    
-
     private async Task PurchaseAsync(int ticketId)
     {
         _isPurchasing = true;
@@ -181,8 +173,6 @@
             }
 
             _lastPurchase = result;
-
-
         }
         finally
         {
