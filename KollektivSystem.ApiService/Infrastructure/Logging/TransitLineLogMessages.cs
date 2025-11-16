@@ -1,4 +1,4 @@
-﻿using KollektivSystem.ApiService.Services.Implementations;
+﻿using KollektivSystem.ApiService.Services;
 using Microsoft.Extensions.Logging;
 
 namespace KollektivSystem.ApiService.Infrastructure.Logging

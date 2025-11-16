@@ -3,7 +3,7 @@ using KollektivSystem.ApiService.Infrastructure;
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Domain;
 using KollektivSystem.ApiService.Models.Enums;
-using KollektivSystem.ApiService.Services;
+using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Caching.Memory;

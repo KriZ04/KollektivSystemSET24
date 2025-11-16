@@ -1,4 +1,4 @@
-﻿namespace KollektivSystem.ApiService.Models.Transport
+﻿namespace KollektivSystem.ApiService.Models
 {
     public class Tickets
     {

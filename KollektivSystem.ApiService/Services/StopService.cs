@@ -1,19 +1,20 @@
-﻿using KollektivSystem.ApiService.Models.Transport;
-using KollektivSystem.ApiService.Repositories;
+﻿using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
+using KollektivSystem.ApiService.Repositories.Uow;
+using KollektivSystem.ApiService.Models;
 
 namespace KollektivSystem.ApiService.Services.Implementations
 {
     public class StopService : IStopService
     {
-        private readonly IStopRepository _repo;
+        private readonly IUnitOfWork _uow;
         private readonly ILogger<StopService> _logger;
 
-        public StopService(IStopRepository repo, ILogger<StopService> logger)
+        public StopService(IUnitOfWork uow, ILogger<StopService> logger)
         {
-            _repo = repo;
+            _uow = uow;
             _logger = logger;
         }
 
@@ -21,8 +22,8 @@ namespace KollektivSystem.ApiService.Services.Implementations
         {
             try
             {
-                await _repo.AddAsync(stop);
-                await _repo.SaveChangesAsync();
+                await _uow.Stops.AddAsync(stop);
+                await _uow.SaveChangesAsync();
 
                 _logger.LogStopCreated(stop.Id, stop.Name);
                 return stop;
@@ -36,12 +37,12 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
         public async Task<IEnumerable<Stop>> GetAllAsync()
         {
-            return await _repo.GetAllAsync();
+            return await _uow.Stops.GetAllAsync();
         }
 
         public async Task<Stop?> GetByIdAsync(int id)
         {
-            var stop = await _repo.FindAsync(id);
+            var stop = await _uow.Stops.FindAsync(id);
             if (stop == null)
                 _logger.LogStopNotFound(id);
 
@@ -50,7 +51,7 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
         public async Task<bool> UpdateAsync(int id, Stop updated)
         {
-            var existing = await _repo.FindAsync(id);
+            var existing = await _uow.Stops.FindAsync(id);
             if (existing == null)
             {
                 _logger.LogStopNotFound(id);
@@ -63,8 +64,8 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
             try
             {
-                _repo.Update(existing);
-                await _repo.SaveChangesAsync();
+                _uow.Stops.Update(existing);
+                await _uow.SaveChangesAsync();
 
                 _logger.LogStopUpdated(id, existing.Name);
                 return true;
@@ -78,15 +79,15 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var existing = await _repo.FindAsync(id);
+            var existing = await _uow.Stops.FindAsync(id);
             if (existing == null)
             {
                 _logger.LogStopNotFound(id);
                 return false;
             }
 
-            _repo.Remove(existing);
-            await _repo.SaveChangesAsync();
+            _uow.Stops.Remove(existing);
+            await _uow.SaveChangesAsync();
 
             _logger.LogStopDeleted(id);
             return true;

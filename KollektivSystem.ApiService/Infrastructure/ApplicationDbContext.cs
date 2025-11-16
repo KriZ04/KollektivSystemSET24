@@ -1,5 +1,4 @@
 ﻿using KollektivSystem.ApiService.Models;
-using KollektivSystem.ApiService.Models.Transport;
 using Microsoft.EntityFrameworkCore;
 
 namespace KollektivSystem.ApiService.Infrastructure

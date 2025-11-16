@@ -1,19 +1,20 @@
-﻿using KollektivSystem.ApiService.Models.Transport;
-using KollektivSystem.ApiService.Repositories;
+﻿using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
+using KollektivSystem.ApiService.Repositories.Uow;
+using KollektivSystem.ApiService.Models;
 
-namespace KollektivSystem.ApiService.Services.Implementations
+namespace KollektivSystem.ApiService.Services
 {
     public class TransitLineService : ITransitLineService
     {
-        private readonly ITransitLineRepository _repo;
+        private readonly IUnitOfWork _uow;
         private readonly ILogger<TransitLineService> _logger;
 
-        public TransitLineService(ITransitLineRepository repo, ILogger<TransitLineService> logger)
+        public TransitLineService(IUnitOfWork uow, ILogger<TransitLineService> logger)
         {
-            _repo = repo;
+            _uow = uow;
             _logger = logger;
         }
 
@@ -23,8 +24,8 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
             try
             {
-                await _repo.AddAsync(line);
-                await _repo.SaveChanges();
+                await _uow.TransitLines.AddAsync(line);
+                await _uow.SaveChangesAsync();
 
                 _logger.LogTransitLineCreated(line.Id, line.Name);
                 return line;
@@ -42,7 +43,7 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
             try
             {
-                var lines = await _repo.GetAllAsync();
+                var lines = await _uow.TransitLines.GetAllAsync();
                 _logger.LogInformation("Retrieved {Count} transit lines", lines.Count());
                 return lines;
             }
@@ -59,7 +60,7 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
             try
             {
-                var line = await _repo.FindAsync(id);
+                var line = await _uow.TransitLines.FindAsync(id);
                 if (line == null)
                 {
                     _logger.LogWarning("Transit line with ID {LineId} not found", id);
@@ -84,7 +85,7 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
             try
             {
-                var existing = await _repo.FindAsync(id);
+                var existing = await _uow.TransitLines.FindAsync(id);
                 if (existing == null)
                 {
                     _logger.LogWarning("Transit line with ID {LineId} not found for update", id);
@@ -94,8 +95,8 @@ namespace KollektivSystem.ApiService.Services.Implementations
                 existing.Name = updated.Name;
                 existing.Stops = updated.Stops;
 
-                _repo.Update(existing);
-                await _repo.SaveChanges();
+                _uow.TransitLines.Update(existing);
+                await _uow.SaveChangesAsync();
 
                 _logger.LogInformation("Updated transit line {LineName} (ID: {LineId})", updated.Name, id);
                 return true;
@@ -113,15 +114,15 @@ namespace KollektivSystem.ApiService.Services.Implementations
 
             try
             {
-                var existing = await _repo.FindAsync(id);
+                var existing = await _uow.TransitLines.FindAsync(id);
                 if (existing == null)
                 {
                     _logger.LogWarning("Transit line with ID {LineId} not found for deletion", id);
                     return false;
                 }
 
-                _repo.Remove(existing);
-                await _repo.SaveChanges();
+                _uow.TransitLines.Remove(existing);
+                await _uow.SaveChangesAsync();
 
                 _logger.LogInformation("Deleted transit line {LineName} (ID: {LineId})", existing.Name, id);
                 return true;
