@@ -1,4 +1,4 @@
-﻿﻿@using Microsoft.AspNetCore.Components.Routing
+﻿﻿﻿@using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components
 @using System.Security.Claims
 @implements IDisposable
@@ -30,6 +30,12 @@
                 </NavLink>
             </li>
         }
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="kunde/billetter" Match="NavLinkMatch.Prefix">
+                <span class="oi oi-credit-card" aria-hidden="true"></span> Kjøp billett
+            </NavLink>
+        </li>
 
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="login">

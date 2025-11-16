@@ -105,7 +105,7 @@ builder.Services.AddScoped<ITransitLineService, TransitLineService>();
         app.MapUserEndpoints();
         app.MapAuthEndpoints();
         app.MapOidcEndpoints();
-app.MapTransitLineEndpoints();
+        app.MapTransitLineEndpoints();
 
         app.MapDefaultEndpoints();
 
