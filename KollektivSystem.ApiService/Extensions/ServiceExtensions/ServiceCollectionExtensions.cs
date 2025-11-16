@@ -32,6 +32,10 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             // Domain Services
             services.AddScoped<ITransitLineService, TransitLineService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ITicketService, TicketService>();
+            services.AddScoped<IStopService, StopService>();
+
+
 
             return services;
         }

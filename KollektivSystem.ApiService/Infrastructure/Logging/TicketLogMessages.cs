@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using KollektivSystem.ApiService.Services.Implementations;
+using KollektivSystem.ApiService.Services;
 
 namespace KollektivSystem.ApiService.Infrastructure.Logging
 {

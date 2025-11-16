@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Models;
 
-namespace KollektivSystem.ApiService.Services.Implementations
+namespace KollektivSystem.ApiService.Services
 {
     public class StopService : IStopService
     {
