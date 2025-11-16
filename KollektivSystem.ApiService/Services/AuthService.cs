@@ -3,6 +3,7 @@ using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
+using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Security.Claims;
@@ -12,15 +13,11 @@ namespace KollektivSystem.ApiService.Services
     public class AuthService : IAuthService
     {
         private readonly IJwtIssuer _issuer;
-        private readonly IUserRepository _userRepo;
-        private readonly IRefreshTokenRepository _refreshTokenRepo;
         private readonly IUnitOfWork _uow;
 
-        public AuthService(IJwtIssuer issuer, IUserRepository userRepo, IRefreshTokenRepository refreshTokenRepo, IUnitOfWork uow)
+        public AuthService(IJwtIssuer issuer, IUnitOfWork uow)
         {
             _issuer = issuer;
-            _userRepo = userRepo;
-            _refreshTokenRepo = refreshTokenRepo;
             _uow = uow;
         }
 
@@ -33,7 +30,7 @@ namespace KollektivSystem.ApiService.Services
             var email = id.FindFirst(ClaimTypes.Email)?.Value;
             var name = id.FindFirst(ClaimTypes.Name)?.Value ?? email ?? "user";
 
-            var user = await _userRepo.GetByProviderSubAsync(provider, sub, ct);
+            var user = await _uow.Users.GetByProviderSubAsync(provider, sub, ct);
 
             if (user is null)
             {
@@ -53,7 +50,7 @@ namespace KollektivSystem.ApiService.Services
                     user.Role = Role.SystemManager;
                 }
 
-                await _userRepo.AddAsync(user);
+                await _uow.Users.AddAsync(user, ct);
             }
             else
             {
@@ -62,16 +59,16 @@ namespace KollektivSystem.ApiService.Services
                 user.UpdateLogin();
                 //user.UpdatedAt = DateTime.UtcNow;
 
-                _userRepo.Update(user);
+                _uow.Users.Update(user);
             }
 
-            await _uow.SaveChangesAsync(ct);
+            //await _uow.SaveChangesAsync(ct);
 
             var apiJwt = _issuer.Issue(new(user.Id, user.Role.ToString(), provider.ToString(), sub));
 
             var (refreshPlain, refreshEntity) = RefreshTokenFactory.CreateForUser(user);
 
-            await _refreshTokenRepo.AddAsync(refreshEntity, ct);
+            await _uow.RefreshTokens.AddAsync(refreshEntity, ct);
             await _uow.SaveChangesAsync(ct);
 
             return (user, apiJwt, refreshPlain);

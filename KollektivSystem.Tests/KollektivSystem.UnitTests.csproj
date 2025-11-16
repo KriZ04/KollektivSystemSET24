@@ -27,7 +27,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KollektivSystem.ApiService\KollektivSystem.ApiService.csproj" />
-    <ProjectReference Include="..\KollektivSystem.AppHost\KollektivSystem.AppHost.csproj" />
     <ProjectReference Include="..\KollektivSystem.Web\KollektivSystem.Web.csproj" />
     <ProjectReference Include="..\OidcStub\OidcStub.csproj" />
   </ItemGroup>

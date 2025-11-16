@@ -2,7 +2,7 @@
 using KollektivSystem.ApiService.Models.Enums;
 using System.Security.Claims;
 
-namespace KollektivSystem.ApiService.Services
+namespace KollektivSystem.ApiService.Services.Interfaces
 {
     public interface IAuthService
     {

@@ -19,7 +19,7 @@ builder.Services.AddScoped<AuthState>();   // <-- bruker aliaset over
 
 builder.Services.AddOutputCache();
 
-// HttpClients (testoppsett)
+// HttpClients
 builder.Services.AddHttpClient<AuthApiClient>(client =>
 {
     client.BaseAddress = new("https://localhost:7445");
@@ -33,6 +33,16 @@ builder.Services.AddHttpClient<ProfileClient>(c =>
 builder.Services.AddHttpClient<AuthTokenService>(client =>
 {
     client.BaseAddress = new("https+http://apiservice");
+});
+
+builder.Services.AddHttpClient<UsersAdminClient>(c =>
+{
+    c.BaseAddress = new("https+http://apiservice");
+});
+
+builder.Services.AddHttpClient<ITicketApiClient, TicketApiClient>(c =>
+{
+    c.BaseAddress = new("https+http://apiservice");
 });
 
 var app = builder.Build();
@@ -52,7 +62,7 @@ app.UseOutputCache();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// Enkel redirect til APIets login-endepunkt (test)
+// Enkel redirect til APIets login-endepunkt
 app.MapGet("/login/redirect", (HttpContext ctx, IConfiguration cfg) =>
 {
     var api = (cfg["Api:BaseUrl"] ?? "https://localhost:7445").TrimEnd('/');

@@ -2,7 +2,6 @@
 using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Repositories;
 using KollektivSystem.ApiService.Repositories.Uow;
-using KollektivSystem.ApiService.Services.Implementations;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,6 +20,8 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITransitLineRepository, TransitLineRepository>();
             services.AddScoped<ITicketsRepository, TicketsRepository>();
+            services.AddScoped<IStopRepository, StopRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 
             return services;
@@ -30,10 +31,11 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
         {
             // Domain Services
             services.AddScoped<ITransitLineService, TransitLineService>();
-            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ITicketService, TicketService>();
+            services.AddScoped<IStopService, StopService>();
 
-            // Example for domain-specific repos
-            //services.AddScoped<IUserRepository, UserRepository>();
+
 
             return services;
         }
