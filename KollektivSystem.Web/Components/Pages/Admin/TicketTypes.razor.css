@@ -1,0 +1,77 @@
+﻿.toolbar {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+}
+
+.tbl {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .tbl th, .tbl td {
+        border-bottom: 1px solid #eee;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .tbl th {
+        font-weight: 600;
+        background: #fafafa;
+    }
+
+.row-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn {
+    padding: 8px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #f6f6f6;
+    cursor: pointer;
+}
+
+    .btn:hover {
+        background: #eee;
+    }
+
+    .btn.sm {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+
+    .btn.danger {
+        border-color: #c0392b;
+    }
+
+.btn-secondary {
+    background: #fafafa;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    max-width: 600px;
+    margin-top: 8px;
+}
+
+    .form-grid label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .form-grid input {
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+.form-actions {
+    display: flex;
+    align-items: flex-end;
+}
