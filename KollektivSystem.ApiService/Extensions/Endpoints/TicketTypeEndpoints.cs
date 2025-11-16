@@ -46,7 +46,11 @@ public static class TicketTypeEndpoints
     }
     private static async Task<IResult> HandleCreateNew(CreateTicketTypeRequest req, ITicketTypeService ttService, CancellationToken ct)
     {
-        var isSuccess = await ttService.CreateAsync(req, ct);
+        var ticketType = await ttService.CreateAsync(req, ct);
+        if (ticketType == null)
+            return Results.Problem();
+
+        return Results.Created($"{ticketType.Id}", ticketType.ToResponse());
     }
     private static async Task<IResult> HandleGetAllActive(ITicketTypeService ttService, CancellationToken ct)
     {
