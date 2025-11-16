@@ -66,5 +66,35 @@ namespace KollektivSystem.ApiService.Services.Implementations
             return true;
 
         }
+
+        public async Task<bool> UpdateAsync(int id, Tickets updated)
+        {
+            try
+            {
+                
+                var existing = await _uow.Tickets.FindAsync(id);
+                if (existing == null)
+                {
+                    _logger.LogTicketNotFound(id);
+                    return false;
+                }
+
+                
+                existing.Type = updated.Type;
+                existing.Price = updated.Price;
+
+                _uow.Tickets.Update(existing);
+                await _uow.SaveChangesAsync();
+
+                _logger.LogTicketUpdated(id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTicketUpdateFailed(ex.Message);
+                throw;
+            }
+        }
+
     }
 }
