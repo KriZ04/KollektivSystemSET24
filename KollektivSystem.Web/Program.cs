@@ -40,6 +40,11 @@ builder.Services.AddHttpClient<UsersAdminClient>(c =>
     c.BaseAddress = new("https+http://apiservice");
 });
 
+builder.Services.AddHttpClient<ITicketApiClient, TicketApiClient>(c =>
+{
+    c.BaseAddress = new("https+http://apiservice");
+});
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
