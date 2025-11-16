@@ -1,6 +1,10 @@
 ﻿using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Dtos.TicketTypes;
+using KollektivSystem.ApiService.Models.Mappers;
 using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using System.Net.Sockets;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints;
 
@@ -23,28 +27,49 @@ public static class TicketTypeEndpoints
 
     }
 
-    private static async Task<IResult> HandleGetAll(HttpContext context)
+    private static async Task<IResult> HandleGetAll(ITicketTypeService ttService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var ticketTypes = await ttService.GetAllAsync(ct);
+        if (ticketTypes == null)
+            return Results.NotFound();
+
+
+        return Results.Ok(ticketTypes.Select(t => t.ToResponse()));
     }
-    private static async Task<IResult> HandleGetTicketById(HttpContext context)
+    private static async Task<IResult> HandleGetTicketById(int id, ITicketTypeService ttService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var ticketType = await ttService.GetByIdAsync(id, ct);
+        if (ticketType == null)
+            return Results.NotFound();
+
+        return Results.Ok(ticketType.ToResponse());
     }
-    private static async Task<IResult> HandleCreateNew(HttpContext context)
+    private static async Task<IResult> HandleCreateNew(CreateTicketTypeRequest req, ITicketTypeService ttService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var isSuccess = await ttService.CreateAsync(req, ct);
     }
-    private static async Task<IResult> HandleGetAllActive(HttpContext context)
+    private static async Task<IResult> HandleGetAllActive(ITicketTypeService ttService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var activeTicketTypes = await ttService.GetAllActiveAsync(ct);
+
+        if (activeTicketTypes == null)
+            return Results.NotFound("Could not find any ticket types.");
+
+        return Results.Ok(activeTicketTypes.Select(t => t.ToResponse()));
     }
-    private static async Task<IResult> HandleGetActiveTicketById(HttpContext context)
+    private static async Task<IResult> HandleGetActiveTicketById(int id, ITicketTypeService ttService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var ticketType = await ttService.GetActiveByIdAsync(id, ct);
+        if (ticketType == null)
+            return Results.NotFound();
+        
+        return Results.Ok(ticketType.ToResponse());
     }
-    private static async Task<IResult> HandleDelete(HttpContext context)
+    private static async Task<IResult> HandleDelete(int id, ITicketTypeService ttService, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var isSuccess = await ttService.DeactivateAsync(id, ct);
+        if(!isSuccess) 
+            return Results.NotFound();
+        return Results.Ok($"Successfully deactivated ticket. {id}");
     }
 }

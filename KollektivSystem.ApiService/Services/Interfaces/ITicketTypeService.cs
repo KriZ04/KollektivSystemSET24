@@ -1,4 +1,5 @@
 ﻿using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Dtos.TicketTypes;
 
 namespace KollektivSystem.ApiService.Services.Interfaces
 {
