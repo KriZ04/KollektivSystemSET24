@@ -1,7 +1,6 @@
 using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Extensions.ServiceExtensions;
 using KollektivSystem.ApiService.Models;
-using KollektivSystem.ApiService.Services.Implementations;
 using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using KollektivSystem.ApiService.Infrastructure;
@@ -103,6 +102,8 @@ public class Program
         app.MapUserEndpoints();
         app.MapAuthEndpoints();
         app.MapOidcEndpoints();
+        app.MapStopEndpoints();
+        app.MapTicketEndpoints();
         app.MapTransitLineEndpoints();
 
         app.MapDefaultEndpoints();
