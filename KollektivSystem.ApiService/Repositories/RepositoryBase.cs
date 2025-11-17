@@ -42,10 +42,15 @@ namespace KollektivSystem.ApiService.Repositories
 
         public Task<List<T>> GetAllAsync(CancellationToken ct = default)
             => Set.ToListAsync(ct);
-
-        public Task<bool> RemoveByIdAsync(TKey id, CancellationToken ct = default)
+        public async Task<bool> RemoveByIdAsync(TKey id, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            var entity = await FindAsync(id, ct);
+
+            if (entity is null)
+                return false;
+
+            Set.Remove(entity);
+            return true;
         }
 
 
