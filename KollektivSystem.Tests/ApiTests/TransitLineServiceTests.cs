@@ -24,7 +24,7 @@ namespace KollektivSystem.UnitTests.ApiTests
             {
                 Id = 1,
                 Name = "Test Line",
-                Stops = new List<Stop>()
+                Stops = new List<TransitLineStop>()
             };
 
             repoMock.Setup(r => r.AddAsync(It.IsAny<TransitLine>(), It.IsAny<CancellationToken>()))
@@ -63,7 +63,7 @@ namespace KollektivSystem.UnitTests.ApiTests
             {
                 Id = 1,
                 Name = "Blue Line",
-                Stops = new List<Stop>()
+                Stops = new List<TransitLineStop>()
             };
             repoMock.Setup(r => r.FindAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(testLine);
@@ -119,8 +119,8 @@ namespace KollektivSystem.UnitTests.ApiTests
 
             var linesInRepo = new List<TransitLine>
             {
-                new TransitLine { Id = 1, Name = "Line 1", Stops = new List<Stop>() },
-                new TransitLine { Id = 2, Name = "Line 2", Stops = new List<Stop>() }
+                new TransitLine { Id = 1, Name = "Line 1", Stops = new List<TransitLineStop>() },
+                new TransitLine { Id = 2, Name = "Line 2", Stops = new List<TransitLineStop>() }
             };
 
             // Repository mock

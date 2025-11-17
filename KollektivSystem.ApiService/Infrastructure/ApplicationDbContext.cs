@@ -8,7 +8,8 @@ namespace KollektivSystem.ApiService.Infrastructure
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public virtual DbSet<User> Users => Set<User>();
-        public virtual DbSet<TransitLine> TransitLine => Set<TransitLine>();
+        public virtual DbSet<TransitLine> TransitLines => Set<TransitLine>();
+        public virtual DbSet<TransitLineStop> TransitLinesStops => Set<TransitLineStop>();
         public virtual DbSet<Stop> Stops => Set<Stop>();
         public virtual DbSet<TicketType> TicketTypes => Set<TicketType>();
         public virtual DbSet<PurchasedTicket> PurchasedTickets => Set<PurchasedTicket>();

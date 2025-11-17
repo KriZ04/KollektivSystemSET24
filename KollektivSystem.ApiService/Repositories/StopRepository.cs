@@ -3,7 +3,7 @@ using KollektivSystem.ApiService.Models;
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public class StopRepository : RepositoryBase<Stop, int>, IStopRepository
+    public class StopRepository : RepositoryBase<TransitLineStop, int>, IStopRepository
     {
         public StopRepository(ApplicationDbContext db) : base(db)
         {

@@ -1,22 +1,29 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using KollektivSystem.ApiService.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace KollektivSystem.ApiService.Models.Configs
+namespace KollektivSystem.ApiService.Configurations
 {
-    public class TransitLineConfiguration
+    public class TransitLineConfiguration : IEntityTypeConfiguration<TransitLine>
     {
         public void Configure(EntityTypeBuilder<TransitLine> builder)
         {
-            builder.Property(t => t.Name)
-                .HasMaxLength(100)
-                .IsRequired();
+            builder.ToTable("TransitLines");
 
-            // Since TransitLine has many Stops
+            builder.HasKey(t => t.Id);
+
+            builder.Property(t => t.Id)
+                   .ValueGeneratedOnAdd(); 
+
+            builder.Property(t => t.Name)
+                   .IsRequired()
+                   .HasMaxLength(100);
+
+            // Relationship: TransitLine 1 -> TransitLineStop
             builder.HasMany(t => t.Stops)
-                .WithOne(s => s.Route)
-                .HasForeignKey(s => s.RouteId)
-                .OnDelete(DeleteBehavior.Cascade);
+                   .WithOne(tls => tls.TransitLine)
+                   .HasForeignKey(tls => tls.TransitLineId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
-
 }

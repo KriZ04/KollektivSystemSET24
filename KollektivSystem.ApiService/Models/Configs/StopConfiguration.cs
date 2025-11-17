@@ -1,17 +1,36 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using KollektivSystem.ApiService.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace KollektivSystem.ApiService.Models.Configs
+namespace KollektivSystem.ApiService.Configurations
 {
     public class StopConfiguration : IEntityTypeConfiguration<Stop>
     {
         public void Configure(EntityTypeBuilder<Stop> builder)
         {
-            builder.Property(s => s.Name)
-                .HasMaxLength(100)
-                .IsRequired();
+            builder.ToTable("Stops");
 
-            builder.HasIndex(s => s.Name);
+            builder.HasKey(s => s.Id);
+
+            builder.Property(s => s.Id)
+                   .ValueGeneratedOnAdd();
+
+
+            builder.Property(s => s.Name)
+                   .IsRequired()
+                   .HasMaxLength(100);
+
+            builder.Property(s => s.latitude)
+                   .IsRequired();
+
+            builder.Property(s => s.longitude)
+                   .IsRequired();
+
+            // Relationship: Stop 1 -> TransitLineStop
+            builder.HasMany(s => s.TransitLineStops)
+                   .WithOne(tls => tls.Stop)
+                   .HasForeignKey(tls => tls.StopId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
