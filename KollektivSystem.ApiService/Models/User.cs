@@ -1,4 +1,5 @@
 ﻿using KollektivSystem.ApiService.Models.Enums;
+using System.Security.Claims;
 
 namespace KollektivSystem.ApiService.Models;
 
@@ -13,9 +14,26 @@ public class User
     public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLogin { get; set; } = DateTime.UtcNow;
     public string? Email { get; set; } = null;
+    public ICollection<PurchasedTicket> PurchasedTickets { get; private set; } = new List<PurchasedTicket>();
 
     public void UpdateLogin()
     {
         LastLogin = DateTime.UtcNow;
     }
+}
+public static class UserExtensions
+{
+    public static Guid GetUserId(this ClaimsPrincipal user)
+    {
+        var id = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(id))
+            throw new UnauthorizedAccessException("");
+
+        if (!Guid.TryParse(id, out var guid))
+            throw new UnauthorizedAccessException("");
+
+        return guid;
+    }
+
 }
