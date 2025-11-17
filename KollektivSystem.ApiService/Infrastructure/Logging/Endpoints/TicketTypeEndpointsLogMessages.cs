@@ -59,4 +59,3 @@ public static partial class TicketTypeEndpointsLogMessages
     public static partial void TicketTypeStatusChangeSucceeded(this ILogger logger, int ticketTypeId, string action);
 }
 
-}

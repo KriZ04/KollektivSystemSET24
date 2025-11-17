@@ -25,7 +25,7 @@ public sealed class PurchasedTicketConfiguration : IEntityTypeConfiguration<Purc
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(t => t.User)
-            .WithMany()
+            .WithMany(u => u.PurchasedTickets)
             .HasForeignKey(t => t.UserId);
     }
 }

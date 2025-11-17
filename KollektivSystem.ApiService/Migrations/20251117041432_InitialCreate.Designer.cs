@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KollektivSystem.ApiService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251116185302_InitialCreate")]
+    [Migration("20251117041432_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -222,7 +222,7 @@ namespace KollektivSystem.ApiService.Migrations
                         .IsRequired();
 
                     b.HasOne("KollektivSystem.ApiService.Models.User", "User")
-                        .WithMany()
+                        .WithMany("PurchasedTickets")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -246,6 +246,11 @@ namespace KollektivSystem.ApiService.Migrations
             modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLine", b =>
                 {
                     b.Navigation("Stops");
+                });
+
+            modelBuilder.Entity("KollektivSystem.ApiService.Models.User", b =>
+                {
+                    b.Navigation("PurchasedTickets");
                 });
 #pragma warning restore 612, 618
         }

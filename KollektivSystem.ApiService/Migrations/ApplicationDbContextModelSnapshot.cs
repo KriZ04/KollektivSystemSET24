@@ -219,7 +219,7 @@ namespace KollektivSystem.ApiService.Migrations
                         .IsRequired();
 
                     b.HasOne("KollektivSystem.ApiService.Models.User", "User")
-                        .WithMany()
+                        .WithMany("PurchasedTickets")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -243,6 +243,11 @@ namespace KollektivSystem.ApiService.Migrations
             modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLine", b =>
                 {
                     b.Navigation("Stops");
+                });
+
+            modelBuilder.Entity("KollektivSystem.ApiService.Models.User", b =>
+                {
+                    b.Navigation("PurchasedTickets");
                 });
 #pragma warning restore 612, 618
         }
