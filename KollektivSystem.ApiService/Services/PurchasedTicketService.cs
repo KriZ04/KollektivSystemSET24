@@ -2,10 +2,8 @@
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace KollektivSystem.ApiService.Services;
-
 public class PurchasedTicketService : IPurchasedTicketService
 {
     private readonly IUnitOfWork _uow;
