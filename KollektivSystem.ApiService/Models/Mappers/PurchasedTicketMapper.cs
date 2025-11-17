@@ -10,7 +10,6 @@ public static class PurchasedTicketMapper
         {
             Id = t.Id,
             TicketTypeId = t.TicketTypeId,
-            TicketTypeName = t.TicketType.Name,
             PurchasedAt = t.PurchasedAt,
             ExpireAt = t.ExpireAt,
             Revoked = t.Revoked,

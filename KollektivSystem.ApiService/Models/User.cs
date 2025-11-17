@@ -14,7 +14,7 @@ public class User
     public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLogin { get; set; } = DateTime.UtcNow;
     public string? Email { get; set; } = null;
-    public IReadOnlyCollection<PurchasedTicket> PurchasedTickets { get; set; } = [];
+    public ICollection<PurchasedTicket> PurchasedTickets { get; private set; } = new List<PurchasedTicket>();
 
     public void UpdateLogin()
     {

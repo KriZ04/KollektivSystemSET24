@@ -32,15 +32,13 @@ public class PurchasedTicketService : IPurchasedTicketService
     {
         _logger.FetchUserTickets(userId, includeInvalid);
 
-        var user = await _uow.Users.FindAsync(userId, ct);
-        if (user == null)
-            return [];
-        var tickets = user.PurchasedTickets;
-
-        return includeInvalid 
-            ? tickets.ToList()
-            : tickets.Where(t => t.IsValid).ToList();
-
+        var userExists = await _uow.Users.ExistsAsync(userId, ct);
+        if (!userExists)
+            return Array.Empty<PurchasedTicket>();
+        var tickets = await _uow.PurchasedTickets.GetByUserIdAsync(userId, includeInvalid, ct);
+        if (tickets.Count == 0)
+            return Array.Empty<PurchasedTicket>();
+        return tickets;
     }
 
     public async Task<PurchasedTicket?> GetForUserByIdAsync(Guid userId, Guid ticketId, CancellationToken ct)
