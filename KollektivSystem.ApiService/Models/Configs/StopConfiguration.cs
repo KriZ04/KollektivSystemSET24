@@ -2,35 +2,34 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace KollektivSystem.ApiService.Configurations
+namespace KollektivSystem.ApiService.Models.Configs;
+
+public class StopConfiguration : IEntityTypeConfiguration<Stop>
 {
-    public class StopConfiguration : IEntityTypeConfiguration<Stop>
+    public void Configure(EntityTypeBuilder<Stop> builder)
     {
-        public void Configure(EntityTypeBuilder<Stop> builder)
-        {
-            builder.ToTable("Stops");
+        builder.ToTable("Stops");
 
-            builder.HasKey(s => s.Id);
+        builder.HasKey(s => s.Id);
 
-            builder.Property(s => s.Id)
-                   .ValueGeneratedOnAdd();
+        builder.Property(s => s.Id)
+               .ValueGeneratedOnAdd();
 
 
-            builder.Property(s => s.Name)
-                   .IsRequired()
-                   .HasMaxLength(100);
+        builder.Property(s => s.Name)
+               .IsRequired()
+               .HasMaxLength(100);
 
-            builder.Property(s => s.latitude)
-                   .IsRequired();
+        builder.Property(s => s.latitude)
+               .IsRequired();
 
-            builder.Property(s => s.longitude)
-                   .IsRequired();
+        builder.Property(s => s.longitude)
+               .IsRequired();
 
-            // Relationship: Stop 1 -> TransitLineStop
-            builder.HasMany(s => s.TransitLineStops)
-                   .WithOne(tls => tls.Stop)
-                   .HasForeignKey(tls => tls.StopId)
-                   .OnDelete(DeleteBehavior.Cascade);
-        }
+        // Relationship: Stop 1 -> TransitLineStop
+        builder.HasMany(s => s.TransitLineStops)
+               .WithOne(tls => tls.Stop)
+               .HasForeignKey(tls => tls.StopId)
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }
