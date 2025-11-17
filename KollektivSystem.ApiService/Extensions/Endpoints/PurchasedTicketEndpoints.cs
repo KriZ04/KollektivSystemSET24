@@ -53,10 +53,10 @@ public static class PurchasedTicketEndpoints
             ExpireAt = ticket.ExpireAt
         });
     }
-    internal static async Task<IResult> HandleGetMe(bool includeExpired, IPurchasedTicketService ticketService, ClaimsPrincipal user, CancellationToken ct)
+    internal static async Task<IResult> HandleGetMe(bool includeInvalid, IPurchasedTicketService ticketService, ClaimsPrincipal user, CancellationToken ct)
     {
         var userId = user.GetUserId();
-        var tickets = await ticketService.GetByUserAsync(userId, includeExpired, ct);
+        var tickets = await ticketService.GetByUserAsync(userId, includeInvalid, ct);
         var dtos = tickets.Select(t => t.ToResponse());
         return Results.Ok(dtos);
     }

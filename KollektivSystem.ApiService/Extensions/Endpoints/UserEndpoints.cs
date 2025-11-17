@@ -60,7 +60,7 @@ public static class UserEndpoints
     }
     internal static async Task<IResult> HandleGetUserTickets(Guid id, IPurchasedTicketService purchaseService, CancellationToken ct)
     {
-        var tickets = await purchaseService.GetByUserIdAsync(id, ct);
+        var tickets = await purchaseService.GetByUserAsync(id, includeInvalid: true, ct);
         return Results.Ok(tickets.Select(t => t.ToResponse()));
     }
 

@@ -4,5 +4,8 @@ namespace KollektivSystem.ApiService.Repositories.Interfaces
 {
     public interface IPurchasedTicketRepository : IRepository<PurchasedTicket, Guid>
     {
+        Task<bool> ValidationCodeExistsAsync(string code, CancellationToken ct = default);
+        Task<PurchasedTicket?> GetByValidationCodeAsync(string code, CancellationToken ct = default);
+
     }
 }
