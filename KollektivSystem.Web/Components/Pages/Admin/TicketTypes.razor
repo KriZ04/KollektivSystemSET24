@@ -1,0 +1,183 @@
+﻿@page "/admin/ticket-types"
+@rendermode InteractiveServer
+@using System.Globalization
+@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+@inject NavigationManager Nav
+@inject TicketTypeAdminClient TicketTypeClient
+
+<h1>Billettyper</h1>
+
+<div class="toolbar">
+    <button class="btn" @onclick="LoadAsync">Last inn</button>
+    <button class="btn btn-secondary" @onclick="Back">Tilbake</button>
+</div>
+
+@if (_isLoading)
+{
+    <p>Laster billettyper...</p>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <p class="text-danger">@_error</p>
+}
+else
+{
+    <h2>Eksisterende typer</h2>
+
+    @if (_ticketTypes.Count == 0)
+    {
+        <p>Ingen billettyper funnet.</p>
+    }
+    else
+    {
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Navn</th>
+                    <th>Pris</th>
+                    <th>Varighet</th>
+                    <th>Aktiv</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in _ticketTypes)
+                {
+                    <tr>
+                        <td>@t.Id</td>
+                        <td>@t.Name</td>
+                        <td>@t.Price.ToString("0.00", CultureInfo.InvariantCulture) kr</td>
+                        <td>@t.AliveTime</td>
+                        <td>@(t.IsActive ? "Ja" : "Nei")</td>
+                        <td class="row-actions">
+                            @if (t.IsActive)
+                            {
+                                <button class="btn sm danger" @onclick="() => DeactivateAsync(t.Id)">Deaktiver</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h2 class="mt">Ny billettype</h2>
+
+    <div class="form-grid">
+        <label>
+            Navn
+            <input type="text" @bind="_newName" />
+        </label>
+        <label>
+            Pris (kr)
+            <input type="number" step="0.5" @bind="_newPrice" />
+        </label>
+        <label>
+            Varighet (minutter)
+            <input type="number" step="1" @bind="_newAliveMinutes" />
+        </label>
+        <div class="form-actions">
+            <button class="btn" @onclick="CreateAsync" disabled="@_isSaving">Opprett</button>
+        </div>
+    </div>
+}
+
+@code {
+    private List<TicketTypeAdminDto> _ticketTypes = new();
+    private bool _isLoading;
+    private bool _isSaving;
+    private string? _error;
+
+    private string _newName = string.Empty;
+    private float _newPrice = 0;
+    private int _newAliveMinutes = 60;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        _error = null;
+
+        try
+        {
+            var items = await TicketTypeClient.GetAllAsync();
+            _ticketTypes = items.ToList();
+        }
+        catch
+        {
+            _error = "Kunne ikke laste billettyper.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newName) || _newPrice <= 0 || _newAliveMinutes <= 0)
+        {
+            _error = "Fyll inn navn, pris og varighet.";
+            return;
+        }
+
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var created = await TicketTypeClient.CreateAsync(_newName, _newPrice, _newAliveMinutes);
+            if (created is null)
+            {
+                _error = "Klarte ikke å opprette billettypen.";
+                return;
+            }
+
+            _ticketTypes.Add(created);
+            _newName = string.Empty;
+            _newPrice = 0;
+            _newAliveMinutes = 60;
+        }
+        catch
+        {
+            _error = "Klarte ikke å opprette billettypen.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task DeactivateAsync(int id)
+    {
+        _error = null;
+
+        try
+        {
+            var ok = await TicketTypeClient.DeactivateAsync(id);
+            if (!ok)
+            {
+                _error = "Klarte ikke å deaktivere billettypen.";
+                return;
+            }
+
+            var found = _ticketTypes.FirstOrDefault(t => t.Id == id);
+            if (found is not null)
+            {
+                found.IsActive = false;
+            }
+        }
+        catch
+        {
+            _error = "Klarte ikke å deaktivere billettypen.";
+        }
+    }
+
+    private void Back() => Nav.NavigateTo("/admin", true);
+}
