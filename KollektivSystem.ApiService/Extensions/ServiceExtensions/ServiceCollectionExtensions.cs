@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json;
+using KollektivSystem.ApiService.Repositories.Interfaces;
+using System.ComponentModel;
 
 namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 {
@@ -19,9 +21,10 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITransitLineRepository, TransitLineRepository>();
-            services.AddScoped<ITicketsRepository, TicketsRepository>();
+            services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
             services.AddScoped<IStopRepository, StopRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IPurchasedTicketRepository, PurchasedTicketRepository>();
 
 
             return services;
@@ -32,8 +35,9 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             // Domain Services
             services.AddScoped<ITransitLineService, TransitLineService>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ITicketService, TicketService>();
+            services.AddScoped<ITicketTypeService, TicketTypeService>();
             services.AddScoped<IStopService, StopService>();
+            services.AddScoped<IPurchasedTicketService, PurchasedTicketService>();
 
 
 
