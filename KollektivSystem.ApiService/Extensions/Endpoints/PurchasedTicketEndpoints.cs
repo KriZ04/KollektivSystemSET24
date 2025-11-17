@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints;
 
-public sealed class PurchasedTicketLogggerCategory { }
+public sealed class PurchasedTicketEndpointsLogggerCategory { }
 public static class PurchasedTicketEndpoints
 {
     public static IEndpointRouteBuilder MapPurchasedTicketEndpoints(this IEndpointRouteBuilder app)
@@ -26,7 +26,7 @@ public static class PurchasedTicketEndpoints
 
         return app;
     }
-    internal static async Task<IResult> HandleBuyTicket(PurchaseTicketRequest req, IPurchasedTicketService ticketService, ClaimsPrincipal user, ILogger<PurchasedTicketLogggerCategory> logger, CancellationToken ct)
+    internal static async Task<IResult> HandleBuyTicket(PurchaseTicketRequest req, IPurchasedTicketService ticketService, ClaimsPrincipal user, ILogger<PurchasedTicketEndpointsLogggerCategory> logger, CancellationToken ct)
     {
         var userId = user.GetUserId();
         logger.BuyTicketRequested(userId, req.TicketTypeId);
@@ -42,7 +42,7 @@ public static class PurchasedTicketEndpoints
         var dto = purchasedTicket.ToResponse();
         return Results.Created($"me/{dto.Id}", dto);
     }
-    internal static async Task<IResult> HandleTicketValidation(ValidateTicketRequest req, IPurchasedTicketService ticketService, ILogger<PurchasedTicketLogggerCategory> logger, CancellationToken ct)
+    internal static async Task<IResult> HandleTicketValidation(ValidateTicketRequest req, IPurchasedTicketService ticketService, ILogger<PurchasedTicketEndpointsLogggerCategory> logger, CancellationToken ct)
     {
         logger.TicketValidationRequested(req.ValidationCode);
         var (isValid, ticket, reason) = await ticketService.ValidateAsync(req.ValidationCode, ct);
@@ -65,7 +65,7 @@ public static class PurchasedTicketEndpoints
             ExpireAt = ticket.ExpireAt
         });
     }
-    internal static async Task<IResult> HandleGetMe(bool includeInvalid, IPurchasedTicketService ticketService, ClaimsPrincipal user, ILogger<PurchasedTicketLogggerCategory> logger, CancellationToken ct)
+    internal static async Task<IResult> HandleGetMe(bool includeInvalid, IPurchasedTicketService ticketService, ClaimsPrincipal user, ILogger<PurchasedTicketEndpointsLogggerCategory> logger, CancellationToken ct)
     {
         var userId = user.GetUserId();
         logger.GetMyTicketsRequested(userId, includeInvalid);
@@ -75,7 +75,7 @@ public static class PurchasedTicketEndpoints
 
         return Results.Ok(dtos);
     }
-    internal static async Task<IResult> HandleGetMeById(Guid id, IPurchasedTicketService ticketService, ClaimsPrincipal user, ILogger<PurchasedTicketLogggerCategory> logger, CancellationToken ct)
+    internal static async Task<IResult> HandleGetMeById(Guid id, IPurchasedTicketService ticketService, ClaimsPrincipal user, ILogger<PurchasedTicketEndpointsLogggerCategory> logger, CancellationToken ct)
     {
         var userId = user.GetUserId();
 
@@ -92,7 +92,7 @@ public static class PurchasedTicketEndpoints
 
 
     }
-    internal static async Task<IResult> HandleRevoke(Guid id, IPurchasedTicketService ticketService, ILogger<PurchasedTicketLogggerCategory> logger, CancellationToken ct)
+    internal static async Task<IResult> HandleRevoke(Guid id, IPurchasedTicketService ticketService, ILogger<PurchasedTicketEndpointsLogggerCategory> logger, CancellationToken ct)
     {
         logger.RevokeTicketRequested(id);
         var isSuccess = await ticketService.RevokeAsync(id, ct);
@@ -105,7 +105,7 @@ public static class PurchasedTicketEndpoints
         logger.RevokeTicketSucceeded(id);
         return Results.NoContent();
     }
-    internal static async Task<IResult> HandleGetById(Guid id, IPurchasedTicketService ticketService, ILogger<PurchasedTicketLogggerCategory> logger, CancellationToken ct)
+    internal static async Task<IResult> HandleGetById(Guid id, IPurchasedTicketService ticketService, ILogger<PurchasedTicketEndpointsLogggerCategory> logger, CancellationToken ct)
     {
         logger.GetTicketByIdRequested(id);
         var ticket = await ticketService.GetByIdAsync(id, ct);
