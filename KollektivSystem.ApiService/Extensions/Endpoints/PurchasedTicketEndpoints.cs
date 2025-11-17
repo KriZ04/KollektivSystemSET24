@@ -30,6 +30,7 @@ public static class PurchasedTicketEndpoints
         var userId = user.GetUserId();
 
         var purchasedTicket = await ticketService.PurchaseAsync(userId, req.TicketTypeId, ct);
+        if (purchasedTicket == null) return Results.Problem();
         var dto = purchasedTicket.ToResponse();
         return Results.Created($"me/{dto.Id}", dto);
     }
