@@ -7,5 +7,5 @@ TransitLine = 6000
 Infrastructure = 9000
 
 Endpoints = Base -> Base + 99
-Service = Base + 100 -> Base + 199
-Repositories = Base + 200 -> Base + 299
+Service = Base + 100 -> Base + 299
+Repositories = Base + 300 -> Base + 399
