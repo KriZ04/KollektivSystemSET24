@@ -1,12 +1,15 @@
-﻿namespace KollektivSystem.ApiService.Repositories.Uow
+﻿using KollektivSystem.ApiService.Repositories.Interfaces;
+
+namespace KollektivSystem.ApiService.Repositories.Uow
 {
     public interface IUnitOfWork
     {
         IUserRepository Users { get; }
         IRefreshTokenRepository RefreshTokens { get; }
         IStopRepository Stops { get; }
-        ITicketsRepository Tickets { get; }
+        ITicketTypeRepository TicketTypes { get; }
         ITransitLineRepository TransitLines { get; }
+        IPurchasedTicketRepository PurchasedTickets { get; }
 
 
 

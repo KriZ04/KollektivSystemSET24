@@ -1,6 +1,7 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Enums;
+using KollektivSystem.ApiService.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace KollektivSystem.ApiService.Repositories

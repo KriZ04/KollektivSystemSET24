@@ -1,6 +1,6 @@
 ﻿using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Models;
-using KollektivSystem.ApiService.Repositories;
+using KollektivSystem.ApiService.Repositories.Interfaces;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services;
 using Microsoft.Extensions.Logging;
