@@ -2,10 +2,16 @@
 
 public sealed class PurchasedTicketDto
 {
-    public int Id { get; set; }
-    public string Type { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public DateTime PurchasedAtUtc { get; set; }
-    public DateTime ValidUntilUtc { get; set; }
-    public string Code { get; set; } = string.Empty;
+    public Guid Id { get; set; }
+
+    public int TicketTypeId { get; set; }
+    public string TicketTypeName { get; set; } = string.Empty;
+
+    public DateTimeOffset PurchasedAt { get; set; }
+    public DateTimeOffset ExpireAt { get; set; }
+
+    public bool Revoked { get; set; }
+    public bool IsExpired { get; set; }
+
+    public string ValidationCode { get; set; } = string.Empty;
 }

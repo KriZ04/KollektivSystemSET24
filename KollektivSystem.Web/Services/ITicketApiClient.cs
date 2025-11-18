@@ -6,4 +6,5 @@ public interface ITicketApiClient
 {
     Task<IReadOnlyList<TicketDto>> GetTicketsAsync(CancellationToken ct = default);
     Task<PurchasedTicketDto?> PurchaseTicketAsync(int ticketId, CancellationToken ct = default);
+    Task<IReadOnlyList<PurchasedTicketDto>> GetMyTicketsAsync(CancellationToken ct = default);
 }

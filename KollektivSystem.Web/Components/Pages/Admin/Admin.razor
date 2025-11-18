@@ -15,36 +15,40 @@ else if (!_hasAdminAccess)
 else
 {
     <h1>Admin</h1>
-    <p>Velg hva du vil administrere.</p>
 
     <div class="admin-grid">
-        <section class="card">
+        <div class="card">
             <h2>Varsler</h2>
-            <p>Opprett, rediger og arkiver systemvarsler.</p>
-            <div class="actions">
+            <p>Administrer varsler som vises til kunder.</p>
+            <div class="card-actions">
                 <button class="btn" @onclick="OpenAlerts">Åpne varsler</button>
             </div>
-        </section>
+        </div>
 
-        <section class="card">
-            <h2>Rutetabeller</h2>
-            <p>Administrer linjer, avganger og publisering.</p>
-            <div class="actions">
-                <button class="btn" @onclick="OpenRoutes">Åpne rutetabeller</button>
+        <div class="card">
+            <h2>Ruter</h2>
+            <p>Administrer rutetabeller og linjer.</p>
+            <div class="card-actions">
+                <button class="btn" @onclick="OpenRoutes">Åpne ruter</button>
             </div>
-        </section>
+        </div>
+
+        <div class="card">
+            <h2>Billettyper</h2>
+            <p>Opprett og deaktiver billettyper.</p>
+            <div class="card-actions">
+                <button class="btn" @onclick="OpenTicketTypes">Åpne billettyper</button>
+            </div>
+        </div>
     </div>
 }
 
 @code {
     private bool _loaded;
-    private bool _hasAdminAccess;   // Admin ELLER SystemManager
+    private bool _hasAdminAccess;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (!firstRender || _loaded)
-            return;
-
         var claims = await Auth.GetClaimsAsync();
 
         string? role = null;
@@ -65,10 +69,9 @@ else
         {
             Nav.NavigateTo("/login", replace: true);
         }
-
-        StateHasChanged();
     }
 
     private void OpenAlerts() => Nav.NavigateTo("/admin/alerts", true);
     private void OpenRoutes() => Nav.NavigateTo("/admin/routes", true);
+    private void OpenTicketTypes() => Nav.NavigateTo("/admin/ticket-types", true);
 }
