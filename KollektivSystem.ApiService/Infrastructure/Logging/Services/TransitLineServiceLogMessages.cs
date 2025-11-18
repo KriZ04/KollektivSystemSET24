@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace KollektivSystem.ApiService.Infrastructure.Logging
 {
-    internal static partial class TransitLineLogMessages
+    internal static partial class TransitLineServiceLogMessages
     {
         private const int Base = LogAreas.TransitLine;
 
