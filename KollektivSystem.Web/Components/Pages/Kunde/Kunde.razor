@@ -1,173 +1,67 @@
 ﻿@page "/kunde"
-@rendermode InteractiveServer
-@using System.Security.Claims
-@using KollektivSystem.Web.Models
-@using KollektivSystem.Web.Services
-@inject ITicketApiClient TicketApi
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
 @inject NavigationManager Nav
 @inject KollektivSystem.Web.Services.AuthState Auth
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@attribute [Authorize(Roles = "Customer")]
 
-<h1>Kundeoversikt</h1>
-<p class="text-muted">Velkommen! Her kan du kjøpe og se billetter.</p>
+<h3 class="mb-4">Kundedashboard</h3>
 
-@if (!_accessChecked)
-{
-    <p>Sjekker tilgang…</p>
-}
-else if (!_isCustomer)
-{
-    <p>Ingen tilgang. Sender deg til innlogging …</p>
-}
-else
-{
-    <div class="dashboard-grid">
-
-       
-            <section class="card p-3">
-                <h3>Kjøp billett</h3>
-                <p>Trykk på knappen under for å kjøpe billetter.</p>
-
-                <button class="btn btn-primary"
-                        @onclick="OpenTicketPage">
-                    Gå til billettsiden
-                </button>
-            </section>
-
+<div class="container">
+    <div class="row">
 
         
-        @if (_lastPurchase is not null)
-        {
-            <section class="card p-3">
-                <h3>Siste kjøpte billett</h3>
-
-                <div class="card border mt-2" style="max-width: 360px;">
-                    <div class="card-body">
-                        <h5>@_lastPurchase.Type</h5>
-
-                        <p>
-                            Pris: @_lastPurchase.Price.ToString("0.00") kr<br />
-                            Kjøpt: @_lastPurchase.PurchasedAtUtc.ToLocalTime():g<br />
-                            Gyldig til: @_lastPurchase.ValidUntilUtc.ToLocalTime():g
-                        </p>
-
-                        <p>
-                            Kontrollkode:<br />
-                            <span style="letter-spacing:0.15rem; font-size:1.2rem;">
-                                @_lastPurchase.Code
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </section>
-        }
-
-        
-        <section class="card p-3">
-            <h3>Aktive billetter</h3>
-
-            @if (_activeLoading)
-            {
-                <p>Laster aktive billetter…</p>
-            }
-            else if (_activeError != null)
-            {
-                <p class="text-danger">@_activeError</p>
-            }
-            else if (_activeTickets.Count == 0)
-            {
-                <p>Ingen aktive billetter.</p>
-            }
-            else
-            {
-                <ul class="list-group">
-                    @foreach (var a in _activeTickets)
-                    {
-                        <li class="list-group-item small">
-                            <strong>@a.Type</strong>  
-                            – gyldig til @a.ValidUntilUtc.ToLocalTime():g  
-                            <br />
-                            <span class="text-muted">Kode: @a.Code</span>
-                        </li>
-                    }
-                </ul>
-            }
-        </section>
-
-       
-        <section class="card p-3">
-            <h3>Rutesøk</h3>
-
-            <input class="form-control"
-                   placeholder="Søk etter stopp eller rutenavn"
-                   @bind="_routeSearch"
-                   @bind:event="oninput" />
-
-            <button class="btn btn-secondary mt-2"
-
-                    disabled="@_routeSearching">
-                Søk
+        <div class="col-12 mb-4">
+            <button class="btn btn-primary w-100"
+                    @onclick='() => Nav.NavigateTo("/kunde/billetter")'>
+                Kjøp nye billetter her
             </button>
+        </div>
 
-            @if (_routeSearching)
-            {
-                <p>Laster ruter...</p>
-            }
-            else if (_routesError != null)
-            {
-                <p class="text-danger">@_routesError</p>
-            }
-            else if (_routes.Count > 0)
-            {
-                <ul class="list-group mt-2">
-                    @foreach (var r in _routes)
-                    {
-                        <li class="list-group-item">@r</li>
-                    }
-                </ul>
-            }
-        </section>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Aktive billetter</h5>
+                    <p class="card-text text-muted">Du har for øyeblikket 0 aktive billetter.</p>
+
+                    
+                    <ul class="list-group">
+                        <li class="list-group-item text-muted">Ingen aktive billetter</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Rutesøk</h5>
+                    <p class="card-text text-muted">Søk etter ruter mellom to stoppesteder.</p>
+
+                    <input class="form-control mb-2" placeholder="Fra..." />
+                    <input class="form-control mb-2" placeholder="Til..." />
+
+                    <button class="btn btn-secondary w-100" disabled>
+                        Søk (kommer snart)
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
-}
-
-<style>
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
-</style>
+</div>
 
 @code {
-    private bool _accessChecked;
-    private bool _isCustomer;
-
-    
-    private List<TicketDto> _tickets = new();
-    private PurchasedTicketDto? _lastPurchase;
-    private bool _isLoading;
-    private bool _isPurchasing;
-    private string? _loadError;
-
-    
-    private List<PurchasedTicketDto> _activeTickets = new();
-    private bool _activeLoading;
-    private string? _activeError;
-
-   
-    private string _routeSearch = "";
-    private List<string> _routes = new();
-    private string? _routesError;
-    private bool _routeSearching;
-
-    private void OpenTicketPage()
-    {
-        Nav.NavigateTo("/kunde/billetter");
-    }
+    private bool _loaded;
+    private bool _IsCustomer;   // Admin ELLER SystemManager
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _accessChecked)
+        if (!firstRender || _loaded)
             return;
 
         var claims = await Auth.GetClaimsAsync();
@@ -179,65 +73,17 @@ else
                 claims.TryGetValue("role", out role);
         }
 
-        
-        _isCustomer = string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
+        _IsCustomer =
+            !string.IsNullOrWhiteSpace(role) &&
+            (role.Equals("Customer", StringComparison.OrdinalIgnoreCase));
 
-        _accessChecked = true;
+        _loaded = true;
 
-        if (!_isCustomer)
+        if (!_IsCustomer)
         {
             Nav.NavigateTo("/login", replace: true);
-            
         }
 
-        await LoadTicketsAsync();
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
     }
-
-    private async Task LoadTicketsAsync()
-    {
-        _isLoading = true;
-        _loadError = null;
-
-        try
-        {
-            var tickets = await TicketApi.GetTicketsAsync();
-            _tickets = tickets.ToList();
-        }
-        catch
-        {
-            _loadError = "Kunne ikke laste billetter.";
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    }
-
-
-
-
-
-    private async Task PurchaseAsync(int ticketId)
-    {
-        _isPurchasing = true;
-
-        try
-        {
-            var result = await TicketApi.PurchaseTicketAsync(ticketId);
-            if (result is null)
-            {
-                _loadError = "Klarte ikke å kjøpe billetten.";
-                return;
-            }
-
-            _lastPurchase = result;
-        }
-        finally
-        {
-            _isPurchasing = false;
-        }
-    }
-
-    
 }

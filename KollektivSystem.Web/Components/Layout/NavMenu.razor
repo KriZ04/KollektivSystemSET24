@@ -37,12 +37,6 @@
             </NavLink>
         </li>
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="login">
-                <span class="bi bi-key" aria-hidden="true"></span> Login
-            </NavLink>
-        </li>
-
         @if (_isCustomer)
         {
             <li class="nav-item px-3">
@@ -51,6 +45,14 @@
                 </NavLink>
             </li>
         }
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="login">
+                <span class="bi bi-key" aria-hidden="true"></span> Login
+            </NavLink>
+        </li>
+
+
 
     </ul>
 </nav>
@@ -102,9 +104,7 @@
             !string.IsNullOrWhiteSpace(role) &&
             role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase);
             
-        _isCustomer = 
-            !string.IsNullOrWhiteSpace(role) &&
-            role.Equals("Customer", StringComparison.OrdinalIgnoreCase);
+        _isCustomer = string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose()
