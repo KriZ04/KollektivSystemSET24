@@ -18,79 +18,79 @@ namespace KollektivSystem.ApiService.Services
             _logger = logger;
         }
 
-        //public async Task<TransitLineStop> CreateAsync(TransitLineStop stop)
-        //{
-        //    try
-        //    {
-        //        await _uow.Stops.AddAsync(stop);
-        //        await _uow.SaveChangesAsync();
+        public async Task<Stop> CreateAsync(Stop stop)
+        {
+            try
+            {
+                await _uow.Stops.AddAsync(stop);
+                await _uow.SaveChangesAsync();
 
-        //        _logger.LogStopCreated(stop.Id, stop.Name);
-        //        return stop;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogStopCreationFailed(ex.Message);
-        //        throw;
-        //    }
-        //}
+                _logger.LogStopCreated(stop.Id, stop.Name);
+                return stop;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogStopCreationFailed(ex.Message);
+                throw;
+            }
+        }
 
-        //public async Task<IEnumerable<TransitLineStop>> GetAllAsync()
-        //{
-        //    return await _uow.Stops.GetAllAsync();
-        //}
+        public async Task<IEnumerable<Stop>> GetAllAsync()
+        {
+            return await _uow.Stops.GetAllAsync();
+        }
 
-        //public async Task<TransitLineStop?> GetByIdAsync(int id)
-        //{
-        //    var stop = await _uow.Stops.FindAsync(id);
-        //    if (stop == null)
-        //        _logger.LogStopNotFound(id);
+        public async Task<Stop?> GetByIdAsync(int id)
+        {
+            var stop = await _uow.Stops.FindAsync(id);
+            if (stop == null)
+                _logger.LogStopNotFound(id);
 
-        //    return stop;
-        //}
+            return stop;
+        }
 
-        //public async Task<bool> UpdateAsync(int id, TransitLineStop updated)
-        //{
-        //    var existing = await _uow.Stops.FindAsync(id);
-        //    if (existing == null)
-        //    {
-        //        _logger.LogStopNotFound(id);
-        //        return false;
-        //    }
+        public async Task<bool> UpdateAsync(int id, Stop updated)
+        {
+            var existing = await _uow.Stops.FindAsync(id);
+            if (existing == null)
+            {
+                _logger.LogStopNotFound(id);
+                return false;
+            }
 
-        //    existing.Name = updated.Name;
-        //    existing.Order = updated.Order;
-        //    existing.RouteId = updated.RouteId;
+            existing.Name = updated.Name;
+            existing.Order = updated.Order;
+            existing.RouteId = updated.RouteId;
 
-        //    try
-        //    {
-        //        _uow.Stops.Update(existing);
-        //        await _uow.SaveChangesAsync();
+            try
+            {
+                _uow.Stops.Update(existing);
+                await _uow.SaveChangesAsync();
 
-        //        _logger.LogStopUpdated(id, existing.Name);
-        //        return true;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogStopUpdateFailed(id, ex.Message);
-        //        throw;
-        //    }
-        //}
+                _logger.LogStopUpdated(id, existing.Name);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogStopUpdateFailed(id, ex.Message);
+                throw;
+            }
+        }
 
-        //public async Task<bool> DeleteAsync(int id)
-        //{
-        //    var existing = await _uow.Stops.FindAsync(id);
-        //    if (existing == null)
-        //    {
-        //        _logger.LogStopNotFound(id);
-        //        return false;
-        //    }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var existing = await _uow.Stops.FindAsync(id);
+            if (existing == null)
+            {
+                _logger.LogStopNotFound(id);
+                return false;
+            }
 
-        //    _uow.Stops.Remove(existing);
-        //    await _uow.SaveChangesAsync();
+            _uow.Stops.Remove(existing);
+            await _uow.SaveChangesAsync();
 
-        //    _logger.LogStopDeleted(id);
-        //    return true;
-        //}
+            _logger.LogStopDeleted(id);
+            return true;
+        }
     }
 }
