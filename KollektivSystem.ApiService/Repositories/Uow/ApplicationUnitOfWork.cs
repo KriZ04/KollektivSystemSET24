@@ -1,4 +1,5 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
+using KollektivSystem.ApiService.Repositories.Interfaces;
 
 namespace KollektivSystem.ApiService.Repositories.Uow
 {
@@ -10,15 +11,17 @@ namespace KollektivSystem.ApiService.Repositories.Uow
             IUserRepository userRepository, 
             IRefreshTokenRepository refreshTokenRepository, 
             IStopRepository stopRepository,
-            ITicketsRepository ticketsRepository,
-            ITransitLineRepository transitLineRepository)
+            ITicketTypeRepository ticketTypeRepository,
+            ITransitLineRepository transitLineRepository,
+            IPurchasedTicketRepository purchasedTicketRepository)
         {
             _db = db;
             Users = userRepository;
             RefreshTokens = refreshTokenRepository;
             Stops = stopRepository;
-            Tickets = ticketsRepository;
+            TicketTypes = ticketTypeRepository;
             TransitLines = transitLineRepository;
+            PurchasedTickets = purchasedTicketRepository;
         }
 
         public IUserRepository Users { get; }
@@ -27,9 +30,10 @@ namespace KollektivSystem.ApiService.Repositories.Uow
 
         public IStopRepository Stops { get; }
 
-        public ITicketsRepository Tickets { get; }
+        public ITicketTypeRepository TicketTypes { get; }
 
         public ITransitLineRepository TransitLines { get; }
+        public IPurchasedTicketRepository PurchasedTickets { get; }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default)
             => _db.SaveChangesAsync(ct);

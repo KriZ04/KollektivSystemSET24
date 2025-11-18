@@ -30,7 +30,8 @@ namespace KollektivSystem.ApiService.Services
                     u.Role.ToString(),
                     u.Provider.ToString(),
                     u.Sub,
-                    u.LastLogin
+                    u.LastLogin,
+                    u.PurchasedTickets
             )).ToList();
         }
 
