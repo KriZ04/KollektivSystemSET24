@@ -25,21 +25,31 @@ else
     <div class="row row-cols-1 row-cols-md-2 g-3">
         @foreach (var ticket in _tickets)
         {
-            var isExpired = ticket.ValidUntilUtc <= DateTime.UtcNow;
             <div class="col">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">@ticket.Type</h5>
+                        <h5 class="card-title">@ticket.TicketTypeName</h5>
                         <p class="card-text">
-                            Pris: @ticket.Price.ToString("0.00") kr<br />
-                            Kjøpt: @ticket.PurchasedAtUtc.ToLocalTime().ToString("g")<br />
-                            Gyldig til: @ticket.ValidUntilUtc.ToLocalTime().ToString("g")<br />
-                            Status: @(isExpired ? "Utløpt" : "Gyldig")
+                            Kjøpt: @ticket.PurchasedAt.ToLocalTime().ToString("g")<br />
+                            Gyldig til: @ticket.ExpireAt.ToLocalTime().ToString("g")<br />
+                            Status:
+                            @if (ticket.Revoked)
+                            {
+                                <span>Opphevet</span>
+                            }
+                            else if (ticket.IsExpired)
+                            {
+                                <span>Utløpt</span>
+                            }
+                            else
+                            {
+                                <span>Gyldig</span>
+                            }
                         </p>
                         <p class="card-text">
                             Kontrollkode:<br />
                             <span style="font-size: 1.3rem; letter-spacing: 0.15rem;">
-                                @ticket.Code
+                                @ticket.ValidationCode
                             </span>
                         </p>
                     </div>

@@ -87,14 +87,14 @@ else
         }
     }
 
-    private async Task PurchaseAsync(int ticketId)
+    private async Task PurchaseAsync(int ticketTypeId)
     {
         _isPurchasing = true;
         _purchaseMessage = null;
 
         try
         {
-            var result = await TicketApi.PurchaseTicketAsync(ticketId);
+            var result = await TicketApi.PurchaseTicketAsync(ticketTypeId);
             if (result is null)
             {
                 _loadError = "Klarte ikke å kjøpe billetten.";

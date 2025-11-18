@@ -33,14 +33,18 @@ public sealed class TicketApiClient : ITicketApiClient
         return data ?? [];
     }
 
-    public async Task<PurchasedTicketDto?> PurchaseTicketAsync(int ticketId, CancellationToken ct = default)
+    public async Task<PurchasedTicketDto?> PurchaseTicketAsync(int ticketTypeId, CancellationToken ct = default)
     {
         var token = await _tokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
             return null;
 
-        using var req = new HttpRequestMessage(HttpMethod.Post, $"/tickets/{ticketId}/purchase");
+        // Backend forventer POST /tickets med body { ticketTypeId = ... }
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/tickets");
         req.Headers.Authorization = new("Bearer", token);
+
+        var body = new { ticketTypeId };
+        req.Content = JsonContent.Create(body);
 
         using var res = await _http.SendAsync(req, ct);
         if (!res.IsSuccessStatusCode)
@@ -55,7 +59,8 @@ public sealed class TicketApiClient : ITicketApiClient
         if (string.IsNullOrWhiteSpace(token))
             return Array.Empty<PurchasedTicketDto>();
 
-        using var req = new HttpRequestMessage(HttpMethod.Get, "/tickets/mine");
+        // Backend har /tickets/me, ikke /tickets/mine
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/tickets/me");
         req.Headers.Authorization = new("Bearer", token);
 
         using var res = await _http.SendAsync(req, ct);
