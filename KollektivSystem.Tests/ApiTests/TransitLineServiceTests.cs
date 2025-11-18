@@ -11,6 +11,8 @@ namespace KollektivSystem.UnitTests.ApiTests
 {
     public class TransitLineServiceTests    {
         [Fact]
+        // Denne testen sjekker at CreateAsync legger til en ny transitlinje og lagrer endringene som forventet.
+        // Tester at en ny linje opprettes og lagres via repo og UnitOfWork.
         public async Task CreateAsync_WithTransitLine_ReturnsNewTransitLine()
         {
             // Arrange
@@ -50,6 +52,8 @@ namespace KollektivSystem.UnitTests.ApiTests
         }
 
         [Fact]
+        // Denne testen sjekker at GetByIdAsync returnerer korrekt transitlinje når den finnes i databasen.
+        // Tester at tjenesten finner og returnerer en eksisterende linje.
         public async Task GetByIdAsync_WithExistingLine_ReturnsTransitLine()
         {
             // Arrange
@@ -83,6 +87,8 @@ namespace KollektivSystem.UnitTests.ApiTests
         }
 
         [Fact]
+        // Denne testen sjekker at GetByIdAsync returnerer null når linjen ikke finnes.
+        // Tester at tjenesten håndterer et søk etter en ikke-eksisterende linje riktig.
         public async Task GetByIdAsync_WithNonExistingLine_ReturnsNull()
         {
             // Arrange
@@ -108,6 +114,8 @@ namespace KollektivSystem.UnitTests.ApiTests
         }
 
         [Fact]
+        // Denne testen sjekker at servicen returnerer hele listen med transitlinjer som repository gir.
+        // Tester at alle linjer hentes og returneres korrekt fra repo.
         public async Task GetAllAsync_WhenRepoReturnsLines_ReturnsThoseLines()
         {
             // Arrange
