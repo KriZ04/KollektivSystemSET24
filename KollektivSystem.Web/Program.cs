@@ -40,12 +40,12 @@ builder.Services.AddHttpClient<UsersAdminClient>(c =>
     c.BaseAddress = new("https+http://apiservice");
 });
 
-builder.Services.AddHttpClient<ITicketApiClient, TicketApiClient>(c =>
+builder.Services.AddHttpClient<TicketTypeAdminClient>(c =>
 {
     c.BaseAddress = new("https+http://apiservice");
 });
 
-builder.Services.AddHttpClient<TicketTypeAdminClient>(c =>
+builder.Services.AddHttpClient<ITicketApiClient, TicketApiClient>(c =>
 {
     c.BaseAddress = new("https+http://apiservice");
 });
@@ -67,6 +67,7 @@ app.UseOutputCache();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Enkel redirect til APIets login-endepunkt
 app.MapGet("/login/redirect", (HttpContext ctx, IConfiguration cfg) =>
 {
     var api = (cfg["Api:BaseUrl"] ?? "https://localhost:7445").TrimEnd('/');

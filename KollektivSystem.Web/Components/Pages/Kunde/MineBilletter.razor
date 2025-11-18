@@ -1,0 +1,76 @@
+﻿@page "/kunde/mine-billetter"
+@rendermode InteractiveServer
+
+@using System.Linq
+@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+@inject ITicketApiClient TicketApi
+
+<h3>Mine billetter</h3>
+
+@if (_isLoading)
+{
+    <p>Laster billetter...</p>
+}
+else if (_loadError != null)
+{
+    <p class="text-danger">@_loadError</p>
+}
+else if (_tickets.Count == 0)
+{
+    <p>Du har ingen aktive billetter.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        @foreach (var ticket in _tickets)
+        {
+            var isExpired = ticket.ValidUntilUtc <= DateTime.UtcNow;
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@ticket.Type</h5>
+                        <p class="card-text">
+                            Pris: @ticket.Price.ToString("0.00") kr<br />
+                            Kjøpt: @ticket.PurchasedAtUtc.ToLocalTime().ToString("g")<br />
+                            Gyldig til: @ticket.ValidUntilUtc.ToLocalTime().ToString("g")<br />
+                            Status: @(isExpired ? "Utløpt" : "Gyldig")
+                        </p>
+                        <p class="card-text">
+                            Kontrollkode:<br />
+                            <span style="font-size: 1.3rem; letter-spacing: 0.15rem;">
+                                @ticket.Code
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<PurchasedTicketDto> _tickets = new();
+    private bool _isLoading;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+
+        try
+        {
+            var tickets = await TicketApi.GetMyTicketsAsync();
+            _tickets = tickets.ToList();
+        }
+        catch
+        {
+            _loadError = "Kunne ikke laste billetter.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

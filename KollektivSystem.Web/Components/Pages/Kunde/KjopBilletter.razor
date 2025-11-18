@@ -1,9 +1,11 @@
 ﻿@page "/kunde/billetter"
 @rendermode InteractiveServer
+
 @using System.Linq
 @using KollektivSystem.Web.Models
 @using KollektivSystem.Web.Services
 @inject ITicketApiClient TicketApi
+@inject NavigationManager Nav
 
 <h3>Kjøp billett</h3>
 
@@ -48,25 +50,13 @@ else
     </table>
 }
 
-@if (_lastPurchase is not null)
+@if (_purchaseMessage is not null)
 {
-    <h3>Digital billett</h3>
-
-    <div class="card mt-3" style="max-width: 400px;">
-        <div class="card-body">
-            <h5 class="card-title">@_lastPurchase.Type</h5>
-            <p class="card-text">
-                Pris: @_lastPurchase.Price.ToString("0.00") kr<br />
-                Kjøpt: @_lastPurchase.PurchasedAtUtc.ToLocalTime().ToString("g")<br />
-                Gyldig til: @_lastPurchase.ValidUntilUtc.ToLocalTime().ToString("g")
-            </p>
-            <p class="card-text">
-                Kontrollkode:<br />
-                <span style="font-size: 1.3rem; letter-spacing: 0.15rem;">
-                    @_lastPurchase.Code
-                </span>
-            </p>
-        </div>
+    <div class="alert alert-success mt-3">
+        @_purchaseMessage
+        <button type="button" class="btn btn-link p-0 ms-2" @onclick="@GoToMyTickets">
+            Gå til mine billetter
+        </button>
     </div>
 }
 
@@ -75,7 +65,7 @@ else
     private bool _isLoading;
     private bool _isPurchasing;
     private string? _loadError;
-    private PurchasedTicketDto? _lastPurchase;
+    private string? _purchaseMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,6 +90,7 @@ else
     private async Task PurchaseAsync(int ticketId)
     {
         _isPurchasing = true;
+        _purchaseMessage = null;
 
         try
         {
@@ -110,11 +101,16 @@ else
                 return;
             }
 
-            _lastPurchase = result;
+            _purchaseMessage = "Billetten er kjøpt. Du finner den under 'Mine billetter'.";
         }
         finally
         {
             _isPurchasing = false;
         }
+    }
+
+    private void GoToMyTickets()
+    {
+        Nav.NavigateTo("/kunde/mine-billetter");
     }
 }
