@@ -60,8 +60,6 @@ namespace KollektivSystem.ApiService.Services
             }
 
             existing.Name = updated.Name;
-            existing.Order = updated.Order;
-            existing.RouteId = updated.RouteId;
 
             try
             {
