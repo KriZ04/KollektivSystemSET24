@@ -5,7 +5,7 @@ namespace KollektivSystem.ApiService.Infrastructure.Logging
 {
     internal static partial class TransitLineLogMessages
     {
-        private const int Base = LogAreas.;
+        private const int Base = LogAreas.TransitLine;
 
         [LoggerMessage(
             EventId = Base + 100,
