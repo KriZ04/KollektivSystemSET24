@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Text.Json;
 using KollektivSystem.Web.Models;
 
 namespace KollektivSystem.Web.Services;
@@ -18,16 +19,18 @@ public sealed class TicketApiClient : ITicketApiClient
     {
         var token = await _tokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
-            return Array.Empty<TicketDto>();
+            throw new InvalidOperationException("Bruker er ikke logget inn.");
 
-        // Hent billettyper som admin/systemutvikler har laget:
-        // GET /tickets-type (ikke admin-variant)
         using var req = new HttpRequestMessage(HttpMethod.Get, "/tickets-type");
         req.Headers.Authorization = new("Bearer", token);
 
         using var res = await _http.SendAsync(req, ct);
         if (!res.IsSuccessStatusCode)
-            return Array.Empty<TicketDto>();
+        {
+            var body = await res.Content.ReadAsStringAsync(ct);
+            throw new HttpRequestException(
+                $"GET /tickets-type feilet med status {(int)res.StatusCode} ({res.StatusCode}). Body: {body}");
+        }
 
         var data = await res.Content.ReadFromJsonAsync<List<TicketDto>>(cancellationToken: ct);
         return data ?? [];
@@ -37,35 +40,43 @@ public sealed class TicketApiClient : ITicketApiClient
     {
         var token = await _tokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
-            return null;
+            throw new InvalidOperationException("Bruker er ikke logget inn.");
 
-        // Backend forventer POST /tickets med body { ticketTypeId = ... }
         using var req = new HttpRequestMessage(HttpMethod.Post, "/tickets");
         req.Headers.Authorization = new("Bearer", token);
 
-        var body = new { ticketTypeId };
-        req.Content = JsonContent.Create(body);
+        var bodyObject = new { TicketTypeId = ticketTypeId };
+        req.Content = JsonContent.Create(bodyObject);
 
         using var res = await _http.SendAsync(req, ct);
         if (!res.IsSuccessStatusCode)
-            return null;
+        {
+            var body = await res.Content.ReadAsStringAsync(ct);
+            throw new HttpRequestException(
+                $"POST /tickets feilet med status {(int)res.StatusCode} ({res.StatusCode}). Body: {body}");
+        }
 
-        return await res.Content.ReadFromJsonAsync<PurchasedTicketDto>(cancellationToken: ct);
+        var dto = await res.Content.ReadFromJsonAsync<PurchasedTicketDto>(cancellationToken: ct);
+        return dto;
     }
 
     public async Task<IReadOnlyList<PurchasedTicketDto>> GetMyTicketsAsync(CancellationToken ct = default)
     {
         var token = await _tokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
-            return Array.Empty<PurchasedTicketDto>();
+            throw new InvalidOperationException("Bruker er ikke logget inn.");
 
-        // Backend har /tickets/me, ikke /tickets/mine
-        using var req = new HttpRequestMessage(HttpMethod.Get, "/tickets/me");
+        // inkluder også utløpte/ugyldige billetter så vi iallfall ser noe
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/tickets/me?includeInvalid=true");
         req.Headers.Authorization = new("Bearer", token);
 
         using var res = await _http.SendAsync(req, ct);
         if (!res.IsSuccessStatusCode)
-            return Array.Empty<PurchasedTicketDto>();
+        {
+            var body = await res.Content.ReadAsStringAsync(ct);
+            throw new HttpRequestException(
+                $"GET /tickets/me feilet med status {(int)res.StatusCode} ({res.StatusCode}). Body: {body}");
+        }
 
         var data = await res.Content.ReadFromJsonAsync<List<PurchasedTicketDto>>(cancellationToken: ct);
         return data ?? [];
