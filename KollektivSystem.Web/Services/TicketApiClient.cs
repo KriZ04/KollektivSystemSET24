@@ -20,7 +20,9 @@ public sealed class TicketApiClient : ITicketApiClient
         if (string.IsNullOrWhiteSpace(token))
             return Array.Empty<TicketDto>();
 
-        using var req = new HttpRequestMessage(HttpMethod.Get, "/tickets");
+        // Hent billettyper som admin/systemutvikler har laget:
+        // GET /tickets-type (ikke admin-variant)
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/tickets-type");
         req.Headers.Authorization = new("Bearer", token);
 
         using var res = await _http.SendAsync(req, ct);
