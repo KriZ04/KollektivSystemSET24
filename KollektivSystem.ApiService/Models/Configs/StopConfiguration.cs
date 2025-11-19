@@ -20,10 +20,10 @@ public class StopConfiguration : IEntityTypeConfiguration<Stop>
                .IsRequired()
                .HasMaxLength(100);
 
-        builder.Property(s => s.latitude)
+        builder.Property(s => s.Latitude)
                .IsRequired();
 
-        builder.Property(s => s.longitude)
+        builder.Property(s => s.Longitude)
                .IsRequired();
 
         // Relationship: Stop 1 -> TransitLineStop
