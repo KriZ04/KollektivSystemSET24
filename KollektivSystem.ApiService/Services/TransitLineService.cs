@@ -33,29 +33,14 @@ namespace KollektivSystem.ApiService.Services
                 await _uow.TransitLines.AddAsync(line, ct);
                 await _uow.SaveChangesAsync(ct);
 
-                _logger.LogStopCreated(line.Id, line.Name);
+                _logger.LogTransitLineCreated(line.Id, line.Name);
                 return line;
             }
             catch (Exception ex)
             {
-                _logger.LogStopCreationFailed(ex.Message);
+                _logger.LogTransitLineCreationFailed(line.Id, line.Name);
                 throw;
             }
-            //_logger.LogInformation("Creating transit line {LineName}", request.Name);
-
-            //try
-            //{
-            //    await _uow.TransitLines.AddAsync(request);        //Safe to delete???????
-            //    await _uow.SaveChangesAsync();
-
-            //    _logger.LogTransitLineCreated(request.Id, request.Name);
-            //    return request;
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, "Error while creating transit line {LineName}: {Message}", request.Name, ex.Message);
-            //    throw;
-            //}
         }
 
         public async Task<IReadOnlyList<TransitLine>> GetAllAsync(CancellationToken ct = default)
