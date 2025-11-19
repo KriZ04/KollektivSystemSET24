@@ -1,81 +1,91 @@
-﻿using AutoMapper;
-using KollektivSystem.ApiService.Models;
+﻿using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Dtos.TransitLineStops;
-using KollektivSystem.ApiService.Repositories.Interfaces;
+using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace KollektivSystem.ApiService.Services
 {
     public sealed class TransitLineStopService : ITransitLineStopService
     {
-        private readonly ITransitLineStopRepository _repo;
-        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _uow;
+        private readonly ILogger<TransitLineStopService> _logger;
 
-        public TransitLineStopService(
-            ITransitLineStopRepository repo,
-            IMapper mapper)
+        public TransitLineStopService(IUnitOfWork uow, ILogger<TransitLineStopService> logger)
         {
-            _repo = repo;
-            _mapper = mapper;
+            _uow = uow;
+            _logger = logger;
         }
 
-        public async Task<TransitLineStopResponse?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public async Task<TransitLineStop> CreateAsync(CreateTransitLineStopRequest request, CancellationToken ct)
         {
-            var entity = await _repo.GetByIdAsync(id, cancellationToken);
-            return entity is null ? null : _mapper.Map<TransitLineStopResponse>(entity);
+            var entity = new TransitLineStop
+            {
+                TransitLineId = request.TransitLineId,
+                StopId = request.StopId,
+                Order = request.Order
+            };
+
+            await _uow.TransitLineStops.AddAsync(entity, ct);
+            await _uow.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "Created TransitLineStop: Id {Id}, TransitLineId {LineId}, StopId {StopId}, Order {Order}",
+                entity.Id, entity.TransitLineId, entity.StopId, entity.Order);
+
+            return entity;
         }
 
-        public async Task<IEnumerable<TransitLineStopResponse>> GetByTransitLineIdAsync(
-            int transitLineId,
-            CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<TransitLineStop>> GetAllAsync(CancellationToken ct)
         {
-            var query = _repo
-                .Query()
-                .Where(x => x.TransitLineId == transitLineId)
-                .OrderBy(x => x.Order)
-                .Include(x => x.Stop)
-                .Include(x => x.TransitLine);
-
-            var result = await query.ToListAsync(cancellationToken);
-
-            return _mapper.Map<IEnumerable<TransitLineStopResponse>>(result);
+            var list = await _uow.TransitLineStops.GetAllAsync(ct);
+            return list;
         }
 
-        public async Task<IEnumerable<TransitLineStopResponse>> GetByStopIdAsync(
-            int stopId,
-            CancellationToken cancellationToken)
+        public async Task<TransitLineStop?> GetByIdAsync(int id, CancellationToken ct)
         {
-            var query = _repo
-                .Query()
-                .Where(x => x.StopId == stopId)
-                .OrderBy(x => x.Order)
-                .Include(x => x.Stop)
-                .Include(x => x.TransitLine);
+            var entity = await _uow.TransitLineStops.FindAsync(id, ct);
 
-            var result = await query.ToListAsync(cancellationToken);
-
-            return _mapper.Map<IEnumerable<TransitLineStopResponse>>(result);
-        }
-
-        public async Task<TransitLineStopResponse> CreateAsync(
-            CreateTransitLineStopRequest request,
-            CancellationToken cancellationToken)
-        {
-            var entity = _mapper.Map<TransitLineStop>(request);
-
-            var created = await _repo.AddAsync(entity, cancellationToken);
-
-            return _mapper.Map<TransitLineStopResponse>(created);
-        }
-
-        public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
-        {
-            var entity = await _repo.GetByIdAsync(id, cancellationToken);
             if (entity is null)
-                return false;
+            {
+                _logger.LogWarning("TransitLineStop with ID {Id} not found.", id);
+            }
 
-            await _repo.DeleteAsync(entity, cancellationToken);
+            return entity;
+        }
+
+        public async Task<bool> UpdateAsync(int id, TransitLineStop updated, CancellationToken ct)
+        {
+            var existing = await _uow.TransitLineStops.FindAsync(id, ct);
+            if (existing is null)
+            {
+                _logger.LogWarning("TransitLineStop with ID {Id} not found for update.", id);
+                return false;
+            }
+
+            existing.Order = updated.Order;
+            existing.StopId = updated.StopId;
+            existing.TransitLineId = updated.TransitLineId;
+
+            await _uow.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Updated TransitLineStop with ID {Id}.", id);
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
+        {
+            var existing = await _uow.TransitLineStops.FindAsync(id, ct);
+            if (existing is null)
+            {
+                _logger.LogWarning("TransitLineStop with ID {Id} not found for deletion.", id);
+                return false;
+            }
+
+            _uow.TransitLineStops.Remove(existing);
+            await _uow.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Deleted TransitLineStop with ID {Id}.", id);
             return true;
         }
     }
