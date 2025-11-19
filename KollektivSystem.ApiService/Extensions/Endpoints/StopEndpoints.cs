@@ -1,70 +1,57 @@
 ﻿using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Dtos.Stops;
+using KollektivSystem.ApiService.Models.Mappers;
 using KollektivSystem.ApiService.Services.Interfaces;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using System.Net.Sockets;
 
-namespace KollektivSystem.ApiService.Extensions.Endpoints
+namespace KollektivSystem.ApiService.Extensions.Endpoints;
+
+public static class StopEndpoints
 {
-    public static class StopEndpoints
+    public static IEndpointRouteBuilder MapStopEndpoints(this IEndpointRouteBuilder app)
     {
-        public static IEndpointRouteBuilder MapStopEndpoints(this IEndpointRouteBuilder app)
-        {
-            // Create a grouped route: /api/stops
-            var group = app.MapGroup("/api/stops").WithTags("Stops");
+        // Create a grouped route: /api/stops
+        var group = app.MapGroup("/api/stops").WithTags("Stops");
 
+        // CRUD for stops
+        group.MapGet("", HandleGetAll);
+        group.MapGet("{id:int}", HandleGetStopById);
+        group.MapGet("", HandleCreateStop);
+        group.MapGet("{id:int/}activate", HandleDeleteStop);
 
-            // GET /api/stops
-            // Returns all stops
+        return app;
+    }
 
-            group.MapGet("/", async (IStopService service) =>
-            {
-                var stops = await service.GetAllAsync();
-                return Results.Ok(stops);
-            });
+    private static async Task<IResult> HandleGetAll(IStopService ttService, CancellationToken ct)
+    {
+        var stops = await ttService.GetAllAsync(ct);
+        if (stops == null)
+            return Results.NotFound();
 
+        return Results.Ok(stops.Select(t => t.ToResponse()));
+    }
 
-            // GET /api/stops/{id}
-            // Returns a single stop by ID
+    private static async Task<IResult> HandleGetStopById(int id, IStopService ttService, CancellationToken ct)
+    {
+        var stop = await ttService.GetByIdAsync(id, ct);
+        if (stop == null)
+            return Results.NotFound();
 
-            group.MapGet("/{id:int}", async (int id, IStopService service) =>
-            {
-                var stop = await service.GetByIdAsync(id);
-                return stop is not null ? Results.Ok(stop) : Results.NotFound();
-            });
+        return Results.Ok(stop.ToResponse());
+    }
 
+    private static async Task<IResult> HandleCreateStop(CreateStopRequest req, IStopService ttService, CancellationToken ct)
+    {
+        var stop = await ttService.CreateAsync(req, ct);
+        if (stop == null)
+            return Results.Problem();
 
-            // POST /api/stops
-            // Creates a new stop
+        return Results.Created($"{stop.Id}", stop.ToResponse());
+    }
 
-            group.MapPost("/", async (Stop stop, IStopService service) =>
-            {
-                var created = await service.CreateAsync(stop);
-                return Results.Created($"/api/stops/{created.Id}", created);
-            });
-
-
-            // PUT /api/stops/{id}
-            // Updates an existing stop
-
-            group.MapPut("/{id:int}", async (int id, Stop update, IStopService service) =>
-            {
-                var success = await service.UpdateAsync(id, update);
-                return success ? Results.NoContent() : Results.NotFound();
-            });
-
-
-            // DELETE /api/stops/{id}
-            // Deletes a stop
-
-            group.MapDelete("/{id:int}", async (int id, IStopService service) =>
-            {
-                var success = await service.DeleteAsync(id);
-                return success ? Results.NoContent() : Results.NotFound();
-            });
-
-            return app;
-        }
-
-
+    private static async Task<IResult> HandleDeleteStop(int id, IStopService ttService, CancellationToken ct)
+    {
 
     }
 }

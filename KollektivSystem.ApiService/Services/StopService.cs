@@ -4,6 +4,7 @@ using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Dtos.Stops;
 
 namespace KollektivSystem.ApiService.Services
 {
@@ -18,12 +19,19 @@ namespace KollektivSystem.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<Stop> CreateAsync(Stop stop, CancellationToken ct = default)
+        public async Task<Stop> CreateAsync(CreateStopRequest request, CancellationToken ct = default)
         {
+            var stop = new Stop
+            {
+                Name = request.Name,
+                Latitude = request.Latitude,
+                Longitude = request.Longitude
+            };
+
             try
             {
-                await _uow.Stops.AddAsync(stop, ct);   
-                await _uow.SaveChangesAsync(ct);       
+                await _uow.Stops.AddAsync(stop, ct);
+                await _uow.SaveChangesAsync(ct);
 
                 _logger.LogStopCreated(stop.Id, stop.Name);
                 return stop;
@@ -35,7 +43,7 @@ namespace KollektivSystem.ApiService.Services
             }
         }
 
-        public async Task<IEnumerable<Stop>> GetAllAsync(CancellationToken ct = default)
+        public async Task<IReadOnlyList<Stop>> GetAllAsync(CancellationToken ct = default)
         {
             var stops = await _uow.Stops.GetAllAsync(ct); 
             return stops;
