@@ -1,14 +1,15 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
+using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Repositories;
+using KollektivSystem.ApiService.Repositories.Interfaces;
 using KollektivSystem.ApiService.Repositories.Uow;
-using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Services;
+using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json;
-using KollektivSystem.ApiService.Repositories.Interfaces;
 
 namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 {
@@ -35,6 +36,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITicketTypeService, TicketTypeService>();
             services.AddScoped<IStopService, StopService>();
+            //services.AddScoped<ITransitLineStopService, TransitLineStopService>();
 
 
 

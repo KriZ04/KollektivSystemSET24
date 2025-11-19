@@ -12,17 +12,18 @@ public static class StopEndpoints
     public static IEndpointRouteBuilder MapStopEndpoints(this IEndpointRouteBuilder app)
     {
         // Create a grouped route: /api/stops
-        var group = app.MapGroup("/api/stops").WithTags("Stops");
+        var group = app.MapGroup("/stops");
 
         // CRUD for stops
         group.MapGet("", HandleGetAll);
         group.MapGet("{id:int}", HandleGetStopById);
-        group.MapGet("", HandleCreateStop);
-        group.MapGet("{id:int/}activate", HandleDeleteStop);
+        group.MapPost("", HandleCreateStop);
+        group.MapDelete("{id:int}", HandleDeleteStop);
 
         return app;
     }
 
+    // Get all stops
     private static async Task<IResult> HandleGetAll(IStopService ttService, CancellationToken ct)
     {
         var stops = await ttService.GetAllAsync(ct);
@@ -32,6 +33,7 @@ public static class StopEndpoints
         return Results.Ok(stops.Select(t => t.ToResponse()));
     }
 
+    //Get stop by ID
     private static async Task<IResult> HandleGetStopById(int id, IStopService ttService, CancellationToken ct)
     {
         var stop = await ttService.GetByIdAsync(id, ct);
@@ -41,6 +43,7 @@ public static class StopEndpoints
         return Results.Ok(stop.ToResponse());
     }
 
+    // Create new stop
     private static async Task<IResult> HandleCreateStop(CreateStopRequest req, IStopService ttService, CancellationToken ct)
     {
         var stop = await ttService.CreateAsync(req, ct);
@@ -50,8 +53,13 @@ public static class StopEndpoints
         return Results.Created($"{stop.Id}", stop.ToResponse());
     }
 
+    //Delete stop
     private static async Task<IResult> HandleDeleteStop(int id, IStopService ttService, CancellationToken ct)
     {
+        var isSuccess = await ttService.DeleteAsync(id, ct);
+        if (!isSuccess)
+            return Results.NotFound();
 
+        return Results.Ok($"Successfully deleted stop. {id}");
     }
 }
