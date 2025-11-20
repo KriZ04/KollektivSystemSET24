@@ -21,10 +21,8 @@ namespace KollektivSystem.ApiService.Services
 
         public async Task<TransitLine> CreateAsync(CreateTransitLineRequest request, CancellationToken ct = default)
         {
-
             var line = new TransitLine
             {
-                Id = request.Id,
                 Name = request.Name
             };
 
