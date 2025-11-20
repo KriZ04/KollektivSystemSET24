@@ -6,6 +6,10 @@
 @inject KollektivSystem.Web.Services.AuthState Auth
 @using System.Security.Claims
 @inject ITicketApiClient TicketApi
+@inject StopAdminClient StopClient
+@inject TransitLineAdminClient TransitLineClient
+@inject TransitLineStopAdminClient TransitLineStopClient
+@using KollektivSystem.Web.Components.Pages.Kunde
 
 <h3 class="mb-4">Kundedashboard</h3>
 
@@ -37,11 +41,11 @@
                 </button>
             </div>
 
-
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title">Aktive billetter</h5>
+
                         @if (_ticketsLoading)
                         {
                             <p class="text-muted">Laster billetter...</p>
@@ -76,19 +80,56 @@
                 </div>
             </div>
 
-
             <div class="col-md-6 mb-4">
+                <Ruteplanlegger />
+            </div>
+
+            <div class="col-12 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title">Rutesøk</h5>
-                        <p class="card-text text-muted">Søk etter ruter mellom to stoppesteder.</p>
+                        <h5 class="card-title">Alle linjer & stopp</h5>
 
-                        <input class="form-control mb-2" placeholder="Fra..." />
-                        <input class="form-control mb-2" placeholder="Til..." />
+                        @if (_routeLoading)
+                        {
+                            <p class="text-muted">Laster rutedata...</p>
+                        }
+                        else if (_routeError != null)
+                        {
+                            <p class="text-danger">@_routeError</p>
+                        }
+                        else if (_allLines.Count == 0)
+                        {
+                            <p class="text-muted">Ingen linjer funnet.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-group">
+                                @foreach (var line in _allLines)
+                                {
+                                    <li class="list-group-item">
+                                        <strong>@line.Name</strong>
 
-                        <button class="btn btn-secondary w-100" disabled>
-                            Søk (kommer snart)
-                        </button>
+                                        @{
+                                            var stops = GetStopsForLine(line.Id);
+                                        }
+
+                                        @if (stops.Count == 0)
+                                        {
+                                            <p class="text-muted mb-0">Ingen stopp registrert.</p>
+                                        }
+                                        else
+                                        {
+                                            <ol class="mt-2">
+                                                @foreach (var s in stops)
+                                                {
+                                                    <li>@s.StopName</li>
+                                                }
+                                            </ol>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
                     </div>
                 </div>
             </div>
@@ -97,14 +138,10 @@
                 Kundedashboard
                 @if (_userRole is not null)
                 {
-                    <small class="text-muted ms-2">
-                        (Rolle: @_userRole)
-                    </small>
+                    <small class="text-muted ms-2">(Rolle: @_userRole)</small>
                 }
             </h3>
-
         }
-
     </div>
 </div>
 
@@ -139,7 +176,6 @@
             );
 
         _loaded = true;
-
         StateHasChanged();
     }
 
@@ -148,29 +184,55 @@
         Nav.NavigateTo("/login", replace: true);
     }
 
+
     private List<PurchasedTicketDto> _activeTickets = new();
     private bool _ticketsLoading;
     private string? _ticketError;
 
+
+    private List<StopDto> _allStops = new();
+    private List<TransitLineDto> _allLines = new();
+    private List<TransitLineStopDto> _allLineStops = new();
+
+    private bool _routeLoading;
+    private string? _routeError;
+
     protected override async Task OnInitializedAsync()
     {
         _ticketsLoading = true;
+        _routeLoading = true;
 
         try
         {
             var tickets = await TicketApi.GetMyTicketsAsync();
-
             _activeTickets = tickets
                 .Where(t => !t.Revoked && !t.IsExpired)
                 .ToList();
+
+            _allStops = (await StopClient.GetAllAsync()).OrderBy(s => s.Name).ToList();
+            _allLines = (await TransitLineClient.GetAllAsync()).OrderBy(l => l.Id).ToList();
+            _allLineStops = (await TransitLineStopClient.GetAllAsync()).ToList();
         }
-        catch (Exception)
+        catch
         {
             _ticketError = "Kunne ikke hente billetter.";
+            _routeError = "Kunne ikke hente rutedata.";
         }
         finally
         {
             _ticketsLoading = false;
+            _routeLoading = false;
         }
+    }
+
+    private List<(int Order, string StopName)> GetStopsForLine(int lineId)
+    {
+        return _allLineStops
+            .Where(ls => ls.TransitLineId == lineId)
+            .OrderBy(ls => ls.Order)
+            .Select(ls =>
+                (ls.Order, _allStops.FirstOrDefault(s => s.Id == ls.StopId)?.Name ?? $"Stopp {ls.StopId}")
+            )
+            .ToList();
     }
 }
