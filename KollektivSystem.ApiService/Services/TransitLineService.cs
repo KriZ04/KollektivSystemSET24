@@ -22,7 +22,6 @@ namespace KollektivSystem.ApiService.Services
         {
             var line = new TransitLine
             {
-                Id = request.Id,
                 Name = request.Name
             };
 

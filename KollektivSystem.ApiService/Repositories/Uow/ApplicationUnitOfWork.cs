@@ -1,5 +1,4 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
-using KollektivSystem.ApiService.Migrations;
 using KollektivSystem.ApiService.Repositories.Interfaces;
 
 namespace KollektivSystem.ApiService.Repositories.Uow
@@ -8,11 +7,13 @@ namespace KollektivSystem.ApiService.Repositories.Uow
     {
         private readonly ApplicationDbContext _db;
 
-        public ApplicationUnitOfWork(ApplicationDbContext db, 
-            IUserRepository userRepository, 
-            IRefreshTokenRepository refreshTokenRepository, 
+        public ApplicationUnitOfWork(
+            ApplicationDbContext db,
+            IUserRepository userRepository,
+            IRefreshTokenRepository refreshTokenRepository,
             IStopRepository stopRepository,
             ITicketTypeRepository ticketTypeRepository,
+            IPurchasedTicketRepository purchasedTicketRepository,
             ITransitLineRepository transitLineRepository,
             ITransitLineStopRepository transitLineStopRepository)
         {
@@ -22,6 +23,7 @@ namespace KollektivSystem.ApiService.Repositories.Uow
             Stops = stopRepository;
             TicketTypes = ticketTypeRepository;
             TransitLines = transitLineRepository;
+            PurchasedTickets = purchasedTicketRepository;
             TransitLineStops = transitLineStopRepository;
         }
 
@@ -34,6 +36,8 @@ namespace KollektivSystem.ApiService.Repositories.Uow
         public ITicketTypeRepository TicketTypes { get; }
 
         public ITransitLineRepository TransitLines { get; }
+
+        public IPurchasedTicketRepository PurchasedTickets { get; }
 
         public ITransitLineStopRepository TransitLineStops { get; }
 

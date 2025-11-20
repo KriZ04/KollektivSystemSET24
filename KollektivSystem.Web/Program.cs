@@ -40,10 +40,31 @@ builder.Services.AddHttpClient<UsersAdminClient>(c =>
     c.BaseAddress = new("https+http://apiservice");
 });
 
+builder.Services.AddHttpClient<TicketTypeAdminClient>(c =>
+{
+    c.BaseAddress = new("https+http://apiservice");
+});
+
 builder.Services.AddHttpClient<ITicketApiClient, TicketApiClient>(c =>
 {
     c.BaseAddress = new("https+http://apiservice");
 });
+
+builder.Services.AddHttpClient<TransitLineAdminClient>(c =>
+{
+    c.BaseAddress = new("https+http://apiservice");
+});
+
+builder.Services.AddHttpClient<TransitLineStopAdminClient>(c =>
+{
+    c.BaseAddress = new("https+http://apiservice");
+});
+
+builder.Services.AddHttpClient<StopAdminClient>(c =>
+{
+    c.BaseAddress = new("https+http://apiservice");
+});
+
 
 var app = builder.Build();
 

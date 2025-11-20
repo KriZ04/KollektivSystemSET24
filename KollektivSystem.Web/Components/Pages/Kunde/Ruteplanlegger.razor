@@ -1,0 +1,270 @@
+﻿@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+@inject StopAdminClient StopClient
+@inject TransitLineAdminClient TransitLineClient
+@inject TransitLineStopAdminClient TransitLineStopClient
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">Rutesøk</h5>
+        <p class="card-text text-muted">Planlegg reise mellom to stopp.</p>
+
+        @if (_loading)
+        {
+            <p class="text-muted">Laster rutedata…</p>
+        }
+        else
+        {
+            <label class="form-label">Fra</label>
+            <select class="form-select mb-2" @bind="_fromStopId">
+                <option value="0">Velg fra-stopp…</option>
+                @foreach (var s in _stops)
+                {
+                    <option value="@s.Id">@s.Name</option>
+                }
+            </select>
+
+            <label class="form-label">Til</label>
+            <select class="form-select mb-2" @bind="_toStopId">
+                <option value="0">Velg til-stopp…</option>
+                @foreach (var s in _stops)
+                {
+                    <option value="@s.Id">@s.Name</option>
+                }
+            </select>
+
+            <button class="btn btn-secondary w-100"
+                    @onclick="SearchTrip">
+                @(_searching ? "Søker…" : "Søk reise")
+            </button>
+
+            @if (_tripError != null)
+            {
+                <p class="text-danger mt-2">@_tripError</p>
+            }
+
+            @if (_results.Count > 0)
+            {
+                <div class="mt-3">
+                    @foreach (var trip in _results)
+                    {
+                        <div class="mb-3 p-2 border rounded">
+                            <strong>@trip.Title</strong>
+
+                            @foreach (var leg in trip.Legs)
+                            {
+                                <div class="ms-2 mt-1">
+                                    <span class="badge bg-primary">@leg.LineName</span>
+                                    <ol class="mt-2 mb-1">
+                                        @foreach (var s in leg.Stops)
+                                        {
+                                            <li>@s</li>
+                                        }
+                                    </ol>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private List<StopDto> _stops = new();
+    private List<TransitLineDto> _lines = new();
+    private List<TransitLineStopDto> _lineStops = new();
+
+    private bool _loading = true;
+    private bool _searching = false;
+
+    private int _fromStopId;
+    private int _toStopId;
+
+    private string? _tripError;
+    private List<TripResult> _results = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _stops = (await StopClient.GetAllAsync()).OrderBy(s => s.Name).ToList();
+            _lines = (await TransitLineClient.GetAllAsync()).ToList();
+            _lineStops = (await TransitLineStopClient.GetAllAsync()).ToList();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SearchTrip()
+    {
+        _searching = true;
+        _tripError = null;
+        _results.Clear();
+
+        try
+        {
+            var path = FindPathBfs(_fromStopId, _toStopId);
+
+            if (path.Count == 0)
+            {
+                _tripError = "Fant ingen rute mellom valgt fra- og til-stopp.";
+                return;
+            }
+
+            var trip = ConvertPathToTrip(path);
+            _results.Add(trip);
+        }
+        finally
+        {
+            _searching = false;
+        }
+    }
+
+    private record Node(int StopId, int? PrevStopId, int? LineId);
+
+    private List<Node> FindPathBfs(int start, int goal)
+    {
+        var queue = new Queue<Node>();
+        var visited = new HashSet<(int StopId, int? LineId)>();
+
+        queue.Enqueue(new Node(start, null, null));
+        visited.Add((start, null));
+
+        var parents = new Dictionary<int, Node>();
+        parents[start] = new Node(start, null, null);
+
+        var adjacency = BuildStopGraph();
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+
+            if (current.StopId == goal)
+                return ReconstructPath(parents, current.StopId);
+
+            if (!adjacency.TryGetValue(current.StopId, out var edges))
+                continue;
+
+            foreach (var next in edges)
+            {
+                var key = (next.StopId, next.LineId);
+
+                if (visited.Contains(key))
+                    continue;
+
+                visited.Add(key);
+                parents[next.StopId] = new Node(next.StopId, current.StopId, next.LineId);
+                queue.Enqueue(new Node(next.StopId, current.StopId, next.LineId));
+            }
+        }
+
+        return new();
+    }
+
+    private Dictionary<int, List<(int StopId, int? LineId)>> BuildStopGraph()
+    {
+        var graph = new Dictionary<int, List<(int, int?)>>();
+
+        foreach (var line in _lines)
+        {
+            var ordered = _lineStops
+                .Where(ls => ls.TransitLineId == line.Id)
+                .OrderBy(ls => ls.Order)
+                .ToList();
+
+            for (int i = 0; i < ordered.Count - 1; i++)
+            {
+                void AddEdge(int from, int to)
+                {
+                    if (!graph.ContainsKey(from))
+                        graph[from] = new();
+
+                    graph[from].Add((to, line.Id));
+                }
+
+                AddEdge(ordered[i].StopId, ordered[i + 1].StopId);
+            }
+        }
+
+        return graph;
+    }
+
+    private List<Node> ReconstructPath(Dictionary<int, Node> parents, int end)
+    {
+        var path = new List<Node>();
+        var current = parents[end];
+
+        while (current != null)
+        {
+            path.Add(current);
+            if (current.PrevStopId == null)
+                break;
+            current = parents[current.PrevStopId.Value];
+        }
+
+        path.Reverse();
+        return path;
+    }
+
+    private TripResult ConvertPathToTrip(List<Node> path)
+    {
+        var legs = new List<TripLeg>();
+        TripLeg? currentLeg = null;
+        int? lastLine = null;
+
+        foreach (var node in path)
+        {
+
+            if (currentLeg == null || node.LineId != lastLine)
+            {
+
+                if (currentLeg != null)
+                    legs.Add(currentLeg);
+
+
+                currentLeg = new TripLeg
+                {
+                    LineName = node.LineId is null
+                        ? "(Start)"
+                        : _lines.First(l => l.Id == node.LineId).Name,
+                    Stops = new()
+                };
+            }
+
+
+            currentLeg.Stops.Add(GetStopName(node.StopId));
+
+            lastLine = node.LineId;
+        }
+
+
+        if (currentLeg != null)
+            legs.Add(currentLeg);
+
+        return new TripResult
+        {
+            Title = "Forslag for reisen",
+
+            Legs = legs.Where(l => l.LineName != "(Start)").ToList()
+        };
+    }
+
+    private string GetStopName(int stopId) =>
+        _stops.FirstOrDefault(s => s.Id == stopId)?.Name ?? $"Stopp {stopId}";
+
+    private class TripLeg
+    {
+        public string LineName { get; set; } = "";
+        public List<string> Stops { get; set; } = new();
+    }
+
+    private class TripResult
+    {
+        public string Title { get; set; } = "";
+        public List<TripLeg> Legs { get; set; } = new();
+    }
+}

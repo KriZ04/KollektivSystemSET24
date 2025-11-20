@@ -8,7 +8,7 @@ public class TransitLineStopConfiguration : IEntityTypeConfiguration<TransitLine
 {
     public void Configure(EntityTypeBuilder<TransitLineStop> builder)
     {
-        builder.ToTable("TransitLineStops");
+    
 
         builder.HasKey(tls => tls.Id);
 

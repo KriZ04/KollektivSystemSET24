@@ -16,15 +16,6 @@ namespace KollektivSystem.ApiService.Models
         public required DateTimeOffset ExpireAt { get; init; }
         public bool Revoked { get; set; } = false;
         public bool IsExpired => DateTimeOffset.UtcNow > ExpireAt;
-
-        public static string GenerateValidationCode(int length = 8)
-        {
-            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            var rnd = RandomNumberGenerator.Create();
-            var buffer = new byte[length];
-            rnd.GetBytes(buffer);
-
-            return new string(buffer.Select(b => chars[b % chars.Length]).ToArray());
-        }
+        public bool IsValid => !Revoked && !IsExpired;
     }
 }

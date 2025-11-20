@@ -105,6 +105,7 @@ public class Program
         app.MapTicketTypeEndpoints();
         app.MapStopEndpoints();
         app.MapTransitLineEndpoints();
+        app.MapPurchasedTicketEndpoints();
         app.MapTransitLineStopEndpoints();
 
         app.MapDefaultEndpoints();

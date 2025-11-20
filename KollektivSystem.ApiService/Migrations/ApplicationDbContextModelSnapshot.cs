@@ -97,20 +97,20 @@ namespace KollektivSystem.ApiService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<double>("latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("longitude")
-                        .HasColumnType("float");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Stops", (string)null);
+                    b.ToTable("Stops");
                 });
 
             modelBuilder.Entity("KollektivSystem.ApiService.Models.TicketType", b =>
@@ -155,7 +155,7 @@ namespace KollektivSystem.ApiService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TransitLines", (string)null);
+                    b.ToTable("TransitLines");
                 });
 
             modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLineStop", b =>
@@ -182,7 +182,7 @@ namespace KollektivSystem.ApiService.Migrations
                     b.HasIndex("TransitLineId", "StopId")
                         .IsUnique();
 
-                    b.ToTable("TransitLineStops", (string)null);
+                    b.ToTable("TransitLineStops");
                 });
 
             modelBuilder.Entity("KollektivSystem.ApiService.Models.User", b =>
@@ -243,7 +243,7 @@ namespace KollektivSystem.ApiService.Migrations
                         .IsRequired();
 
                     b.HasOne("KollektivSystem.ApiService.Models.User", "User")
-                        .WithMany()
+                        .WithMany("PurchasedTickets")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -280,6 +280,11 @@ namespace KollektivSystem.ApiService.Migrations
             modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLine", b =>
                 {
                     b.Navigation("Stops");
+                });
+
+            modelBuilder.Entity("KollektivSystem.ApiService.Models.User", b =>
+                {
+                    b.Navigation("PurchasedTickets");
                 });
 #pragma warning restore 612, 618
         }

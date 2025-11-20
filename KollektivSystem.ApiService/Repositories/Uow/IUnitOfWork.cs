@@ -9,6 +9,7 @@ namespace KollektivSystem.ApiService.Repositories.Uow
         IStopRepository Stops { get; }
         ITicketTypeRepository TicketTypes { get; }
         ITransitLineRepository TransitLines { get; }
+        IPurchasedTicketRepository PurchasedTickets { get; }
         ITransitLineStopRepository TransitLineStops { get; }
 
 
