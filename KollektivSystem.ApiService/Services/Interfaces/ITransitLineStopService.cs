@@ -10,5 +10,6 @@ namespace KollektivSystem.ApiService.Services.Interfaces
         Task<TransitLineStop?> GetByIdAsync(int id, CancellationToken ct);
         Task<bool> UpdateAsync(int id, TransitLineStop updated, CancellationToken ct);
         Task<bool> DeleteAsync(int id, CancellationToken ct);
+
     }
 }

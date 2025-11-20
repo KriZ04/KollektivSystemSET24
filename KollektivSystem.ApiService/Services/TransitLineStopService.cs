@@ -19,6 +19,43 @@ namespace KollektivSystem.ApiService.Services
 
         public async Task<TransitLineStop> CreateAsync(CreateTransitLineStopRequest request, CancellationToken ct)
         {
+
+            // Validate unique Order per TransitLine
+            var orderExists = await _uow.TransitLineStops
+                .AnyAsync(
+                    tls => tls.TransitLineId == request.TransitLineId &&
+                           tls.Order == request.Order,
+                    ct);
+
+            if (orderExists)
+            {
+                _logger.LogWarning(
+                    "Cannot create TransitLineStop: Line {LineId} already has a stop at order {Order}",
+                    request.TransitLineId,
+                    request.Order);
+
+                throw new BadHttpRequestException(
+                    $"Transit line {request.TransitLineId} already contains a stop at order {request.Order}.");
+            }
+
+            // Validate unique StopId per TransitLine (you already enforce this in DB)
+            var stopExists = await _uow.TransitLineStops
+                .AnyAsync(
+                    tls => tls.TransitLineId == request.TransitLineId &&
+                           tls.StopId == request.StopId,
+                    ct);
+
+            if (stopExists)
+            {
+                _logger.LogWarning(
+                    "Cannot create TransitLineStop: Line {LineId} already contains Stop {StopId}",
+                    request.TransitLineId,
+                    request.StopId);
+
+                throw new BadHttpRequestException(
+                    $"Transit line {request.TransitLineId} already contains stop {request.StopId}.");
+            }
+
             var entity = new TransitLineStop
             {
                 TransitLineId = request.TransitLineId,
