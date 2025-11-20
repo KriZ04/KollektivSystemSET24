@@ -8,7 +8,7 @@ public class TransitLineConfiguration : IEntityTypeConfiguration<TransitLine>
 {
     public void Configure(EntityTypeBuilder<TransitLine> builder)
     {
-        builder.ToTable("TransitLines");
+   
 
         builder.HasKey(t => t.Id);
 
