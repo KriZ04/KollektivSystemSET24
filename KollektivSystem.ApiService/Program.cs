@@ -102,9 +102,10 @@ public class Program
         app.MapUserEndpoints();
         app.MapAuthEndpoints();
         app.MapOidcEndpoints();
-        app.MapStopEndpoints();
         app.MapTicketTypeEndpoints();
+        app.MapStopEndpoints();
         app.MapTransitLineEndpoints();
+        app.MapTransitLineStopEndpoints();
 
         app.MapDefaultEndpoints();
 

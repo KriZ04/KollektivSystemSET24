@@ -24,6 +24,8 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
             services.AddScoped<IStopRepository, StopRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<ITransitLineStopRepository, TransitLineStopRepository>();
+
 
 
             return services;
@@ -36,7 +38,7 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITicketTypeService, TicketTypeService>();
             services.AddScoped<IStopService, StopService>();
-            //services.AddScoped<ITransitLineStopService, TransitLineStopService>();
+            services.AddScoped<ITransitLineStopService, TransitLineStopService>();
 
 
 
