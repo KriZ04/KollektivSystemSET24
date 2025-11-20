@@ -8,8 +8,7 @@ public class StopConfiguration : IEntityTypeConfiguration<Stop>
 {
     public void Configure(EntityTypeBuilder<Stop> builder)
     {
-        builder.ToTable("Stops");
-
+        
         builder.HasKey(s => s.Id);
 
         builder.Property(s => s.Id)
