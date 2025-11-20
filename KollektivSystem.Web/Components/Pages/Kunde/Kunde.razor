@@ -93,6 +93,16 @@
                 </div>
             </div>
 
+            <h3 class="mb-4">
+                Kundedashboard
+                @if (_userRole is not null)
+                {
+                    <small class="text-muted ms-2">
+                        (Rolle: @_userRole)
+                    </small>
+                }
+            </h3>
+
         }
 
     </div>
@@ -101,6 +111,7 @@
 @code {
     private bool _loaded;
     private bool _HasAccess;
+    private string? _userRole;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -116,12 +127,15 @@
                 claims.TryGetValue("role", out role);
         }
 
+        _userRole = role;
+
         _HasAccess =
             !string.IsNullOrWhiteSpace(role) &&
             (
                 role.Equals("Customer", StringComparison.OrdinalIgnoreCase) ||
                 role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
-                role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase)
+                role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("Developer", StringComparison.OrdinalIgnoreCase)
             );
 
         _loaded = true;
