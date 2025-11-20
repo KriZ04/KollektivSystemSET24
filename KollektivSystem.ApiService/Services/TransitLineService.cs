@@ -1,8 +1,7 @@
-﻿using KollektivSystem.ApiService.Repositories;
+﻿using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
-using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Dtos.TransitLines;
 
@@ -21,7 +20,6 @@ namespace KollektivSystem.ApiService.Services
 
         public async Task<TransitLine> CreateAsync(CreateTransitLineRequest request, CancellationToken ct = default)
         {
-
             var line = new TransitLine
             {
                 Id = request.Id,
@@ -38,104 +36,73 @@ namespace KollektivSystem.ApiService.Services
             }
             catch (Exception ex)
             {
-                _logger.LogTransitLineCreationFailed(line.Id, line.Name);
+                _logger.LogTransitLineCreationFailed(line.Id, line.Name, ex.Message);
                 throw;
             }
         }
 
         public async Task<IReadOnlyList<TransitLine>> GetAllAsync(CancellationToken ct = default)
         {
-            _logger.LogDebug("Retrieving all transit lines");
-
-            try
-            {
-                var lines = await _uow.TransitLines.GetAllAsync();
-                _logger.LogInformation("Retrieved {Count} transit lines", lines.Count());
-                return lines;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all transit lines");
-                throw;
-            }
+            return await _uow.TransitLines.GetAllAsync(ct);
         }
 
         public async Task<TransitLine?> GetByIdAsync(int id, CancellationToken ct = default)
         {
-            _logger.LogDebug("Fetching transit line with ID {LineId}", id);
+            var line = await _uow.TransitLines.FindAsync(id, ct);
 
-            try
-            {
-                var line = await _uow.TransitLines.FindAsync(id);
-                if (line == null)
-                {
-                    _logger.LogWarning("Transit line with ID {LineId} not found", id);
-                }
-                else
-                {
-                    _logger.LogInformation("Retrieved transit line {LineName} (ID: {LineId})", line.Name, id);
-                }
+            if (line == null)
+                _logger.LogTransitLineNotFound(id);
 
-                return line;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving transit line with ID {LineId}", id);
-                throw;
-            }
+            return line;
         }
 
         public async Task<bool> UpdateAsync(int id, TransitLine updated, CancellationToken ct = default)
         {
-            _logger.LogInformation("Updating transit line with ID {LineId}", id);
+            var existing = await _uow.TransitLines.FindAsync(id, ct);
+            if (existing == null)
+            {
+                _logger.LogTransitLineNotFound(id);
+                return false;
+            }
+
+            existing.Name = updated.Name;
+            existing.Stops = updated.Stops;
 
             try
             {
-                var existing = await _uow.TransitLines.FindAsync(id);
-                if (existing == null)
-                {
-                    _logger.LogWarning("Transit line with ID {LineId} not found for update", id);
-                    return false;
-                }
-
-                existing.Name = updated.Name;
-                existing.Stops = updated.Stops;
-
                 _uow.TransitLines.Update(existing);
-                await _uow.SaveChangesAsync();
+                await _uow.SaveChangesAsync(ct);
 
-                _logger.LogInformation("Updated transit line {LineName} (ID: {LineId})", updated.Name, id);
+                _logger.LogTransitLineUpdated(id, existing.Name);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating transit line with ID {LineId}", id);
+                _logger.LogTransitLineUpdateFailed(id, ex.Message);
                 throw;
             }
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
-            _logger.LogInformation("Attempting to delete transit line with ID {LineId}", id);
+            var existing = await _uow.TransitLines.FindAsync(id, ct);
+            if (existing == null)
+            {
+                _logger.LogTransitLineNotFound(id);
+                return false;
+            }
 
             try
             {
-                var existing = await _uow.TransitLines.FindAsync(id);
-                if (existing == null)
-                {
-                    _logger.LogWarning("Transit line with ID {LineId} not found for deletion", id);
-                    return false;
-                }
-
                 _uow.TransitLines.Remove(existing);
-                await _uow.SaveChangesAsync();
+                await _uow.SaveChangesAsync(ct);
 
-                _logger.LogInformation("Deleted transit line {LineName} (ID: {LineId})", existing.Name, id);
+                _logger.LogTransitLineDeleted(id, existing.Name);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting transit line with ID {LineId}", id);
+                _logger.LogTransitLineDeleteFailed(id, ex.Message);
                 throw;
             }
         }
