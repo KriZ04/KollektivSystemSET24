@@ -99,6 +99,12 @@ public class Program
                 await next();
             }
         });
+
+        app.UseAuthentication();
+        app.UseEnsureUserExists();
+        app.UseAuthorization();
+
+
         app.MapUserEndpoints();
         app.MapAuthEndpoints();
         app.MapOidcEndpoints();
