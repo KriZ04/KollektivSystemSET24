@@ -18,34 +18,28 @@ namespace KollektivSystem.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<TransitLineStop> CreateAsync(CreateTransitLineStopRequest request, CancellationToken ct)
+        public async Task<TransitLineStop?> CreateAsync(CreateTransitLineStopRequest request, CancellationToken ct)
         {
             // Validate unique Order per TransitLine
-            var orderExists = await _uow.TransitLineStops
-                .AnyAsync(
-                    tls => tls.TransitLineId == request.TransitLineId &&
-                           tls.Order == request.Order,
-                    ct);
+            var orderExists = await _uow.TransitLineStops.AnyAsync(
+                tls => tls.TransitLineId == request.TransitLineId && tls.Order == request.Order,
+                ct);
 
             if (orderExists)
             {
                 _logger.LogOrderAlreadyExists(request.TransitLineId, request.Order);
-                throw new BadHttpRequestException(
-                    $"Transit line {request.TransitLineId} already contains a stop at order {request.Order}.");
+                return null;
             }
 
             // Validate unique StopId per TransitLine
-            var stopExists = await _uow.TransitLineStops
-                .AnyAsync(
-                    tls => tls.TransitLineId == request.TransitLineId &&
-                           tls.StopId == request.StopId,
-                    ct);
+            var stopExists = await _uow.TransitLineStops.AnyAsync(
+                tls => tls.TransitLineId == request.TransitLineId && tls.StopId == request.StopId,
+                ct);
 
             if (stopExists)
             {
                 _logger.LogStopAlreadyExists(request.TransitLineId, request.StopId);
-                throw new BadHttpRequestException(
-                    $"Transit line {request.TransitLineId} already contains stop {request.StopId}.");
+                return null;
             }
 
             var entity = new TransitLineStop
@@ -55,12 +49,19 @@ namespace KollektivSystem.ApiService.Services
                 Order = request.Order
             };
 
-            await _uow.TransitLineStops.AddAsync(entity, ct);
-            await _uow.SaveChangesAsync(ct);
+            try
+            {
+                await _uow.TransitLineStops.AddAsync(entity, ct);
+                await _uow.SaveChangesAsync(ct);
 
-            _logger.LogTransitLineStopCreated(entity.Id, entity.TransitLineId, entity.StopId, entity.Order);
-
-            return entity;
+                _logger.LogTransitLineStopCreated(entity.Id, entity.TransitLineId, entity.StopId, entity.Order);
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTransitLineStopCreationFailed(request.TransitLineId, request.StopId, request.Order, ex.Message);
+                throw;
+            }
         }
 
         public async Task<IReadOnlyList<TransitLineStop>> GetAllAsync(CancellationToken ct)
@@ -91,10 +92,17 @@ namespace KollektivSystem.ApiService.Services
             existing.StopId = updated.StopId;
             existing.TransitLineId = updated.TransitLineId;
 
-            await _uow.SaveChangesAsync(ct);
-
-            _logger.LogTransitLineStopUpdated(id);
-            return true;
+            try
+            {
+                await _uow.SaveChangesAsync(ct);
+                _logger.LogTransitLineStopUpdated(id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTransitLineStopUpdateFailed(id, ex.Message);
+                throw;
+            }
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken ct)
@@ -106,11 +114,19 @@ namespace KollektivSystem.ApiService.Services
                 return false;
             }
 
-            _uow.TransitLineStops.Remove(existing);
-            await _uow.SaveChangesAsync(ct);
+            try
+            {
+                _uow.TransitLineStops.Remove(existing);
+                await _uow.SaveChangesAsync(ct);
 
-            _logger.LogTransitLineStopDeleted(id);
-            return true;
+                _logger.LogTransitLineStopDeleted(id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTransitLineStopDeleteFailed(id, ex.Message);
+                throw;
+            }
         }
     }
 }

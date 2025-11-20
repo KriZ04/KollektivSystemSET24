@@ -47,6 +47,8 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             CancellationToken ct)
         {
             var entity = await service.CreateAsync(request, ct);
+            if (entity == null)
+                return Results.BadRequest();
             return Results.Created($"/transitlinestops/{entity.Id}", entity.ToResponse());
         }
 
