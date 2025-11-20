@@ -5,9 +5,9 @@
 @using KollektivSystem.Web.Services
 
 @inject NavigationManager Nav
+@inject StopAdminClient StopClient
 @inject TransitLineAdminClient TransitLineClient
 @inject TransitLineStopAdminClient TransitLineStopClient
-@inject StopAdminClient StopClient
 
 <h1>Ruter (transitlinjer)</h1>
 
@@ -154,9 +154,9 @@ else
 }
 
 @code {
-    private List<TransitLineAdminDto> _lines = new();
-    private TransitLineAdminDto? _selectedLine;
-    private List<TransitLineStopAdminDto> _lineStops = new();
+    private List<TransitLineDto> _lines = new();
+    private TransitLineDto? _selectedLine;
+    private List<TransitLineStopDto> _lineStops = new();
     private List<StopDto> _allStops = new();
 
     private bool _isLoading;
@@ -269,6 +269,11 @@ else
             var id = _lines.Count == 0 ? 1 : _lines.Max(l => l.Id) + 1;
 
             var created = await TransitLineClient.CreateAsync(id, _newLineName);
+            if (created is null)
+            {
+                _error = "Klarte ikke å opprette linje.";
+                return;
+            }
 
             _lines.Add(created);
             _lines = _lines.OrderBy(l => l.Id).ToList();
