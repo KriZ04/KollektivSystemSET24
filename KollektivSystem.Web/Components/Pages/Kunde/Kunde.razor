@@ -16,7 +16,7 @@
         {
             <p>Sjekker tilgang…</p>
         }
-        else if (!_IsCustomer)
+        else if (!_HasAccess)
         {
             <div class="alert alert-warning mt-4">
                 <h4>Du er ikke logget inn</h4>
@@ -100,7 +100,7 @@
 
 @code {
     private bool _loaded;
-    private bool _IsCustomer;
+    private bool _HasAccess;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -116,9 +116,13 @@
                 claims.TryGetValue("role", out role);
         }
 
-        _IsCustomer =
+        _HasAccess =
             !string.IsNullOrWhiteSpace(role) &&
-            role.Equals("Customer", StringComparison.OrdinalIgnoreCase);
+            (
+                role.Equals("Customer", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase)
+            );
 
         _loaded = true;
 
