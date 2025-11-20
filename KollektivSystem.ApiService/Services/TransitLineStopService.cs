@@ -2,6 +2,7 @@
 using KollektivSystem.ApiService.Models.Dtos.TransitLineStops;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services.Interfaces;
+using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace KollektivSystem.ApiService.Services
@@ -19,7 +20,6 @@ namespace KollektivSystem.ApiService.Services
 
         public async Task<TransitLineStop> CreateAsync(CreateTransitLineStopRequest request, CancellationToken ct)
         {
-
             // Validate unique Order per TransitLine
             var orderExists = await _uow.TransitLineStops
                 .AnyAsync(
@@ -29,16 +29,12 @@ namespace KollektivSystem.ApiService.Services
 
             if (orderExists)
             {
-                _logger.LogWarning(
-                    "Cannot create TransitLineStop: Line {LineId} already has a stop at order {Order}",
-                    request.TransitLineId,
-                    request.Order);
-
+                _logger.LogOrderAlreadyExists(request.TransitLineId, request.Order);
                 throw new BadHttpRequestException(
                     $"Transit line {request.TransitLineId} already contains a stop at order {request.Order}.");
             }
 
-            // Validate unique StopId per TransitLine (you already enforce this in DB)
+            // Validate unique StopId per TransitLine
             var stopExists = await _uow.TransitLineStops
                 .AnyAsync(
                     tls => tls.TransitLineId == request.TransitLineId &&
@@ -47,11 +43,7 @@ namespace KollektivSystem.ApiService.Services
 
             if (stopExists)
             {
-                _logger.LogWarning(
-                    "Cannot create TransitLineStop: Line {LineId} already contains Stop {StopId}",
-                    request.TransitLineId,
-                    request.StopId);
-
+                _logger.LogStopAlreadyExists(request.TransitLineId, request.StopId);
                 throw new BadHttpRequestException(
                     $"Transit line {request.TransitLineId} already contains stop {request.StopId}.");
             }
@@ -66,17 +58,14 @@ namespace KollektivSystem.ApiService.Services
             await _uow.TransitLineStops.AddAsync(entity, ct);
             await _uow.SaveChangesAsync(ct);
 
-            _logger.LogInformation(
-                "Created TransitLineStop: Id {Id}, TransitLineId {LineId}, StopId {StopId}, Order {Order}",
-                entity.Id, entity.TransitLineId, entity.StopId, entity.Order);
+            _logger.LogTransitLineStopCreated(entity.Id, entity.TransitLineId, entity.StopId, entity.Order);
 
             return entity;
         }
 
         public async Task<IReadOnlyList<TransitLineStop>> GetAllAsync(CancellationToken ct)
         {
-            var list = await _uow.TransitLineStops.GetAllAsync(ct);
-            return list;
+            return await _uow.TransitLineStops.GetAllAsync(ct);
         }
 
         public async Task<TransitLineStop?> GetByIdAsync(int id, CancellationToken ct)
@@ -84,9 +73,7 @@ namespace KollektivSystem.ApiService.Services
             var entity = await _uow.TransitLineStops.FindAsync(id, ct);
 
             if (entity is null)
-            {
-                _logger.LogWarning("TransitLineStop with ID {Id} not found.", id);
-            }
+                _logger.LogTransitLineStopNotFound(id);
 
             return entity;
         }
@@ -96,7 +83,7 @@ namespace KollektivSystem.ApiService.Services
             var existing = await _uow.TransitLineStops.FindAsync(id, ct);
             if (existing is null)
             {
-                _logger.LogWarning("TransitLineStop with ID {Id} not found for update.", id);
+                _logger.LogTransitLineStopNotFoundForUpdate(id);
                 return false;
             }
 
@@ -106,7 +93,7 @@ namespace KollektivSystem.ApiService.Services
 
             await _uow.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Updated TransitLineStop with ID {Id}.", id);
+            _logger.LogTransitLineStopUpdated(id);
             return true;
         }
 
@@ -115,14 +102,14 @@ namespace KollektivSystem.ApiService.Services
             var existing = await _uow.TransitLineStops.FindAsync(id, ct);
             if (existing is null)
             {
-                _logger.LogWarning("TransitLineStop with ID {Id} not found for deletion.", id);
+                _logger.LogTransitLineStopNotFoundForDeletion(id);
                 return false;
             }
 
             _uow.TransitLineStops.Remove(existing);
             await _uow.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Deleted TransitLineStop with ID {Id}.", id);
+            _logger.LogTransitLineStopDeleted(id);
             return true;
         }
     }
