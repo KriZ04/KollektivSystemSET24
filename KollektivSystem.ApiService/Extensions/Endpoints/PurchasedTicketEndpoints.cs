@@ -34,8 +34,8 @@ public static class PurchasedTicketEndpoints
         var purchasedTicket = await ticketService.PurchaseAsync(userId, req.TicketTypeId, ct);
         if (purchasedTicket == null)
         {
-            logger.BuyTicketFailed(userId, req.TicketTypeId);
-            return Results.Problem();
+            logger.BuyTicketFailed(userId, req.TicketTypeId); 
+            return Results.Conflict(new { message = "Unable to complete ticket purchase." });
         }
         logger.BuyTicketSucceeded(purchasedTicket.Id, userId, req.TicketTypeId);
 
