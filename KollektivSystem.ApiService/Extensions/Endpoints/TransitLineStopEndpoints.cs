@@ -20,7 +20,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             group.MapDelete("/{id:int}", HandleDelete);
         }
 
-        private static async Task<IResult> HandleGetAll(
+        internal static async Task<IResult> HandleGetAll(
             ITransitLineStopService service,
             CancellationToken ct)
         {
@@ -29,7 +29,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             return Results.Ok(responses);
         }
 
-        private static async Task<IResult> HandleGetById(
+        internal static async Task<IResult> HandleGetById(
             int id,
             ITransitLineStopService service,
             CancellationToken ct)
@@ -41,7 +41,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             return Results.Ok(entity.ToResponse());
         }
 
-        private static async Task<IResult> HandleCreate(
+        internal static async Task<IResult> HandleCreate(
             CreateTransitLineStopRequest request,
             ITransitLineStopService service,
             CancellationToken ct)
@@ -50,7 +50,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             return Results.Created($"/transitlinestops/{entity.Id}", entity.ToResponse());
         }
 
-        private static async Task<IResult> HandleUpdate(
+        internal static async Task<IResult> HandleUpdate(
             int id,
             TransitLineStop updated,
             ITransitLineStopService service,
@@ -60,7 +60,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             return success ? Results.NoContent() : Results.NotFound();
         }
 
-        private static async Task<IResult> HandleDelete(
+        internal static async Task<IResult> HandleDelete(
             int id,
             ITransitLineStopService service,
             CancellationToken ct)

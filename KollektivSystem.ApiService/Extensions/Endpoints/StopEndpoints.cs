@@ -24,7 +24,7 @@ public static class StopEndpoints
     }
 
     // Get all stops
-    private static async Task<IResult> HandleGetAll(IStopService sService, CancellationToken ct)
+    internal static async Task<IResult> HandleGetAll(IStopService sService, CancellationToken ct)
     {
         var stops = await sService.GetAllAsync(ct);
         if (stops == null)
@@ -34,7 +34,7 @@ public static class StopEndpoints
     }
 
     //Get stop by ID
-    private static async Task<IResult> HandleGetStopById(int id, IStopService sService, CancellationToken ct)
+    internal static async Task<IResult> HandleGetStopById(int id, IStopService sService, CancellationToken ct)
     {
         var stop = await sService.GetByIdAsync(id, ct);
         if (stop == null)
@@ -44,7 +44,7 @@ public static class StopEndpoints
     }
 
     // Create new stop
-    private static async Task<IResult> HandleCreateStop(CreateStopRequest req, IStopService sService, CancellationToken ct)
+    internal static async Task<IResult> HandleCreateStop(CreateStopRequest req, IStopService sService, CancellationToken ct)
     {
         var stop = await sService.CreateAsync(req, ct);
         if (stop == null)
@@ -54,7 +54,7 @@ public static class StopEndpoints
     }
 
     //Delete stop
-    private static async Task<IResult> HandleDeleteStop(int id, IStopService sService, CancellationToken ct)
+    internal static async Task<IResult> HandleDeleteStop(int id, IStopService sService, CancellationToken ct)
     {
         var isSuccess = await sService.DeleteAsync(id, ct);
         if (!isSuccess)

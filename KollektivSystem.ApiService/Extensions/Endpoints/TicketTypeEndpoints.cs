@@ -28,7 +28,7 @@ public static class TicketTypeEndpoints
 
     }
 
-    private static async Task<IResult> HandleGetAll(ITicketTypeService ttService, CancellationToken ct)
+    internal static async Task<IResult> HandleGetAll(ITicketTypeService ttService, CancellationToken ct)
     {
         var ticketTypes = await ttService.GetAllAsync(ct);
         if (ticketTypes == null)
@@ -38,7 +38,7 @@ public static class TicketTypeEndpoints
         return Results.Ok(ticketTypes.Select(t => t.ToResponse()));
     }
 
-    private static async Task<IResult> HandleGetTicketById(int id, ITicketTypeService ttService, CancellationToken ct)
+    internal static async Task<IResult> HandleGetTicketById(int id, ITicketTypeService ttService, CancellationToken ct)
     {
         var ticketType = await ttService.GetByIdAsync(id, ct);
         if (ticketType == null)
@@ -47,7 +47,7 @@ public static class TicketTypeEndpoints
         return Results.Ok(ticketType.ToResponse());
     }
 
-    private static async Task<IResult> HandleCreateNew(CreateTicketTypeRequest req, ITicketTypeService ttService, CancellationToken ct)
+    internal static async Task<IResult> HandleCreateNew(CreateTicketTypeRequest req, ITicketTypeService ttService, CancellationToken ct)
     {
         var ticketType = await ttService.CreateAsync(req, ct);
         if (ticketType == null)
@@ -56,7 +56,7 @@ public static class TicketTypeEndpoints
         return Results.Created($"{ticketType.Id}", ticketType.ToResponse());
     }
 
-    private static async Task<IResult> HandleGetAllActive(ITicketTypeService ttService, CancellationToken ct)
+    internal static async Task<IResult> HandleGetAllActive(ITicketTypeService ttService, CancellationToken ct)
     {
         var activeTicketTypes = await ttService.GetAllActiveAsync(ct);
 
@@ -66,7 +66,7 @@ public static class TicketTypeEndpoints
         return Results.Ok(activeTicketTypes.Select(t => t.ToResponse()));
     }
 
-    private static async Task<IResult> HandleGetActiveTicketById(int id, ITicketTypeService ttService, CancellationToken ct)
+    internal static async Task<IResult> HandleGetActiveTicketById(int id, ITicketTypeService ttService, CancellationToken ct)
     {
         var ticketType = await ttService.GetActiveByIdAsync(id, ct);
         if (ticketType == null)
@@ -75,7 +75,7 @@ public static class TicketTypeEndpoints
         return Results.Ok(ticketType.ToResponse());
     }
 
-    private static async Task<IResult> HandleDelete(int id, ITicketTypeService ttService, CancellationToken ct)
+    internal static async Task<IResult> HandleDelete(int id, ITicketTypeService ttService, CancellationToken ct)
     {
         var isSuccess = await ttService.DeactivateAsync(id, ct);
         if(!isSuccess) 
@@ -84,7 +84,7 @@ public static class TicketTypeEndpoints
         return Results.Ok($"Successfully deactivated ticket. {id}");
     }
 
-    private static async Task<IResult> HandleActivate(int id, ITicketTypeService ttService, CancellationToken ct)
+    internal static async Task<IResult> HandleActivate(int id, ITicketTypeService ttService, CancellationToken ct)
     {
         var success = await ttService.ActivateAsync(id, ct);
         if (!success)
