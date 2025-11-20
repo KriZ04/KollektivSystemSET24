@@ -1,13 +1,8 @@
 ﻿@page "/kunde"
 @using KollektivSystem.Web.Models
 @using KollektivSystem.Web.Services
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components
 @inject NavigationManager Nav
 @inject KollektivSystem.Web.Services.AuthState Auth
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
-@attribute [Authorize(Roles = "Customer")]
 @inject ITicketApiClient TicketApi
 
 <h3 class="mb-4">Kundedashboard</h3>
@@ -83,36 +78,6 @@
 </div>
 
 @code {
-    private bool _loaded;
-    private bool _IsCustomer;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender || _loaded)
-            return;
-
-        var claims = await Auth.GetClaimsAsync();
-
-        string? role = null;
-        if (claims != null)
-        {
-            if (!claims.TryGetValue(ClaimTypes.Role, out role))
-                claims.TryGetValue("role", out role);
-        }
-
-        _IsCustomer =
-            !string.IsNullOrWhiteSpace(role) &&
-            (role.Equals("Customer", StringComparison.OrdinalIgnoreCase));
-
-        _loaded = true;
-
-        if (!_IsCustomer)
-        {
-            Nav.NavigateTo("/login", replace: true);
-        }
-
-        StateHasChanged();
-    }
 
     private List<PurchasedTicketDto> _activeTickets = new();
     private bool _ticketsLoading;
