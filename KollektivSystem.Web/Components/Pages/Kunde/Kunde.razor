@@ -1,13 +1,10 @@
 ﻿@page "/kunde"
 @using KollektivSystem.Web.Models
 @using KollektivSystem.Web.Services
-@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components
 @inject NavigationManager Nav
 @inject KollektivSystem.Web.Services.AuthState Auth
-@using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
-@attribute [Authorize(Roles = "Customer")]
 @inject ITicketApiClient TicketApi
 
 <h3 class="mb-4">Kundedashboard</h3>
@@ -15,76 +12,106 @@
 <div class="container">
     <div class="row">
 
-        
-        <div class="col-12 mb-4">
-            <button class="btn btn-primary w-100"
-                    @onclick='() => Nav.NavigateTo("/kunde/billetter")'>
-                Kjøp nye billetter her
-            </button>
-        </div>
+        @if (!_loaded)
+        {
+            <p>Sjekker tilgang…</p>
+        }
+        else if (!_HasAccess)
+        {
+            <div class="alert alert-warning mt-4">
+                <h4>Du er ikke logget inn</h4>
+                <p>Logg inn for å få tilgang til kundedashboardet.</p>
 
-        
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Aktive billetter</h5>
-                    @if (_ticketsLoading)
-                    {
-                        <p class="text-muted">Laster billetter...</p>
-                    }
-                    else if (_ticketError != null)
-                    {
-                        <p class="text-danger">@_ticketError</p>
-                    }
-                    else if (_activeTickets.Count == 0)
-                    {
-                        <p class="text-muted">Ingen aktive billetter.</p>
-                    }
-                    else
-                    {
-                        <p class="text-muted">Du har @(_activeTickets.Count) aktive billetter.</p>
+                <button class="btn btn-primary" @onclick="GoToLogin">
+                    Gå til innlogging
+                </button>
+            </div>
+        }
+        else
+        {
 
-                        <ul class="list-group">
-                            @foreach (var t in _activeTickets.Take(3))
-                            {
-                                <li class="list-group-item">
-                                    <strong>@t.TicketTypeName</strong><br />
-                                    Gyldig til: @t.ExpireAt.ToLocalTime().ToString("g")
-                                </li>
-                            }
-                        </ul>
+            <div class="col-12 mb-4">
+                <button class="btn btn-primary w-100"
+                        @onclick='() => Nav.NavigateTo("/kunde/billetter")'>
+                    Kjøp nye billetter her
+                </button>
+            </div>
 
-                        <button class="btn btn-link mt-2" @onclick='() => Nav.NavigateTo("/kunde/mine-billetter")'>
-                            Se alle billetter →
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Aktive billetter</h5>
+                        @if (_ticketsLoading)
+                        {
+                            <p class="text-muted">Laster billetter...</p>
+                        }
+                        else if (_ticketError != null)
+                        {
+                            <p class="text-danger">@_ticketError</p>
+                        }
+                        else if (_activeTickets.Count == 0)
+                        {
+                            <p class="text-muted">Ingen aktive billetter.</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Du har @(_activeTickets.Count) aktive billetter.</p>
+
+                            <ul class="list-group">
+                                @foreach (var t in _activeTickets.Take(3))
+                                {
+                                    <li class="list-group-item">
+                                        <strong>@t.TicketTypeName</strong><br />
+                                        Gyldig til: @t.ExpireAt.ToLocalTime().ToString("g")
+                                    </li>
+                                }
+                            </ul>
+
+                            <button class="btn btn-link mt-2" @onclick='() => Nav.NavigateTo("/kunde/mine-billetter")'>
+                                Se alle billetter →
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Rutesøk</h5>
+                        <p class="card-text text-muted">Søk etter ruter mellom to stoppesteder.</p>
+
+                        <input class="form-control mb-2" placeholder="Fra..." />
+                        <input class="form-control mb-2" placeholder="Til..." />
+
+                        <button class="btn btn-secondary w-100" disabled>
+                            Søk (kommer snart)
                         </button>
-                    }
+                    </div>
                 </div>
             </div>
-        </div>
 
-        
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Rutesøk</h5>
-                    <p class="card-text text-muted">Søk etter ruter mellom to stoppesteder.</p>
+            <h3 class="mb-4">
+                Kundedashboard
+                @if (_userRole is not null)
+                {
+                    <small class="text-muted ms-2">
+                        (Rolle: @_userRole)
+                    </small>
+                }
+            </h3>
 
-                    <input class="form-control mb-2" placeholder="Fra..." />
-                    <input class="form-control mb-2" placeholder="Til..." />
-
-                    <button class="btn btn-secondary w-100" disabled>
-                        Søk (kommer snart)
-                    </button>
-                </div>
-            </div>
-        </div>
+        }
 
     </div>
 </div>
 
 @code {
     private bool _loaded;
-    private bool _IsCustomer;
+    private bool _HasAccess;
+    private string? _userRole;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -100,18 +127,25 @@
                 claims.TryGetValue("role", out role);
         }
 
-        _IsCustomer =
+        _userRole = role;
+
+        _HasAccess =
             !string.IsNullOrWhiteSpace(role) &&
-            (role.Equals("Customer", StringComparison.OrdinalIgnoreCase));
+            (
+                role.Equals("Customer", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("Developer", StringComparison.OrdinalIgnoreCase)
+            );
 
         _loaded = true;
 
-        if (!_IsCustomer)
-        {
-            Nav.NavigateTo("/login", replace: true);
-        }
-
         StateHasChanged();
+    }
+
+    private void GoToLogin()
+    {
+        Nav.NavigateTo("/login", replace: true);
     }
 
     private List<PurchasedTicketDto> _activeTickets = new();
