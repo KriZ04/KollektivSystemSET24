@@ -24,7 +24,7 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             group.MapGet("{id:int}", HandleGetById);
 
             //  UPDATE existing transit line (your user story)
-            //group.MapPut("{id:int}", HandlePutById);
+            group.MapPut("{id:int}", HandlePutById);
 
             // DELETE a transit line
             group.MapDelete("{id:int}", HandleDeleteById);
@@ -57,12 +57,12 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             return line is not null ? Results.Ok(line) : Results.NotFound();
         }
 
-        //// Update transit line by id
-        //internal static async Task<IResult> HandlePutById(int id, TransitLine updated, ITransitLineService tlService)
-        //{
-        //    var success = await tlService.UpdateAsync(id, updated);
-        //    return success ? Results.NoContent() : Results.NotFound();
-        //}
+        // Update transit line by id
+        internal static async Task<IResult> HandlePutById(int id, TransitLine updated, ITransitLineService tlService, CancellationToken ct)
+        {
+            var success = await tlService.UpdateAsync(id, updated, ct);
+            return success ? Results.NoContent() : Results.NotFound();
+        }
 
         // Delete transit line by id
         internal static async Task<IResult> HandleDeleteById(int id, ITransitLineService tlService, CancellationToken ct)
