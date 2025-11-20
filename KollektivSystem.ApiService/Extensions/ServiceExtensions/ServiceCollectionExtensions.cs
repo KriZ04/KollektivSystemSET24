@@ -74,7 +74,8 @@ namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
                     };
                 });
 
-            
+
+
             services.AddAuthorization(o =>
             {
                 o.AddPolicy("Admin", p => p.RequireRole(nameof(Role.Admin), nameof(Role.SystemManager)));
