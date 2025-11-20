@@ -4,9 +4,9 @@ using KollektivSystem.ApiService.Repositories.Interfaces;
 
 namespace KollektivSystem.ApiService.Repositories
 {
-    public class StopRepository : RepositoryBase<Stop, int>, IStopRepository
+    public class TransitLineStopRepository : RepositoryBase<TransitLineStop, int>, ITransitLineStopRepository
     {
-        public StopRepository(ApplicationDbContext db) : base(db)
+        public TransitLineStopRepository(ApplicationDbContext db) : base(db)
         {
         }
     }

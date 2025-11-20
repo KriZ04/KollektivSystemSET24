@@ -4,6 +4,7 @@ using KollektivSystem.ApiService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KollektivSystem.ApiService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251117000113_TransitLineAndStops")]
+    partial class TransitLineAndStops
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -243,7 +246,7 @@ namespace KollektivSystem.ApiService.Migrations
                         .IsRequired();
 
                     b.HasOne("KollektivSystem.ApiService.Models.User", "User")
-                        .WithMany("PurchasedTickets")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -280,11 +283,6 @@ namespace KollektivSystem.ApiService.Migrations
             modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLine", b =>
                 {
                     b.Navigation("Stops");
-                });
-
-            modelBuilder.Entity("KollektivSystem.ApiService.Models.User", b =>
-                {
-                    b.Navigation("PurchasedTickets");
                 });
 #pragma warning restore 612, 618
         }

@@ -4,6 +4,7 @@ using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Dtos.TransitLines;
 
 namespace KollektivSystem.ApiService.Services
 {
@@ -18,26 +19,31 @@ namespace KollektivSystem.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<TransitLine> CreateAsync(TransitLine line)
+        public async Task<TransitLine> CreateAsync(CreateTransitLineRequest request, CancellationToken ct = default)
         {
-            _logger.LogInformation("Creating transit line {LineName}", line.Name);
+
+            var line = new TransitLine
+            {
+                Id = request.Id,
+                Name = request.Name
+            };
 
             try
             {
-                await _uow.TransitLines.AddAsync(line);
-                await _uow.SaveChangesAsync();
+                await _uow.TransitLines.AddAsync(line, ct);
+                await _uow.SaveChangesAsync(ct);
 
                 _logger.LogTransitLineCreated(line.Id, line.Name);
                 return line;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating transit line {LineName}: {Message}", line.Name, ex.Message);
+                _logger.LogTransitLineCreationFailed(line.Id, line.Name);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<TransitLine>> GetAllAsync()
+        public async Task<IReadOnlyList<TransitLine>> GetAllAsync(CancellationToken ct = default)
         {
             _logger.LogDebug("Retrieving all transit lines");
 
@@ -54,7 +60,7 @@ namespace KollektivSystem.ApiService.Services
             }
         }
 
-        public async Task<TransitLine?> GetByIdAsync(int id)
+        public async Task<TransitLine?> GetByIdAsync(int id, CancellationToken ct = default)
         {
             _logger.LogDebug("Fetching transit line with ID {LineId}", id);
 
@@ -79,7 +85,7 @@ namespace KollektivSystem.ApiService.Services
             }
         }
 
-        public async Task<bool> UpdateAsync(int id, TransitLine updated)
+        public async Task<bool> UpdateAsync(int id, TransitLine updated, CancellationToken ct = default)
         {
             _logger.LogInformation("Updating transit line with ID {LineId}", id);
 
@@ -108,7 +114,7 @@ namespace KollektivSystem.ApiService.Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
             _logger.LogInformation("Attempting to delete transit line with ID {LineId}", id);
 

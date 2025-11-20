@@ -4,6 +4,7 @@ using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Models;
+using KollektivSystem.ApiService.Models.Dtos.Stops;
 
 namespace KollektivSystem.ApiService.Services
 {
@@ -18,12 +19,19 @@ namespace KollektivSystem.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<Stop> CreateAsync(Stop stop)
+        public async Task<Stop> CreateAsync(CreateStopRequest request, CancellationToken ct = default)
         {
+            var stop = new Stop
+            {
+                Name = request.Name,
+                Latitude = request.Latitude,
+                Longitude = request.Longitude
+            };
+
             try
             {
-                await _uow.Stops.AddAsync(stop);
-                await _uow.SaveChangesAsync();
+                await _uow.Stops.AddAsync(stop, ct);
+                await _uow.SaveChangesAsync(ct);
 
                 _logger.LogStopCreated(stop.Id, stop.Name);
                 return stop;
@@ -35,23 +43,24 @@ namespace KollektivSystem.ApiService.Services
             }
         }
 
-        public async Task<IEnumerable<Stop>> GetAllAsync()
+        public async Task<IReadOnlyList<Stop>> GetAllAsync(CancellationToken ct = default)
         {
-            return await _uow.Stops.GetAllAsync();
+            var stops = await _uow.Stops.GetAllAsync(ct); 
+            return stops;
         }
 
-        public async Task<Stop?> GetByIdAsync(int id)
+        public async Task<Stop?> GetByIdAsync(int id, CancellationToken ct = default)
         {
-            var stop = await _uow.Stops.FindAsync(id);
+            var stop = await _uow.Stops.FindAsync(id, ct);
             if (stop == null)
                 _logger.LogStopNotFound(id);
 
             return stop;
         }
 
-        public async Task<bool> UpdateAsync(int id, Stop updated)
+        public async Task<bool> UpdateAsync(int id, Stop updated, CancellationToken ct = default)
         {
-            var existing = await _uow.Stops.FindAsync(id);
+            var existing = await _uow.Stops.FindAsync(id, ct);
             if (existing == null)
             {
                 _logger.LogStopNotFound(id);
@@ -59,13 +68,11 @@ namespace KollektivSystem.ApiService.Services
             }
 
             existing.Name = updated.Name;
-            existing.Order = updated.Order;
-            existing.RouteId = updated.RouteId;
 
             try
             {
                 _uow.Stops.Update(existing);
-                await _uow.SaveChangesAsync();
+                await _uow.SaveChangesAsync(ct);
 
                 _logger.LogStopUpdated(id, existing.Name);
                 return true;
@@ -77,9 +84,9 @@ namespace KollektivSystem.ApiService.Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
-            var existing = await _uow.Stops.FindAsync(id);
+            var existing = await _uow.Stops.FindAsync(id, ct);
             if (existing == null)
             {
                 _logger.LogStopNotFound(id);
@@ -87,10 +94,11 @@ namespace KollektivSystem.ApiService.Services
             }
 
             _uow.Stops.Remove(existing);
-            await _uow.SaveChangesAsync();
+            await _uow.SaveChangesAsync(ct);
 
             _logger.LogStopDeleted(id);
             return true;
         }
+
     }
 }

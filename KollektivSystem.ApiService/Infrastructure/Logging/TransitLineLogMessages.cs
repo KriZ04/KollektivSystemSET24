@@ -11,6 +11,11 @@ namespace KollektivSystem.ApiService.Infrastructure.Logging
         internal static partial void LogTransitLineCreated(this ILogger<TransitLineService> logger, int lineId, string lineName);
 
         [LoggerMessage
+        (Level = LogLevel.Information,
+        Message = "Transit line {lineId} ({lineName}) creation failed.")]
+        internal static partial void LogTransitLineCreationFailed(this ILogger<TransitLineService> logger, int lineId, string lineName);
+
+        [LoggerMessage
             (Level = LogLevel.Warning,
             Message = "Transit line with ID {lineId} not found.")]
         internal static partial void LogTransitLineNotFound(this ILogger<TransitLineService> logger, int lineId);
