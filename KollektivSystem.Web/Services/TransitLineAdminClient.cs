@@ -14,24 +14,24 @@ public sealed class TransitLineAdminClient
         _authTokens = authTokens;
     }
 
-    public async Task<IReadOnlyList<TransitLineAdminDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<TransitLineDto>> GetAllAsync(CancellationToken ct = default)
     {
         var token = await _authTokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
-            return Array.Empty<TransitLineAdminDto>();
+            return Array.Empty<TransitLineDto>();
 
         using var req = new HttpRequestMessage(HttpMethod.Get, "/transitlines");
         req.Headers.Authorization = new("Bearer", token);
 
         using var res = await _http.SendAsync(req, ct);
         if (!res.IsSuccessStatusCode)
-            return Array.Empty<TransitLineAdminDto>();
+            return Array.Empty<TransitLineDto>();
 
-        var list = await res.Content.ReadFromJsonAsync<List<TransitLineAdminDto>>(cancellationToken: ct);
-        return list ?? new List<TransitLineAdminDto>();
+        var list = await res.Content.ReadFromJsonAsync<List<TransitLineDto>>(cancellationToken: ct);
+        return list ?? new List<TransitLineDto>();
     }
 
-    public async Task<TransitLineAdminDto?> CreateAsync(int id, string name, CancellationToken ct = default)
+    public async Task<TransitLineDto?> CreateAsync(int id, string name, CancellationToken ct = default)
     {
         var token = await _authTokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
@@ -47,7 +47,7 @@ public sealed class TransitLineAdminClient
         if (!res.IsSuccessStatusCode)
             return null;
 
-        return await res.Content.ReadFromJsonAsync<TransitLineAdminDto>(cancellationToken: ct);
+        return await res.Content.ReadFromJsonAsync<TransitLineDto>(cancellationToken: ct);
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)

@@ -40,13 +40,7 @@ public sealed class StopAdminClient
         using var req = new HttpRequestMessage(HttpMethod.Post, "/stops");
         req.Headers.Authorization = new("Bearer", token);
 
-        var body = new
-        {
-            Name = name,
-            Latitude = latitude,
-            Longitude = longitude
-        };
-
+        var body = new { Name = name, Latitude = latitude, Longitude = longitude };
         req.Content = JsonContent.Create(body);
 
         using var res = await _http.SendAsync(req, ct);

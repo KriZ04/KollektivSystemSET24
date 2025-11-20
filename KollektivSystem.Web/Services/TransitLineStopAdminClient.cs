@@ -14,24 +14,24 @@ public sealed class TransitLineStopAdminClient
         _authTokens = authTokens;
     }
 
-    public async Task<IReadOnlyList<TransitLineStopAdminDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<TransitLineStopDto>> GetAllAsync(CancellationToken ct = default)
     {
         var token = await _authTokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
-            return Array.Empty<TransitLineStopAdminDto>();
+            return Array.Empty<TransitLineStopDto>();
 
         using var req = new HttpRequestMessage(HttpMethod.Get, "/transitlinestops");
         req.Headers.Authorization = new("Bearer", token);
 
         using var res = await _http.SendAsync(req, ct);
         if (!res.IsSuccessStatusCode)
-            return Array.Empty<TransitLineStopAdminDto>();
+            return Array.Empty<TransitLineStopDto>();
 
-        var list = await res.Content.ReadFromJsonAsync<List<TransitLineStopAdminDto>>(cancellationToken: ct);
-        return list ?? new List<TransitLineStopAdminDto>();
+        var list = await res.Content.ReadFromJsonAsync<List<TransitLineStopDto>>(cancellationToken: ct);
+        return list ?? new List<TransitLineStopDto>();
     }
 
-    public async Task<TransitLineStopAdminDto?> CreateAsync(int order, int transitLineId, int stopId, CancellationToken ct = default)
+    public async Task<TransitLineStopDto?> CreateAsync(int order, int transitLineId, int stopId, CancellationToken ct = default)
     {
         var token = await _authTokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
@@ -47,7 +47,7 @@ public sealed class TransitLineStopAdminClient
         if (!res.IsSuccessStatusCode)
             return null;
 
-        return await res.Content.ReadFromJsonAsync<TransitLineStopAdminDto>(cancellationToken: ct);
+        return await res.Content.ReadFromJsonAsync<TransitLineStopDto>(cancellationToken: ct);
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
