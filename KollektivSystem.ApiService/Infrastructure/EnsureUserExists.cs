@@ -1,17 +1,17 @@
 ﻿using KollektivSystem.ApiService.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using KollektivSystem.ApiService.Infrastructure.Logging;
+using KollektivSystem.ApiService.Infrastructure.Logging.Infrastructure;
 
-namespace KollektivSystem.ApiService.Extensions.Auth;
+namespace KollektivSystem.ApiService.Infrastructure;
 
 public sealed class EnsureUserExists
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<EnsureUserExists> _logger;
 
-    public EnsureUserExists(
-        RequestDelegate next,
-        ILogger<EnsureUserExists> logger)
+    public EnsureUserExists(RequestDelegate next, ILogger<EnsureUserExists> logger)
     {
         _next = next;
         _logger = logger;
@@ -39,7 +39,7 @@ public sealed class EnsureUserExists
 
         if (!Guid.TryParse(userIdClaim, out var userId))
         {
-            _logger.LogWarning("Authenticated principal has invalid or missing NameIdentifier claim.");
+            _logger.InvalidOrMissingNameIdClaim();
             await WriteUnauthorized(context);
             return;
         }
@@ -48,9 +48,7 @@ public sealed class EnsureUserExists
 
         if (!exists)
         {
-            _logger.LogInformation(
-                "Authenticated user with id {UserId} does not exist in database.",
-                userId);
+            _logger.UserDoesNotExist(userId);
 
             await WriteUnauthorized(context);
             return;

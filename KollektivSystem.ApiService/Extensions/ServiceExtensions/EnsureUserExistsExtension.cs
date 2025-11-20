@@ -1,4 +1,4 @@
-﻿using KollektivSystem.ApiService.Extensions.Auth;
+﻿using KollektivSystem.ApiService.Infrastructure;
 
 namespace KollektivSystem.ApiService.Extensions.ServiceExtensions
 {
