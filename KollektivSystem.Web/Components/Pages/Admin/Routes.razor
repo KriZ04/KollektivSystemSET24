@@ -123,7 +123,7 @@ else
         </table>
     }
 
-    <h3>Nytt stopp på linja</h3>
+        <h3>Nytt stopp på linja</h3>
 
     <div class="form-grid">
         <label>
@@ -146,12 +146,80 @@ else
         <div class="form-actions">
             <button class="btn"
                     @onclick="CreateLineStopAsync"
-                    disabled="@_isSaving || _newLineStopStopId <= 0 || _selectedLine is null">
-                Legg til stopp
+                    disabled="@_isSaving">
+                @(_isSaving ? "Lagrer..." : "Legg til stopp")
             </button>
         </div>
     </div>
+
 }
+
+<h2>Alle stopp</h2>
+
+@if (_allStops.Count == 0)
+{
+    <p>Ingen stopp ennå.</p>
+}
+else
+{
+    <p>@_allStops.Count stopp i systemet.</p>
+
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Navn</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in _allStops)
+            {
+                <tr>
+                    <td>@s.Id</td>
+                    <td>@s.Name</td>
+                    <td>@s.Latitude</td>
+                    <td>@s.Longitude</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h3>Nytt stopp</h3>
+
+<div class="form-grid">
+    <label>
+        Navn
+        <input type="text" @bind="_newStopName" />
+    </label>
+    <label>
+        Latitude (-90 til 90)
+        <input type="number"
+               step="0.000001"
+               min="-90"
+               max="90"
+               @bind-value="_newStopLatitude"
+               @bind-value:event="oninput" />
+    </label>
+    <label>
+        Longitude (-180 til 180)
+        <input type="number"
+               step="0.000001"
+               min="-180"
+               max="180"
+               @bind-value="_newStopLongitude"
+               @bind-value:event="oninput" />
+    </label>
+    <div class="form-actions">
+        <button class="btn"
+                @onclick="CreateStopAsync"
+                disabled="@_isSaving">
+            @(_isSaving ? "Lagrer..." : "Opprett stopp")
+        </button>
+    </div>
+</div>
 
 @code {
     private List<TransitLineDto> _lines = new();
@@ -166,6 +234,10 @@ else
     private string _newLineName = string.Empty;
     private int _newLineStopStopId;
     private int _newLineStopOrder = 1;
+
+    private string _newStopName = string.Empty;
+    private double _newStopLatitude;
+    private double _newStopLongitude;
 
     protected override async Task OnInitializedAsync()
     {
@@ -351,12 +423,6 @@ else
                 _selectedLine.Id,
                 _newLineStopStopId);
 
-            if (created is null)
-            {
-                _error = "Klarte ikke å legge til stopp på linjen.";
-                return;
-            }
-
             _lineStops.Add(created);
             _lineStops = _lineStops.OrderBy(x => x.Order).ToList();
 
@@ -372,6 +438,7 @@ else
             _isSaving = false;
         }
     }
+
 
     private async Task DeleteLineStopAsync(int id)
     {
@@ -392,6 +459,55 @@ else
         catch (Exception ex)
         {
             _error = $"Klarte ikke å fjerne stopp: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task CreateStopAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newStopName))
+        {
+            _error = "Fyll inn navn for stopp.";
+            return;
+        }
+
+        if (_newStopLatitude < -90 || _newStopLatitude > 90)
+        {
+            _error = "Latitude må være mellom -90 og 90.";
+            return;
+        }
+
+        if (_newStopLongitude < -180 || _newStopLongitude > 180)
+        {
+            _error = "Longitude må være mellom -180 og 180.";
+            return;
+        }
+
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var created = await StopClient.CreateAsync(_newStopName, _newStopLatitude, _newStopLongitude);
+            if (created is null)
+            {
+                _error = "Klarte ikke å opprette stopp.";
+                return;
+            }
+
+            _allStops.Add(created);
+            _allStops = _allStops.OrderBy(s => s.Name).ToList();
+
+            _newStopName = string.Empty;
+            _newStopLatitude = 0;
+            _newStopLongitude = 0;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å opprette stopp: {ex.Message}";
         }
         finally
         {

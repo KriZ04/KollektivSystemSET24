@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Text.Json;
 using KollektivSystem.Web.Models;
 
 namespace KollektivSystem.Web.Services;
@@ -31,23 +32,41 @@ public sealed class TransitLineStopAdminClient
         return list ?? new List<TransitLineStopDto>();
     }
 
-    public async Task<TransitLineStopDto?> CreateAsync(int order, int transitLineId, int stopId, CancellationToken ct = default)
+    public async Task<TransitLineStopDto> CreateAsync(
+        int order,
+        int transitLineId,
+        int stopId,
+        CancellationToken ct = default)
     {
         var token = await _authTokens.GetValidAccessTokenAsync(ct);
         if (string.IsNullOrWhiteSpace(token))
-            return null;
+            throw new InvalidOperationException("Fant ikke gyldig access token (er du logget inn som admin?).");
 
         using var req = new HttpRequestMessage(HttpMethod.Post, "/transitlinestops");
         req.Headers.Authorization = new("Bearer", token);
 
+      
         var body = new { Order = order, TransitLineId = transitLineId, StopId = stopId };
         req.Content = JsonContent.Create(body);
 
         using var res = await _http.SendAsync(req, ct);
-        if (!res.IsSuccessStatusCode)
-            return null;
+        var responseText = await res.Content.ReadAsStringAsync(ct);
 
-        return await res.Content.ReadFromJsonAsync<TransitLineStopDto>(cancellationToken: ct);
+        if (!res.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(
+                $"API-feil ved oppretting av linjestopp ({(int)res.StatusCode} {res.ReasonPhrase}): {responseText}");
+        }
+
+        
+        var created = JsonSerializer.Deserialize<TransitLineStopDto>(
+            responseText,
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        if (created is null)
+            throw new InvalidOperationException("API returnerte ikke data for det nye linjestoppet.");
+
+        return created;
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
