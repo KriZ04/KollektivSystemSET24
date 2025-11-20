@@ -1,47 +1,214 @@
 ﻿@page "/admin/routes"
 @rendermode InteractiveServer
+@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
 @inject NavigationManager Nav
+@inject StopAdminClient StopClient
 
-<h1>Rutetabeller</h1>
+<h1>Stopp (ruter)</h1>
+
 <div class="toolbar">
-    <button class="btn" @onclick="Create">Ny linje</button>
-    <button class="btn" @onclick="Publish">Publiser</button>
+    <button class="btn" @onclick="LoadAsync" disabled="@_isLoading">
+        @(_isLoading ? "Laster..." : "Last inn")
+    </button>
     <button class="btn btn-secondary" @onclick="Back">Tilbake</button>
 </div>
 
-<table class="tbl">
-    <thead><tr><th>Linje-id</th><th>Navn</th><th>Aktiv</th><th>Avganger</th><th></th></tr></thead>
-    <tbody>
-        @foreach (var r in routes)
-        {
-            <tr>
-                <td>@r.Id</td>
-                <td>@r.Name</td>
-                <td>@(r.Active ? "Ja" : "Nei")</td>
-                <td>@r.Departures</td>
-                <td class="row-actions">
-                    <button class="btn sm" @onclick="() => Edit(r.Id)">Rediger</button>
-                    <button class="btn sm" @onclick="() => Toggle(r.Id)">@((r.Active) ? "Deaktiver" : "Aktiver")</button>
-                    <button class="btn sm danger" @onclick="() => Delete(r.Id)">Slett</button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+@if (!string.IsNullOrEmpty(_error))
+{
+    <p class="text-danger">@_error</p>
+}
+
+@if (_isLoading && _stops.Count == 0)
+{
+    <p>Laster stopp...</p>
+}
+else
+{
+    <h2>Eksisterende stopp</h2>
+
+    @if (_stops.Count == 0)
+    {
+        <p>Ingen stopp funnet.</p>
+    }
+    else
+    {
+        <p>@_stops.Count stopp i systemet.</p>
+
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Navn</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in _stops)
+                {
+                    <tr>
+                        <td>@s.Id</td>
+                        <td>@s.Name</td>
+                        <td>@s.Latitude</td>
+                        <td>@s.Longitude</td>
+                        <td class="row-actions">
+                            <button class="btn sm danger"
+                                    @onclick="() => DeleteAsync(s.Id)"
+                                    disabled="@_isSaving">
+                                Slett
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h2 class="mt">Nytt stopp</h2>
+
+    <div class="form-grid">
+        <label>
+            Navn
+            <input type="text" @bind="_newName" />
+        </label>
+        <label>
+            Latitude (-90 til 90)
+            <input type="number"
+                   step="0.000001"
+                   min="-90"
+                   max="90"
+                   @bind-value="_newLatitude"
+                   @bind-value:event="oninput" />
+        </label>
+        <label>
+            Longitude (-180 til 180)
+            <input type="number"
+                   step="0.000001"
+                   min="-180"
+                   max="180"
+                   @bind-value="_newLongitude"
+                   @bind-value:event="oninput" />
+        </label>
+        <div class="form-actions">
+            <button class="btn"
+                    @onclick="CreateAsync"
+                    disabled="@_isSaving || string.IsNullOrWhiteSpace(_newName)">
+                @(_isSaving ? "Lagrer..." : "Opprett")
+            </button>
+        </div>
+    </div>
+}
 
 @code {
-    private List<RouteDto> routes = new()
+    private List<StopDto> _stops = new();
+    private bool _isLoading;
+    private bool _isSaving;
+    private string? _error;
+
+    private string _newName = string.Empty;
+    private double _newLatitude;
+    private double _newLongitude;
+
+    protected override async Task OnInitializedAsync()
     {
-        new(1,"Linje 1 – Sentrum–Sykehus",true,18),
-        new(2,"Linje 3 – Sentrum–Stadion",true,22),
-        new(3,"Linje 9 – Nattbuss",false,6)
-    };
-    public record RouteDto(int Id, string Name, bool Active, int Departures);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        _error = null;
+
+        try
+        {
+            var items = await StopClient.GetAllAsync();
+            _stops = items.ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Kunne ikke laste stopp: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newName))
+        {
+            _error = "Fyll inn navn før du oppretter stopp.";
+            return;
+        }
+
+        // Valider latitude / longitude
+        if (_newLatitude < -90 || _newLatitude > 90)
+        {
+            _error = "Latitude må være mellom -90 og 90.";
+            return;
+        }
+
+        if (_newLongitude < -180 || _newLongitude > 180)
+        {
+            _error = "Longitude må være mellom -180 og 180.";
+            return;
+        }
+
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var created = await StopClient.CreateAsync(_newName, _newLatitude, _newLongitude);
+            if (created is null)
+            {
+                _error = "Klarte ikke å opprette stopp (API svarte ikke som forventet).";
+                return;
+            }
+
+            _stops.Add(created);
+            _newName = string.Empty;
+            _newLatitude = 0;
+            _newLongitude = 0;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å opprette stopp: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var ok = await StopClient.DeleteAsync(id);
+            if (!ok)
+            {
+                _error = "Klarte ikke å slette stoppet.";
+                return;
+            }
+
+            _stops.RemoveAll(s => s.Id == id);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å slette stoppet: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
 
     private void Back() => Nav.NavigateTo("/admin", true);
-    private void Create() { var id = routes.Count == 0 ? 1 : routes.Max(r => r.Id) + 1; routes.Add(new(id, "Ny linje", false, 0)); }
-    private void Edit(int id) { var r = routes.First(x => x.Id == id); routes[routes.IndexOf(r)] = r with { Name = r.Name + " (redigert)" }; }
-    private void Toggle(int id) { var r = routes.First(x => x.Id == id); routes[routes.IndexOf(r)] = r with { Active = !r.Active }; }
-    private void Delete(int id) { routes.RemoveAll(x => x.Id == id); }
-    private void Publish() { /* TODO: kall API for publisering */ }
 }
