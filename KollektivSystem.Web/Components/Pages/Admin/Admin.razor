@@ -47,8 +47,18 @@ else
     private bool _loaded;
     private bool _hasAdminAccess;
 
-    protected override async Task OnInitializedAsync()
+    
+    protected override Task OnInitializedAsync()
     {
+       
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _loaded)
+            return;
+
         var claims = await Auth.GetClaimsAsync();
 
         string? role = null;
@@ -65,13 +75,17 @@ else
 
         _loaded = true;
 
+        // Oppdater UI nå som vi har lastet rolleinfo
+        StateHasChanged();
+
         if (!_hasAdminAccess)
         {
             Nav.NavigateTo("/login", replace: true);
         }
     }
 
-    private void OpenAlerts() => Nav.NavigateTo("/admin/alerts", true);
+    // Varsler → hjem
+    private void OpenAlerts() => Nav.NavigateTo("/", true);
     private void OpenRoutes() => Nav.NavigateTo("/admin/routes", true);
     private void OpenTicketTypes() => Nav.NavigateTo("/admin/ticket-types", true);
 }
