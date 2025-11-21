@@ -10,7 +10,6 @@
 
 <div class="toolbar">
     <button class="btn" @onclick="LoadAsync">Last inn</button>
-    <button class="btn btn-secondary" @onclick="Back">Tilbake</button>
 </div>
 
 @if (_isLoading)
@@ -178,6 +177,4 @@ else
             _error = "Klarte ikke å deaktivere billettypen.";
         }
     }
-
-    private void Back() => Nav.NavigateTo("/admin", true);
 }
