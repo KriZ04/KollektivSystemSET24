@@ -8,6 +8,7 @@
         public const int TicketType = 3000;
         public const int Stop = 4000;
         public const int TransitLine = 5000;
+        public const int TransitLineStop = 5500;
         public const int Infrastructure = 9000;
     }
 }
