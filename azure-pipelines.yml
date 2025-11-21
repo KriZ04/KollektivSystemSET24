@@ -1,0 +1,59 @@
+trigger:
+  branches:
+    include:
+      - dev
+      - main
+
+pr:
+  branches:
+    include:
+      - dev
+      - main
+
+variables:
+  buildConfiguration: 'Release'
+  dotnetVersion: '8.0.x'
+
+stages:
+- stage: BuildAndTest
+  displayName: "Build & Test (Dev)"
+  jobs:
+  - job: ci
+    displayName: "CI Job"
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    steps:
+    - task: UseDotNet@2
+      displayName: "Use .NET $(dotnetVersion)"
+      inputs:
+        packageType: 'sdk'
+        version: '$(dotnetVersion)'
+
+    - script: mkdir -p $(Agent.HomeDirectory)/.nuget/packages
+      displayName: "Ensure NuGet cache folder exists"
+
+    - task: Cache@2
+      displayName: "Cache NuGet packages"
+      inputs:
+        key: 'nuget | "$(Agent.OS)" | **/*.csproj'
+        restoreKeys: |
+          nuget | "$(Agent.OS)"
+        path: $(Agent.HomeDirectory)/.nuget/packages
+
+    - script: dotnet restore
+      displayName: "Restore dependencies"
+
+    - script: dotnet build --no-restore -c $(buildConfiguration)
+      displayName: "Build solution"
+
+    - script: dotnet test --no-build -c $(buildConfiguration) --logger "trx;LogFileName=test_results.trx"
+      displayName: "Run tests"
+
+    - task: PublishTestResults@2
+      displayName: "Publish test results"
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/test_results.trx'
+        searchFolder: '$(System.DefaultWorkingDirectory)'
+        testRunTitle: 'Dev branch tests'

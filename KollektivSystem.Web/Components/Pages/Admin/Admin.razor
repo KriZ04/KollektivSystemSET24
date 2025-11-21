@@ -1,0 +1,91 @@
+﻿@page "/admin"
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.AuthState Auth
+
+@if (!_loaded)
+{
+    <p>Sjekker tilgang …</p>
+}
+else if (!_hasAdminAccess)
+{
+    <p>Du har ikke tilgang til denne siden.</p>
+}
+else
+{
+    <h1>Admin</h1>
+
+    <div class="admin-grid">
+        <div class="card">
+            <h2>Varsler</h2>
+            <p>Administrer varsler som vises til kunder.</p>
+            <div class="card-actions">
+                <button class="btn" @onclick="OpenAlerts">Åpne varsler</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Ruter</h2>
+            <p>Administrer rutetabeller og linjer.</p>
+            <div class="card-actions">
+                <button class="btn" @onclick="OpenRoutes">Åpne ruter</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Billettyper</h2>
+            <p>Opprett og deaktiver billettyper.</p>
+            <div class="card-actions">
+                <button class="btn" @onclick="OpenTicketTypes">Åpne billettyper</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loaded;
+    private bool _hasAdminAccess;
+
+    
+    protected override Task OnInitializedAsync()
+    {
+       
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _loaded)
+            return;
+
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        _hasAdminAccess =
+            !string.IsNullOrWhiteSpace(role) &&
+            (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+             role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase));
+
+        _loaded = true;
+
+        // Oppdater UI nå som vi har lastet rolleinfo
+        StateHasChanged();
+
+        if (!_hasAdminAccess)
+        {
+            Nav.NavigateTo("/login", replace: true);
+        }
+    }
+
+    // Varsler → hjem
+    private void OpenAlerts() => Nav.NavigateTo("/", true);
+    private void OpenRoutes() => Nav.NavigateTo("/admin/routes", true);
+    private void OpenTicketTypes() => Nav.NavigateTo("/admin/ticket-types", true);
+}

@@ -1,29 +1,118 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">KollektivSystem</a>
-    </div>
-</div>
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components
+@using System.Security.Claims
+@implements IDisposable
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.AuthState Auth
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
+<nav class="flex-column">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+                <span class="oi oi-home" aria-hidden="true"></span> Home
             </NavLink>
-        </div>
+        </li>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+        @if (_hasAdminAccess)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="admin" Match="NavLinkMatch.Prefix">
+                    <span class="oi oi-shield" aria-hidden="true"></span> Admin
+                </NavLink>
+            </li>
+        }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested" aria-hidden="true"></span> Weather
+        @if (_isSysUtvikler)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="sysutvikler/rolemanagment" Match="NavLinkMatch.Prefix">
+                    <span class="oi oi-cog" aria-hidden="true"></span> SysUtvikler
+                </NavLink>
+            </li>
+        }
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="/kunde" Match="NavLinkMatch.Prefix">
+                <span class="oi" aria-hidden="true"></span> Dashboard
             </NavLink>
-        </div>
-    </nav>
-</div>
+        </li>
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="kunde/billetter" Match="NavLinkMatch.Prefix">
+                <span class="oi oi-credit-card" aria-hidden="true"></span> Kjøp billett
+            </NavLink>
+        </li>
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="kunde/mine-billetter" Match="NavLinkMatch.Prefix">
+                <span class="oi oi-book" aria-hidden="true"></span> Mine billetter
+            </NavLink>
+        </li>
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="login">
+                <span class="bi bi-key" aria-hidden="true"></span> Login
+            </NavLink>
+        </li>
+
+
+
+    </ul>
+</nav>
+
+@code {
+
+    private bool _hasAdminAccess; // Admin eller SystemManager
+    private bool _isSysUtvikler;  // KUN SystemManager
+
+
+    private bool _initialized;
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+            await RefreshRoleAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        await RefreshRoleAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshRoleAsync()
+    {
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        _hasAdminAccess =
+            !string.IsNullOrWhiteSpace(role) &&
+            (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+             role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase));
+
+        _isSysUtvikler =
+            !string.IsNullOrWhiteSpace(role) &&
+            role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase);
+            
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}

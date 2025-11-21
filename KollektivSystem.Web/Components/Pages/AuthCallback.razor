@@ -1,0 +1,36 @@
+﻿@page "/auth/callback"
+@using KollektivSystem.Web.Services
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject ITokenStore Tokens
+
+<p>Fullfører innlogging …</p>
+
+@code {
+    private string? _token;
+    private string? _refresh;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Nav.Uri);
+        var qs = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _token = qs["token"];
+        _refresh = qs["refresh"];
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        if (!string.IsNullOrWhiteSpace(_token) && !string.IsNullOrWhiteSpace(_refresh))
+        {
+            await Tokens.SetAsync(_token);
+            await Tokens.SetRefreshAsync(_refresh);
+            Nav.NavigateTo("/", replace: true);
+        }
+        else
+        {
+            Nav.NavigateTo("/login", replace: true);
+        }
+    }
+}

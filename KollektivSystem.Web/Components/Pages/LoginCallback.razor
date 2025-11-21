@@ -1,0 +1,32 @@
+﻿@page "/login/callback"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.AuthState Auth
+@using Microsoft.AspNetCore.WebUtilities
+
+<p>Completing sign-in…</p>
+
+@code {
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Nav.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        string? token = query.TryGetValue("token", out var t) ? t.ToString() : null;
+        string role = query.TryGetValue("role", out var r) ? r.ToString() : "User";
+
+        // Hvis backend returnerer token/rolle i query
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Auth.Set(token!, role);
+        }
+
+        // Naviger til riktig sted (admin → /admin, ellers forsiden)
+        if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+            Nav.NavigateTo("/admin", true);
+        else
+            Nav.NavigateTo("/", true);
+
+
+    }
+}

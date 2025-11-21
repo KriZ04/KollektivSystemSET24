@@ -1,0 +1,265 @@
+﻿@page "/kunde"
+@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.Services.AuthState Auth
+@using System.Security.Claims
+@inject ITicketApiClient TicketApi
+@inject StopAdminClient StopClient
+@inject TransitLineAdminClient TransitLineClient
+@inject TransitLineStopAdminClient TransitLineStopClient
+@using KollektivSystem.Web.Components.Pages.Kunde
+
+<h3 class="mb-4">Kundedashboard</h3>
+
+<div class="container">
+    <div class="row">
+
+        @if (!_loaded)
+        {
+            <p>Sjekker tilgang…</p>
+        }
+        else if (!_HasAccess)
+        {
+            <div class="alert alert-warning mt-4">
+                <h4>Du er ikke logget inn</h4>
+                <p>Logg inn for å få tilgang til kundedashboardet.</p>
+
+                <button class="btn btn-primary" @onclick="GoToLogin">
+                    Gå til innlogging
+                </button>
+            </div>
+        }
+        else
+        {
+
+            <div class="col-12 mb-4">
+                <button class="btn btn-primary w-100"
+                        @onclick='() => Nav.NavigateTo("/kunde/billetter")'>
+                    Kjøp nye billetter her
+                </button>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Aktive billetter</h5>
+
+                        @if (_ticketsLoading)
+                        {
+                            <p class="text-muted">Laster billetter...</p>
+                        }
+                        else if (_ticketError != null)
+                        {
+                            <p class="text-danger">@_ticketError</p>
+                        }
+                        else if (_activeTickets.Count == 0)
+                        {
+                            <p class="text-muted">Ingen aktive billetter.</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Du har @(_activeTickets.Count) aktive billetter.</p>
+
+
+                            <div class="row row-cols-1 row-cols-md-2 g-3">
+                                @foreach (var ticket in _activeTickets)
+                                {
+                                    <div class="col">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">@ticket.TicketTypeName</h5>
+                                                <p class="card-text">
+                                                    Kjøpt: @ticket.PurchasedAt.ToLocalTime().ToString("g")<br />
+                                                    Gyldig til: @ticket.ExpireAt.ToLocalTime().ToString("g")<br />
+                                                    Status:
+                                                    @if (ticket.Revoked)
+                                                    {
+                                                        <span>Opphevet</span>
+                                                    }
+                                                    else if (ticket.IsExpired)
+                                                    {
+                                                        <span>Utløpt</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>Gyldig</span>
+                                                    }
+                                                </p>
+                                                <p class="card-text">
+                                                    Kontrollkode:<br />
+                                                    <span style="font-size: 1.3rem; letter-spacing: 0.15rem;">
+                                                        @ticket.ValidationCode
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <button class="btn btn-link mt-3" @onclick='() => Nav.NavigateTo("/kunde/mine-billetter")'>
+                                Se alle billetter →
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <Ruteplanlegger />
+            </div>
+
+            <div class="col-12 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Alle linjer & stopp</h5>
+
+                        @if (_routeLoading)
+                        {
+                            <p class="text-muted">Laster rutedata...</p>
+                        }
+                        else if (_routeError != null)
+                        {
+                            <p class="text-danger">@_routeError</p>
+                        }
+                        else if (_allLines.Count == 0)
+                        {
+                            <p class="text-muted">Ingen linjer funnet.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-group">
+                                @foreach (var line in _allLines)
+                                {
+                                    <li class="list-group-item">
+                                        <strong>@line.Name</strong>
+
+                                        @{
+                                            var stops = GetStopsForLine(line.Id);
+                                        }
+
+                                        @if (stops.Count == 0)
+                                        {
+                                            <p class="text-muted mb-0">Ingen stopp registrert.</p>
+                                        }
+                                        else
+                                        {
+                                            <ol class="mt-2">
+                                                @foreach (var s in stops)
+                                                {
+                                                    <li>@s.StopName</li>
+                                                }
+                                            </ol>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="mb-4">
+                Kundedashboard
+                @if (_userRole is not null)
+                {
+                    <small class="text-muted ms-2">(Rolle: @_userRole)</small>
+                }
+            </h3>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _loaded;
+    private bool _HasAccess;
+    private string? _userRole;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _loaded)
+            return;
+
+        var claims = await Auth.GetClaimsAsync();
+
+        string? role = null;
+        if (claims != null)
+        {
+            if (!claims.TryGetValue(ClaimTypes.Role, out role))
+                claims.TryGetValue("role", out role);
+        }
+
+        _userRole = role;
+
+        _HasAccess =
+            !string.IsNullOrWhiteSpace(role) &&
+            (
+                role.Equals("Customer", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("SystemManager", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("Developer", StringComparison.OrdinalIgnoreCase)
+            );
+
+        _loaded = true;
+        StateHasChanged();
+    }
+
+    private void GoToLogin()
+    {
+        Nav.NavigateTo("/login", replace: true);
+    }
+
+
+    private List<PurchasedTicketDto> _activeTickets = new();
+    private bool _ticketsLoading;
+    private string? _ticketError;
+
+
+    private List<StopDto> _allStops = new();
+    private List<TransitLineDto> _allLines = new();
+    private List<TransitLineStopDto> _allLineStops = new();
+
+    private bool _routeLoading;
+    private string? _routeError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _ticketsLoading = true;
+        _routeLoading = true;
+
+        try
+        {
+            var tickets = await TicketApi.GetMyTicketsAsync();
+            _activeTickets = tickets
+                .Where(t => !t.Revoked && !t.IsExpired)
+                .ToList();
+
+            _allStops = (await StopClient.GetAllAsync()).OrderBy(s => s.Name).ToList();
+            _allLines = (await TransitLineClient.GetAllAsync()).OrderBy(l => l.Id).ToList();
+            _allLineStops = (await TransitLineStopClient.GetAllAsync()).ToList();
+        }
+        catch
+        {
+            _ticketError = "Kunne ikke hente billetter.";
+            _routeError = "Kunne ikke hente rutedata.";
+        }
+        finally
+        {
+            _ticketsLoading = false;
+            _routeLoading = false;
+        }
+    }
+
+    private List<(int Order, string StopName)> GetStopsForLine(int lineId)
+    {
+        return _allLineStops
+            .Where(ls => ls.TransitLineId == lineId)
+            .OrderBy(ls => ls.Order)
+            .Select(ls =>
+                (ls.Order, _allStops.FirstOrDefault(s => s.Id == ls.StopId)?.Name ?? $"Stopp {ls.StopId}")
+            )
+            .ToList();
+    }
+}

@@ -1,0 +1,20 @@
+﻿@page "/login"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject AuthApiClient AuthClient
+
+<h3>Login</h3>
+
+<p>Trykk for å logge inn via API-et.</p>
+
+<button class="btn btn-primary" @onclick="OnLogin">Login</button>
+
+@code {
+    private void OnLogin()
+    {
+        var callback = $"{Nav.BaseUri.TrimEnd('/')}/auth/callback";
+        var url = $"{AuthClient.BaseAddress}auth/login?returnUrl={Uri.EscapeDataString(callback)}";
+        Console.WriteLine(url);
+        Nav.NavigateTo(url, forceLoad: true);
+    }
+}

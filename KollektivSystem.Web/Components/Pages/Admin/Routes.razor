@@ -1,0 +1,524 @@
+﻿@page "/admin/routes"
+@rendermode InteractiveServer
+
+@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+
+@inject NavigationManager Nav
+@inject StopAdminClient StopClient
+@inject TransitLineAdminClient TransitLineClient
+@inject TransitLineStopAdminClient TransitLineStopClient
+
+<h1>Ruter (transitlinjer)</h1>
+
+<div class="toolbar">
+    <button class="btn" @onclick="LoadLinesAsync" disabled="@_isLoading">
+        @(_isLoading ? "Laster..." : "Oppdater linjer")
+    </button>
+    <button class="btn btn-secondary" @onclick="Back">Tilbake</button>
+</div>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <p class="text-danger">@_error</p>
+}
+
+<h2>Linjer</h2>
+
+@if (_lines.Count == 0)
+{
+    <p>Ingen linjer ennå.</p>
+}
+else
+{
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Navn</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in _lines)
+            {
+                <tr>
+                    <td>@line.Id</td>
+                    <td>@line.Name</td>
+                    <td class="row-actions">
+                        <button class="btn sm"
+                                @onclick="() => SelectLineAsync(line.Id)"
+                                disabled="@_isSaving">
+                            Velg
+                        </button>
+                        <button class="btn sm danger"
+                                @onclick="() => DeleteLineAsync(line.Id)"
+                                disabled="@_isSaving">
+                            Slett
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h3>Ny linje</h3>
+
+<div class="form-grid">
+    <label>
+        Navn
+        <input type="text" @bind="_newLineName" />
+    </label>
+    <div class="form-actions">
+        <button class="btn"
+                @onclick="CreateLineAsync"
+                disabled="@_isSaving">
+            @(_isSaving ? "Oppretter..." : "Opprett linje")
+        </button>
+    </div>
+</div>
+
+@if (_selectedLine is null)
+{
+    <h2>Stopp på linje</h2>
+    <p>Velg en linje for å se og endre stopp.</p>
+}
+else
+{
+    <h2>Stopp på linje @_selectedLine.Name (@_selectedLine.Id)</h2>
+
+    @if (_lineStops.Count == 0)
+    {
+        <p>Ingen stopp er koblet til denne linjen.</p>
+    }
+    else
+    {
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Rekkefølge</th>
+                    <th>Stopp</th>
+                    <th>StopId</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ls in _lineStops)
+                {
+                    <tr>
+                        <td>@ls.Order</td>
+                        <td>@GetStopName(ls.StopId)</td>
+                        <td>@ls.StopId</td>
+                        <td class="row-actions">
+                            <button class="btn sm danger"
+                                    @onclick="() => DeleteLineStopAsync(ls.Id)"
+                                    disabled="@_isSaving">
+                                Fjern
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+        <h3>Nytt stopp på linja</h3>
+
+    <div class="form-grid">
+        <label>
+            Stopp
+            <select @bind="_newLineStopStopId">
+                <option value="0">Velg stopp...</option>
+                @foreach (var s in _allStops)
+                {
+                    <option value="@s.Id">@s.Name (@s.Id)</option>
+                }
+            </select>
+        </label>
+        <label>
+            Rekkefølge
+            <input type="number"
+                   min="1"
+                   step="1"
+                   @bind="_newLineStopOrder" />
+        </label>
+        <div class="form-actions">
+            <button class="btn"
+                    @onclick="CreateLineStopAsync"
+                    disabled="@_isSaving">
+                @(_isSaving ? "Lagrer..." : "Legg til stopp")
+            </button>
+        </div>
+    </div>
+
+}
+
+<h2>Alle stopp</h2>
+
+@if (_allStops.Count == 0)
+{
+    <p>Ingen stopp ennå.</p>
+}
+else
+{
+    <p>@_allStops.Count stopp i systemet.</p>
+
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Navn</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in _allStops)
+            {
+                <tr>
+                    <td>@s.Id</td>
+                    <td>@s.Name</td>
+                    <td>@s.Latitude</td>
+                    <td>@s.Longitude</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h3>Nytt stopp</h3>
+
+<div class="form-grid">
+    <label>
+        Navn
+        <input type="text" @bind="_newStopName" />
+    </label>
+    <label>
+        Latitude (-90 til 90)
+        <input type="number"
+               step="0.000001"
+               min="-90"
+               max="90"
+               @bind-value="_newStopLatitude"
+               @bind-value:event="oninput" />
+    </label>
+    <label>
+        Longitude (-180 til 180)
+        <input type="number"
+               step="0.000001"
+               min="-180"
+               max="180"
+               @bind-value="_newStopLongitude"
+               @bind-value:event="oninput" />
+    </label>
+    <div class="form-actions">
+        <button class="btn"
+                @onclick="CreateStopAsync"
+                disabled="@_isSaving">
+            @(_isSaving ? "Lagrer..." : "Opprett stopp")
+        </button>
+    </div>
+</div>
+
+@code {
+    private List<TransitLineDto> _lines = new();
+    private TransitLineDto? _selectedLine;
+    private List<TransitLineStopDto> _lineStops = new();
+    private List<StopDto> _allStops = new();
+
+    private bool _isLoading;
+    private bool _isSaving;
+    private string? _error;
+
+    private string _newLineName = string.Empty;
+    private int _newLineStopStopId;
+    private int _newLineStopOrder = 1;
+
+    private string _newStopName = string.Empty;
+    private double _newStopLatitude;
+    private double _newStopLongitude;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLinesAsync();
+        await LoadStopsLookupAsync();
+    }
+
+    private async Task LoadLinesAsync()
+    {
+        _isLoading = true;
+        _error = null;
+
+        try
+        {
+            var items = await TransitLineClient.GetAllAsync();
+            _lines = items.OrderBy(l => l.Id).ToList();
+
+            if (_selectedLine is not null)
+            {
+                _selectedLine = _lines.FirstOrDefault(l => l.Id == _selectedLine.Id);
+                if (_selectedLine is not null)
+                    await LoadSelectedLineStopsAsync();
+                else
+                    _lineStops.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Kunne ikke laste linjer: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadStopsLookupAsync()
+    {
+        try
+        {
+            var stops = await StopClient.GetAllAsync();
+            _allStops = stops.OrderBy(s => s.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error ??= $"Kunne ikke laste stopp: {ex.Message}";
+        }
+    }
+
+    private async Task LoadSelectedLineStopsAsync()
+    {
+        if (_selectedLine is null)
+        {
+            _lineStops.Clear();
+            return;
+        }
+
+        _isLoading = true;
+        _error = null;
+
+        try
+        {
+            var all = await TransitLineStopClient.GetAllAsync();
+            _lineStops = all
+                .Where(x => x.TransitLineId == _selectedLine.Id)
+                .OrderBy(x => x.Order)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Kunne ikke laste stopp for linje: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SelectLineAsync(int id)
+    {
+        _selectedLine = _lines.FirstOrDefault(l => l.Id == id);
+        _newLineStopStopId = 0;
+        _newLineStopOrder = 1;
+
+        await LoadSelectedLineStopsAsync();
+    }
+
+    private async Task CreateLineAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newLineName))
+        {
+            _error = "Fyll inn navn for linje.";
+            return;
+        }
+
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var id = _lines.Count == 0 ? 1 : _lines.Max(l => l.Id) + 1;
+
+            var created = await TransitLineClient.CreateAsync(id, _newLineName);
+            if (created is null)
+            {
+                _error = "Klarte ikke å opprette linje.";
+                return;
+            }
+
+            _lines.Add(created);
+            _lines = _lines.OrderBy(l => l.Id).ToList();
+            _newLineName = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å opprette linje: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task DeleteLineAsync(int id)
+    {
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var ok = await TransitLineClient.DeleteAsync(id);
+            if (!ok)
+            {
+                _error = "Klarte ikke å slette linjen.";
+                return;
+            }
+
+            _lines.RemoveAll(l => l.Id == id);
+
+            if (_selectedLine?.Id == id)
+            {
+                _selectedLine = null;
+                _lineStops.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å slette linjen: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task CreateLineStopAsync()
+    {
+        if (_selectedLine is null)
+        {
+            _error = "Velg en linje først.";
+            return;
+        }
+
+        if (_newLineStopStopId <= 0)
+        {
+            _error = "Velg et stopp.";
+            return;
+        }
+
+        if (_newLineStopOrder <= 0)
+        {
+            _error = "Rekkefølge må være større enn 0.";
+            return;
+        }
+
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var created = await TransitLineStopClient.CreateAsync(
+                _newLineStopOrder,
+                _selectedLine.Id,
+                _newLineStopStopId);
+
+            _lineStops.Add(created);
+            _lineStops = _lineStops.OrderBy(x => x.Order).ToList();
+
+            _newLineStopStopId = 0;
+            _newLineStopOrder = _lineStops.Count == 0 ? 1 : _lineStops.Max(x => x.Order) + 1;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å legge til stopp: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+
+    private async Task DeleteLineStopAsync(int id)
+    {
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var ok = await TransitLineStopClient.DeleteAsync(id);
+            if (!ok)
+            {
+                _error = "Klarte ikke å fjerne stopp fra linjen.";
+                return;
+            }
+
+            _lineStops.RemoveAll(x => x.Id == id);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å fjerne stopp: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task CreateStopAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newStopName))
+        {
+            _error = "Fyll inn navn for stopp.";
+            return;
+        }
+
+        if (_newStopLatitude < -90 || _newStopLatitude > 90)
+        {
+            _error = "Latitude må være mellom -90 og 90.";
+            return;
+        }
+
+        if (_newStopLongitude < -180 || _newStopLongitude > 180)
+        {
+            _error = "Longitude må være mellom -180 og 180.";
+            return;
+        }
+
+        _isSaving = true;
+        _error = null;
+
+        try
+        {
+            var created = await StopClient.CreateAsync(_newStopName, _newStopLatitude, _newStopLongitude);
+            if (created is null)
+            {
+                _error = "Klarte ikke å opprette stopp.";
+                return;
+            }
+
+            _allStops.Add(created);
+            _allStops = _allStops.OrderBy(s => s.Name).ToList();
+
+            _newStopName = string.Empty;
+            _newStopLatitude = 0;
+            _newStopLongitude = 0;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Klarte ikke å opprette stopp: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private string GetStopName(int stopId)
+    {
+        return _allStops.FirstOrDefault(s => s.Id == stopId)?.Name ?? $"Stopp {stopId}";
+    }
+
+    private void Back() => Nav.NavigateTo("/admin", true);
+}

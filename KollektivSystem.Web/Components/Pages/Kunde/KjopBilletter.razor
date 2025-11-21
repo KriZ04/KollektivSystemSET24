@@ -1,0 +1,116 @@
+﻿@page "/kunde/billetter"
+@rendermode InteractiveServer
+
+@using System.Linq
+@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+@inject ITicketApiClient TicketApi
+@inject NavigationManager Nav
+
+<h3>Kjøp billett</h3>
+
+@if (_isLoading)
+{
+    <p>Laster billetter...</p>
+}
+else if (_loadError != null)
+{
+    <p class="text-danger">@_loadError</p>
+}
+else if (_tickets.Count == 0)
+{
+    <p>Ingen billetter tilgjengelig.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Pris</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in _tickets)
+            {
+                <tr>
+                    <td>@t.Name</td>
+                    <td>@t.Price.ToString("0.00") kr</td>
+                    <td>
+                        <button class="btn btn-primary"
+                                @onclick="() => PurchaseAsync(t.Id)"
+                                disabled="@_isPurchasing">
+                            Kjøp
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (_purchaseMessage is not null)
+{
+    <div class="alert alert-success mt-3">
+        @_purchaseMessage
+        <button type="button" class="btn btn-link p-0 ms-2" @onclick="@GoToMyTickets">
+            Gå til mine billetter
+        </button>
+    </div>
+}
+
+@code {
+    private List<TicketDto> _tickets = new();
+    private bool _isLoading;
+    private bool _isPurchasing;
+    private string? _loadError;
+    private string? _purchaseMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+
+        try
+        {
+            var tickets = await TicketApi.GetTicketsAsync();
+            _tickets = tickets.ToList();
+        }
+        catch
+        {
+            _loadError = "Kunne ikke laste billetter.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task PurchaseAsync(int ticketTypeId)
+    {
+        _isPurchasing = true;
+        _purchaseMessage = null;
+
+        try
+        {
+            var result = await TicketApi.PurchaseTicketAsync(ticketTypeId);
+            if (result is null)
+            {
+                _loadError = "Klarte ikke å kjøpe billetten.";
+                return;
+            }
+
+            _purchaseMessage = "Billetten er kjøpt. Du finner den under 'Mine billetter'.";
+        }
+        finally
+        {
+            _isPurchasing = false;
+        }
+    }
+
+    private void GoToMyTickets()
+    {
+        Nav.NavigateTo("/kunde/mine-billetter");
+    }
+}

@@ -1,0 +1,130 @@
+﻿@using KollektivSystem.Web.Models
+@using KollektivSystem.Web.Services
+@rendermode InteractiveServer
+@implements IDisposable
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject IConfiguration Config
+@inject ProfileClient Profiles
+@inject AuthTokenService AuthTokens
+
+<div class="d-flex align-items-center gap-2">
+    @if (_isAuth)
+    {
+        <span>Hei, @_displayName</span>
+        <button class="btn btn-outline" @onclick="Logout">Logout</button>
+    }
+    else
+    {
+        <button class="btn btn-primary" @onclick="GoLogin">Login</button>
+    }
+</div>
+
+@code {
+    private bool _isAuth;
+    private string _displayName = "bruker";
+    private bool _refreshInProgress;
+
+    private UserMeDto? _cachedUser;
+    private string? _lastToken;
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await RefreshAuthStateAsync();
+    }
+
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        await RefreshAuthStateAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshAuthStateAsync()
+    {
+        if (_refreshInProgress)
+            return;
+
+        _refreshInProgress = true;
+        try
+        {
+            var token = await AuthTokens.GetValidAccessTokenAsync();
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                // Ikke logget inn
+                _isAuth = false;
+                _displayName = "bruker";
+                _cachedUser = null;
+                _lastToken = null;
+                return;
+            }
+            if (token == _lastToken && _cachedUser is not null)
+            {
+                _isAuth = true;
+                _displayName = _cachedUser.Name ?? _cachedUser.Email ?? "bruker";
+                return;
+            }
+
+            var (user, notFoundOrUnauthorized) = await Profiles.GetMeAsync();
+
+            if (notFoundOrUnauthorized)
+            {
+                await AuthTokens.LogoutAsync();
+                _cachedUser = null;
+                _isAuth = false;
+                _displayName = "bruker";
+                _lastToken = null;
+                StateHasChanged();
+                return;
+            }
+
+            if (user is not null)
+            {
+                _cachedUser = user;
+                _lastToken = token;
+                _isAuth = true;
+                _displayName = user.Name ?? user.Email ?? "bruker";
+                StateHasChanged();
+                return;
+            }
+
+
+            _cachedUser = null;
+            _lastToken = token;
+            _isAuth = false;
+            _displayName = "bruker";
+            StateHasChanged();
+
+
+        }
+        finally
+        {
+            _refreshInProgress = false;
+        }
+    }
+
+    private void GoLogin()
+    {
+        var api = (Config["Api:BaseUrl"] ?? throw new InvalidOperationException("Missing Api:BaseUrl")).TrimEnd('/');
+        var callback = $"{Nav.BaseUri.TrimEnd('/')}/auth/callback";
+        var url = $"{api}/auth/login?returnUrl={Uri.EscapeDataString(callback)}";
+        Nav.NavigateTo(url, true);
+    }
+
+    private async Task Logout()
+    {
+        await AuthTokens.LogoutAsync();
+        _cachedUser = null;
+        _lastToken = null;
+        _isAuth = false;
+        _displayName = "bruker";
+        StateHasChanged();
+        Nav.NavigateTo("/", true);
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

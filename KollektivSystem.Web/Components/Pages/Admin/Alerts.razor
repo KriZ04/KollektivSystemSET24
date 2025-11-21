@@ -1,0 +1,79 @@
+﻿@page "/admin/alerts"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject KollektivSystem.Web.AuthState Auth
+
+<h1>Varsler</h1>
+<p>Placeholder-liste. Koble til API når backend er klar.</p>
+
+<div class="toolbar">
+    <button class="btn" @onclick="Create">Nytt varsel</button>
+    <button class="btn" @onclick="Import">Importer</button>
+    <button class="btn" @onclick="Export">Eksporter</button>
+    <button class="btn btn-secondary" @onclick="Back">Tilbake</button>
+</div>
+
+<table class="tbl">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Tittel</th>
+            <th>Status</th>
+            <th>Gyldig til</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var a in alerts)
+        {
+            <tr>
+                <td>@a.Id</td>
+                <td>@a.Title</td>
+                <td>@(a.Active ? "Aktiv" : "Inaktiv")</td>
+                <td>@a.ValidTo?.ToString("yyyy-MM-dd HH:mm")</td>
+                <td class="row-actions">
+                    <button class="btn sm" @onclick="() => Edit(a.Id)">Rediger</button>
+                    <button class="btn sm" @onclick="() => Toggle(a.Id)">@((a.Active) ? "Deaktiver" : "Aktiver")</button>
+                    <button class="btn sm danger" @onclick="() => Delete(a.Id)">Slett</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<AlertDto> alerts = new()
+    {
+        new(1, "Planlagt vedlikehold", true,  DateTime.UtcNow.AddDays(2)),
+        new(2, "Forsinkelser linje 3",  true,  DateTime.UtcNow.AddHours(6)),
+        new(3, "Test-varsel",           false, null)
+    };
+
+    record AlertDto(int Id, string Title, bool Active, DateTime? ValidTo);
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAdmin) Nav.NavigateTo("/login", true);
+    }
+
+    private void Back() => Nav.NavigateTo("/admin", true);
+
+    private void Create()
+    {
+        alerts.Add(new AlertDto(alerts.Max(a => a.Id) + 1, "Nytt varsel", true, DateTime.UtcNow.AddHours(1)));
+    }
+    private void Edit(int id)
+    {
+        var a = alerts.First(x => x.Id == id);
+        alerts[alerts.IndexOf(a)] = a with { Title = a.Title + " (redigert)" };
+    }
+    private void Toggle(int id)
+    {
+        var a = alerts.First(x => x.Id == id);
+        alerts[alerts.IndexOf(a)] = a with { Active = !a.Active };
+    }
+    private void Delete(int id) => alerts.RemoveAll(x => x.Id == id);
+
+    private void Import() { /* TODO */ }
+    private void Export() { /* TODO */ }
+}
