@@ -19,7 +19,7 @@ namespace KollektivSystem.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<Stop> CreateAsync(CreateStopRequest request, CancellationToken ct = default)
+        public async Task<Stop?> CreateAsync(CreateStopRequest request, CancellationToken ct = default)
         {
             var stop = new Stop
             {
@@ -43,7 +43,7 @@ namespace KollektivSystem.ApiService.Services
             }
         }
 
-        public async Task<IReadOnlyList<Stop>> GetAllAsync(CancellationToken ct = default)
+        public async Task<IReadOnlyList<Stop>?> GetAllAsync(CancellationToken ct = default)
         {
             var stops = await _uow.Stops.GetAllAsync(ct); 
             return stops;

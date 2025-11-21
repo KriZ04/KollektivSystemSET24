@@ -82,7 +82,7 @@ namespace OidcStub.Endpoints
                 try
                 {
                     var form = await req.ReadFormAsync(ct);
-                    var tokens = await svc.ExchangeCodeAsync(form, ct);
+                    var tokens = await svc.ExchangeCode(form, ct);
                     return Results.Json(tokens);
                 }
                 catch (OidcException ex)

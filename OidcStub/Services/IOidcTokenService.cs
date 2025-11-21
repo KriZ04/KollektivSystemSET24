@@ -10,6 +10,6 @@ namespace OidcStub.Services
 {
     public interface IOidcTokenService
     {
-        Task<TokenResponse> ExchangeCodeAsync(IFormCollection form, CancellationToken ct);
+        TokenResponse ExchangeCode(IFormCollection form, CancellationToken ct);
     }
 }

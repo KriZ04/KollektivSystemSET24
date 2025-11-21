@@ -28,7 +28,7 @@ namespace OidcStub.Services
             _cfg = cfg.CurrentValue;
         }
 
-        public async Task<TokenResponse> ExchangeCodeAsync(IFormCollection form, CancellationToken ct)
+        public TokenResponse ExchangeCode(IFormCollection form, CancellationToken ct)
         {
             var grantType = form["grant_type"].ToString();
             var code = form["code"].ToString();
@@ -52,22 +52,24 @@ namespace OidcStub.Services
 
             _cache.Remove($"auth_code:{code}");
 
-            _logger.LogInformation("OIDC SigningKey first8='{KeyStart}', lenChars={LenChars}", 
-                _cfg.SigningKey?.Substring(0, Math.Min(8, _cfg.SigningKey?.Length ?? 0)), 
-                _cfg.SigningKey?.Length ?? 0);
+            // OLD Debugging logs
+            //_logger.LogInformation("OIDC SigningKey first8='{KeyStart}', lenChars={LenChars}", 
+            //    _cfg.SigningKey?.Substring(0, Math.Min(8, _cfg.SigningKey?.Length ?? 0)), 
+            //    _cfg.SigningKey?.Length ?? 0);
 
             var keyBytes = Encoding.UTF8.GetBytes(_cfg.SigningKey ?? "");
-            _logger.LogInformation("OIDC keyBytes length={LenBytes}", keyBytes.Length);
+            //_logger.LogInformation("OIDC keyBytes length={LenBytes}", keyBytes.Length);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_cfg.SigningKey!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var now = DateTime.UtcNow;
 
             var claims = new List<Claim>
-        {
-            new("sub",  ident.Sub),
-            new("name", ident.Name),
-        };
+            {
+                new("sub",  ident.Sub),
+                new("name", ident.Name),
+            };
+            
             if (!string.IsNullOrWhiteSpace(ident.Email))
                 claims.Add(new("email", ident.Email!));
 
