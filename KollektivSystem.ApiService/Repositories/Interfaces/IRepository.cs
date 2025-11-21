@@ -1,4 +1,4 @@
-﻿namespace KollektivSystem.ApiService.Repositories;
+﻿namespace KollektivSystem.ApiService.Repositories.Interfaces;
 
 public interface IRepository<T, TKey> where T : class
 {

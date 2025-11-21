@@ -77,14 +77,12 @@ public static class ServiceCollectionExtensions
 
 
 
-        services.AddAuthorization(o =>
-        {
-            o.AddPolicy("Admin", p => p.RequireRole(nameof(Role.Admin), nameof(Role.SystemManager)));
-            o.AddPolicy("Developer", p => p.RequireRole(nameof(Role.Developer), nameof(Role.SystemManager)));
-            o.AddPolicy("Staff", p => p.RequireRole(nameof(Role.Admin), nameof(Role.Developer), nameof(Role.SystemManager)));
-            o.AddPolicy("RegisteredUser", p => p.RequireRole(nameof(Role.Customer), nameof(Role.Admin), nameof(Role.Developer), nameof(Role.SystemManager)));
-            o.AddPolicy("Manager", p => p.RequireRole(nameof(Role.SystemManager)));
-        });
+        services.AddAuthorizationBuilder()
+            .AddPolicy("Admin", p => p.RequireRole(nameof(Role.Admin), nameof(Role.SystemManager)))
+            .AddPolicy("Developer", p => p.RequireRole(nameof(Role.Developer), nameof(Role.SystemManager)))
+            .AddPolicy("Staff", p => p.RequireRole(nameof(Role.Admin), nameof(Role.Developer), nameof(Role.SystemManager)))
+            .AddPolicy("RegisteredUser", p => p.RequireRole(nameof(Role.Customer), nameof(Role.Admin), nameof(Role.Developer), nameof(Role.SystemManager)))
+            .AddPolicy("Manager", p => p.RequireRole(nameof(Role.SystemManager)));
 
         services.AddHttpClient("oidc");
 

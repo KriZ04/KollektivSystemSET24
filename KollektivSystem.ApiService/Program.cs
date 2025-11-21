@@ -6,6 +6,8 @@ using OidcStub.Endpoints;
 using OidcStub.Extensions;
 using System.Security.Claims;
 
+namespace KollektivSystem.ApiService;
+
 public class Program
 {
     public static void Main(string[] args)
@@ -44,11 +46,11 @@ public class Program
             });
             c.AddSecurityRequirement(new()
             {
-        {
-            new() { Reference = new()
-            { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
-            Array.Empty<string>()
-        }
+    {
+        new() { Reference = new()
+        { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
+        Array.Empty<string>()
+    }
             });
         });
 

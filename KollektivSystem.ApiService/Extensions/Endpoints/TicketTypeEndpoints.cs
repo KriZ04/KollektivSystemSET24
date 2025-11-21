@@ -1,5 +1,5 @@
 ﻿using KollektivSystem.ApiService.Infrastructure.Logging.Endpoints;
-using KollektivSystem.ApiService.Models.Dtos.TicketTypes;
+using KollektivSystem.ApiService.Models.Dtos.Tickets;
 using KollektivSystem.ApiService.Models.Mappers;
 using KollektivSystem.ApiService.Services.Interfaces;
 

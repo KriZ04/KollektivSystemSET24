@@ -1,5 +1,5 @@
 ﻿using KollektivSystem.ApiService.Models;
-using KollektivSystem.ApiService.Models.Dtos.TicketTypes;
+using KollektivSystem.ApiService.Models.Dtos.Tickets;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.Identity.Client;

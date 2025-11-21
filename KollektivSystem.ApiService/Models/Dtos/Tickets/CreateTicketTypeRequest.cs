@@ -1,4 +1,4 @@
-﻿namespace KollektivSystem.ApiService.Models.Dtos.TicketTypes;
+﻿namespace KollektivSystem.ApiService.Models.Dtos.Tickets;
 
 public sealed class CreateTicketTypeRequest
 {
