@@ -2,7 +2,7 @@
 
 namespace KollektivSystem.ApiService.Repositories.Interfaces
 {
-    public interface IStopRepository : IRepository<Stop, int>
+    public interface ITransitLineStopRepository : IRepository<TransitLineStop, int>
     {
     }
 }

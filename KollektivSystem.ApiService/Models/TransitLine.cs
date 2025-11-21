@@ -4,6 +4,6 @@
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public ICollection<Stop> Stops { get; set; } = new List<Stop>();
+        public ICollection<TransitLineStop> Stops { get; set; } = new List<TransitLineStop>();
     }
 }

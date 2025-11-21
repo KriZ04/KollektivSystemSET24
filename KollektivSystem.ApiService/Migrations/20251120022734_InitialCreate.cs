@@ -28,6 +28,21 @@ namespace KollektivSystem.ApiService.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Stops",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Latitude = table.Column<double>(type: "float", nullable: false),
+                    Longitude = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Stops", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TicketTypes",
                 columns: table => new
                 {
@@ -44,16 +59,16 @@ namespace KollektivSystem.ApiService.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransitLine",
+                name: "TransitLines",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TransitLine", x => x.Id);
+                    table.PrimaryKey("PK_TransitLines", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -76,22 +91,28 @@ namespace KollektivSystem.ApiService.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Stops",
+                name: "TransitLineStops",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Order = table.Column<int>(type: "int", nullable: false),
-                    RouteId = table.Column<int>(type: "int", nullable: false)
+                    TransitLineId = table.Column<int>(type: "int", nullable: false),
+                    StopId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Stops", x => x.Id);
+                    table.PrimaryKey("PK_TransitLineStops", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Stops_TransitLine_RouteId",
-                        column: x => x.RouteId,
-                        principalTable: "TransitLine",
+                        name: "FK_TransitLineStops_Stops_StopId",
+                        column: x => x.StopId,
+                        principalTable: "Stops",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransitLineStops_TransitLines_TransitLineId",
+                        column: x => x.TransitLineId,
+                        principalTable: "TransitLines",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -142,14 +163,15 @@ namespace KollektivSystem.ApiService.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Stops_Name",
-                table: "Stops",
-                column: "Name");
+                name: "IX_TransitLineStops_StopId",
+                table: "TransitLineStops",
+                column: "StopId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Stops_RouteId",
-                table: "Stops",
-                column: "RouteId");
+                name: "IX_TransitLineStops_TransitLineId_StopId",
+                table: "TransitLineStops",
+                columns: new[] { "TransitLineId", "StopId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
@@ -178,7 +200,7 @@ namespace KollektivSystem.ApiService.Migrations
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "Stops");
+                name: "TransitLineStops");
 
             migrationBuilder.DropTable(
                 name: "TicketTypes");
@@ -187,7 +209,10 @@ namespace KollektivSystem.ApiService.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "TransitLine");
+                name: "Stops");
+
+            migrationBuilder.DropTable(
+                name: "TransitLines");
         }
     }
 }

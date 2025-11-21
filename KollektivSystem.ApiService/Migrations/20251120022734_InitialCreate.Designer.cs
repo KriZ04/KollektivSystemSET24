@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KollektivSystem.ApiService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251117041432_InitialCreate")]
+    [Migration("20251120022734_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -100,22 +100,18 @@ namespace KollektivSystem.ApiService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RouteId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("RouteId");
 
                     b.ToTable("Stops");
                 });
@@ -157,11 +153,39 @@ namespace KollektivSystem.ApiService.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("TransitLine");
+                    b.ToTable("TransitLines");
+                });
+
+            modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLineStop", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StopId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TransitLineId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StopId");
+
+                    b.HasIndex("TransitLineId", "StopId")
+                        .IsUnique();
+
+                    b.ToTable("TransitLineStops");
                 });
 
             modelBuilder.Entity("KollektivSystem.ApiService.Models.User", b =>
@@ -232,15 +256,28 @@ namespace KollektivSystem.ApiService.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("KollektivSystem.ApiService.Models.Stop", b =>
+            modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLineStop", b =>
                 {
-                    b.HasOne("KollektivSystem.ApiService.Models.TransitLine", "Route")
-                        .WithMany("Stops")
-                        .HasForeignKey("RouteId")
+                    b.HasOne("KollektivSystem.ApiService.Models.Stop", "Stop")
+                        .WithMany("TransitLineStops")
+                        .HasForeignKey("StopId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Route");
+                    b.HasOne("KollektivSystem.ApiService.Models.TransitLine", "TransitLine")
+                        .WithMany("Stops")
+                        .HasForeignKey("TransitLineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stop");
+
+                    b.Navigation("TransitLine");
+                });
+
+            modelBuilder.Entity("KollektivSystem.ApiService.Models.Stop", b =>
+                {
+                    b.Navigation("TransitLineStops");
                 });
 
             modelBuilder.Entity("KollektivSystem.ApiService.Models.TransitLine", b =>

@@ -1,7 +1,10 @@
 ﻿using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Services.Interfaces;
+using KollektivSystem.ApiService.Models.Dtos.TransitLines;
+using KollektivSystem.ApiService.Models.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using OidcStub.Models;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints
 {
@@ -21,35 +24,54 @@ namespace KollektivSystem.ApiService.Extensions.Endpoints
             group.MapGet("{id:int}", HandleGetById);
 
             //  UPDATE existing transit line (your user story)
-            group.MapPut("{id:int}", HandlePutById);
+            //group.MapPut("{id:int}", HandlePutById);
 
             // DELETE a transit line
             group.MapDelete("{id:int}", HandleDeleteById);
         }
-        internal static async Task<IResult> HandlePost(TransitLine line, ITransitLineService service)
+
+        // Create new transit line
+        internal static async Task<IResult> HandlePost(CreateTransitLineRequest req, ITransitLineService tlService, CancellationToken ct)
         {
-            var created = await service.CreateAsync(line);
-            return Results.Created($"/transitlines/{created.Id}", created);
+            var createdLine = await tlService.CreateAsync(req, ct);
+            if (createdLine == null)
+                return Results.Problem();
+
+            return Results.Created($"{createdLine.Id}", createdLine.ToResponse());
         }
-        internal static async Task<IResult> HandleGet(ITransitLineService service)
+
+        // Get all transit lines
+        internal static async Task<IResult> HandleGet(ITransitLineService tlService, CancellationToken ct)
         {
-            var lines = await service.GetAllAsync();
-            return Results.Ok(lines);
+            var lines = await tlService.GetAllAsync(ct);
+            if (lines == null) 
+                return Results.NotFound();
+
+            return Results.Ok(lines.Select(tl => tl.ToResponse()));
         }
-        internal static async Task<IResult> HandleGetById(int id, ITransitLineService service)
+
+        // Get transit line by id
+        internal static async Task<IResult> HandleGetById(int id, ITransitLineService tlService, CancellationToken ct)
         {
-            var line = await service.GetByIdAsync(id);
+            var line = await tlService.GetByIdAsync(id, ct);
             return line is not null ? Results.Ok(line) : Results.NotFound();
         }
-        internal static async Task<IResult> HandlePutById(int id, TransitLine updated, ITransitLineService service)
+
+        //// Update transit line by id
+        //internal static async Task<IResult> HandlePutById(int id, TransitLine updated, ITransitLineService tlService)
+        //{
+        //    var success = await tlService.UpdateAsync(id, updated);
+        //    return success ? Results.NoContent() : Results.NotFound();
+        //}
+
+        // Delete transit line by id
+        internal static async Task<IResult> HandleDeleteById(int id, ITransitLineService tlService, CancellationToken ct)
         {
-            var success = await service.UpdateAsync(id, updated);
-            return success ? Results.NoContent() : Results.NotFound();
-        }
-        internal static async Task<IResult> HandleDeleteById(int id, ITransitLineService service)
-        {
-            var success = await service.DeleteAsync(id);
-            return success ? Results.NoContent() : Results.NotFound();
+            var isSuccess = await tlService.DeleteAsync(id, ct);
+            if (!isSuccess) 
+                return Results.NotFound();
+
+            return Results.Ok($"Successfully deleted transit line. {id}");
         }
     }
 }
