@@ -2,9 +2,14 @@
 using KollektivSystem.ApiService.Models.Dtos.TicketTypes;
 using KollektivSystem.ApiService.Models.Mappers;
 using KollektivSystem.ApiService.Services.Interfaces;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints;
+
 public sealed class TicketTypeEndpointsLoggerCategory { }
+
 public static class TicketTypeEndpoints
 {
     public static IEndpointRouteBuilder MapTicketTypeEndpoints(this IEndpointRouteBuilder app)
@@ -24,7 +29,10 @@ public static class TicketTypeEndpoints
         return app;
     }
 
-    internal static async Task<IResult> HandleGetAll(ITicketTypeService ttService, ILogger<TicketTypeEndpointsLoggerCategory> logger, CancellationToken ct)
+    internal static async Task<IResult> HandleGetAll(
+        ITicketTypeService ttService,
+        ILogger<TicketTypeEndpointsLoggerCategory> logger,
+        CancellationToken ct)
     {
         const bool activeOnly = false;
         logger.ListTicketTypesRequested(activeOnly);
@@ -36,12 +44,15 @@ public static class TicketTypeEndpoints
             return Results.NotFound();
         }
 
-
         logger.ListTicketTypesSucceeded(ticketTypes.Count, activeOnly);
-
         return Results.Ok(ticketTypes.Select(t => t.ToResponse()));
     }
-    internal static async Task<IResult> HandleGetTicketById(int id, ITicketTypeService ttService, ILogger<TicketTypeEndpointsLoggerCategory> logger, CancellationToken ct)
+
+    internal static async Task<IResult> HandleGetTicketById(
+        int id,
+        ITicketTypeService ttService,
+        ILogger<TicketTypeEndpointsLoggerCategory> logger,
+        CancellationToken ct)
     {
         const bool activeOnly = false;
         logger.GetTicketTypeByIdRequested(id, activeOnly);
@@ -56,21 +67,33 @@ public static class TicketTypeEndpoints
         logger.GetTicketTypeByIdSucceeded(id, activeOnly);
         return Results.Ok(ticketType.ToResponse());
     }
-    internal static async Task<IResult> HandleCreateNew(CreateTicketTypeRequest req, ITicketTypeService ttService, ILogger<TicketTypeEndpointsLoggerCategory> logger, CancellationToken ct)
+
+    internal static async Task<IResult> HandleCreateNew(
+        CreateTicketTypeRequest req,
+        ITicketTypeService ttService,
+        ILogger<TicketTypeEndpointsLoggerCategory> logger,
+        CancellationToken ct)
     {
         var ticketType = await ttService.CreateAsync(req, ct);
         if (ticketType == null)
+        {
+            logger.TicketTypeStatusChangeNotFound(0, "CreateFailed");
             return Results.Problem();
+        }
 
+        logger.TicketTypeStatusChangeSucceeded(ticketType.Id, "Created");
         return Results.Created($"{ticketType.Id}", ticketType.ToResponse());
     }
-    internal static async Task<IResult> HandleGetAllActive(ITicketTypeService ttService, ILogger<TicketTypeEndpointsLoggerCategory> logger, CancellationToken ct)
+
+    internal static async Task<IResult> HandleGetAllActive(
+        ITicketTypeService ttService,
+        ILogger<TicketTypeEndpointsLoggerCategory> logger,
+        CancellationToken ct)
     {
         const bool activeOnly = true;
         logger.ListTicketTypesRequested(activeOnly);
 
         var activeTicketTypes = await ttService.GetAllActiveAsync(ct);
-
         if (activeTicketTypes == null || !activeTicketTypes.Any())
         {
             logger.ListTicketTypesNotFound(activeOnly);
@@ -78,10 +101,14 @@ public static class TicketTypeEndpoints
         }
 
         logger.ListTicketTypesSucceeded(activeTicketTypes.Count, activeOnly);
-
         return Results.Ok(activeTicketTypes.Select(t => t.ToResponse()));
     }
-    internal static async Task<IResult> HandleGetActiveTicketById(int id, ITicketTypeService ttService, ILogger<TicketTypeEndpointsLoggerCategory> logger, CancellationToken ct)
+
+    internal static async Task<IResult> HandleGetActiveTicketById(
+        int id,
+        ITicketTypeService ttService,
+        ILogger<TicketTypeEndpointsLoggerCategory> logger,
+        CancellationToken ct)
     {
         const bool activeOnly = true;
         logger.GetTicketTypeByIdRequested(id, activeOnly);
@@ -96,11 +123,15 @@ public static class TicketTypeEndpoints
         logger.GetTicketTypeByIdSucceeded(id, activeOnly);
         return Results.Ok(ticketType.ToResponse());
     }
-    internal static async Task<IResult> HandleDelete(int id, ITicketTypeService ttService, ILogger<TicketTypeEndpointsLoggerCategory> logger, CancellationToken ct)
+
+    internal static async Task<IResult> HandleDelete(
+        int id,
+        ITicketTypeService ttService,
+        ILogger<TicketTypeEndpointsLoggerCategory> logger,
+        CancellationToken ct)
     {
         const string action = "Deactivated";
         logger.TicketTypeStatusChangeRequested(id, action);
-
 
         var isSuccess = await ttService.DeactivateAsync(id, ct);
         if (!isSuccess)
@@ -112,7 +143,12 @@ public static class TicketTypeEndpoints
         logger.TicketTypeStatusChangeSucceeded(id, action);
         return Results.Ok($"Successfully deactivated ticket. {id}");
     }
-    internal static async Task<IResult> HandleActivate(int id, ITicketTypeService ttService, ILogger<TicketTypeEndpointsLoggerCategory> logger, CancellationToken ct)
+
+    internal static async Task<IResult> HandleActivate(
+        int id,
+        ITicketTypeService ttService,
+        ILogger<TicketTypeEndpointsLoggerCategory> logger,
+        CancellationToken ct)
     {
         const string action = "Activated";
         logger.TicketTypeStatusChangeRequested(id, action);

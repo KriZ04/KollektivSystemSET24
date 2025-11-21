@@ -32,5 +32,8 @@ public class TransitLineStopConfiguration : IEntityTypeConfiguration<TransitLine
 
         builder.HasIndex(tls => new { tls.TransitLineId, tls.StopId })
                .IsUnique();
+
+        builder.HasIndex(tls => new { tls.TransitLineId, tls.Order })
+               .IsUnique();
     }
 }

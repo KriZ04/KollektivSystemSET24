@@ -2,6 +2,7 @@
 using KollektivSystem.ApiService.Models.Dtos.TransitLineStops;
 using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services.Interfaces;
+using KollektivSystem.ApiService.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace KollektivSystem.ApiService.Services
@@ -17,8 +18,30 @@ namespace KollektivSystem.ApiService.Services
             _logger = logger;
         }
 
-        public async Task<TransitLineStop> CreateAsync(CreateTransitLineStopRequest request, CancellationToken ct)
+        public async Task<TransitLineStop?> CreateAsync(CreateTransitLineStopRequest request, CancellationToken ct)
         {
+            // Validate unique Order per TransitLine
+            var orderExists = await _uow.TransitLineStops.AnyAsync(
+                tls => tls.TransitLineId == request.TransitLineId && tls.Order == request.Order,
+                ct);
+
+            if (orderExists)
+            {
+                _logger.LogOrderAlreadyExists(request.TransitLineId, request.Order);
+                return null;
+            }
+
+            // Validate unique StopId per TransitLine
+            var stopExists = await _uow.TransitLineStops.AnyAsync(
+                tls => tls.TransitLineId == request.TransitLineId && tls.StopId == request.StopId,
+                ct);
+
+            if (stopExists)
+            {
+                _logger.LogStopAlreadyExists(request.TransitLineId, request.StopId);
+                return null;
+            }
+
             var entity = new TransitLineStop
             {
                 TransitLineId = request.TransitLineId,
@@ -26,20 +49,24 @@ namespace KollektivSystem.ApiService.Services
                 Order = request.Order
             };
 
-            await _uow.TransitLineStops.AddAsync(entity, ct);
-            await _uow.SaveChangesAsync(ct);
+            try
+            {
+                await _uow.TransitLineStops.AddAsync(entity, ct);
+                await _uow.SaveChangesAsync(ct);
 
-            _logger.LogInformation(
-                "Created TransitLineStop: Id {Id}, TransitLineId {LineId}, StopId {StopId}, Order {Order}",
-                entity.Id, entity.TransitLineId, entity.StopId, entity.Order);
-
-            return entity;
+                _logger.LogTransitLineStopCreated(entity.Id, entity.TransitLineId, entity.StopId, entity.Order);
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTransitLineStopCreationFailed(request.TransitLineId, request.StopId, request.Order, ex.Message);
+                throw;
+            }
         }
 
         public async Task<IReadOnlyList<TransitLineStop>> GetAllAsync(CancellationToken ct)
         {
-            var list = await _uow.TransitLineStops.GetAllAsync(ct);
-            return list;
+            return await _uow.TransitLineStops.GetAllAsync(ct);
         }
 
         public async Task<TransitLineStop?> GetByIdAsync(int id, CancellationToken ct)
@@ -47,9 +74,7 @@ namespace KollektivSystem.ApiService.Services
             var entity = await _uow.TransitLineStops.FindAsync(id, ct);
 
             if (entity is null)
-            {
-                _logger.LogWarning("TransitLineStop with ID {Id} not found.", id);
-            }
+                _logger.LogTransitLineStopNotFound(id);
 
             return entity;
         }
@@ -59,7 +84,7 @@ namespace KollektivSystem.ApiService.Services
             var existing = await _uow.TransitLineStops.FindAsync(id, ct);
             if (existing is null)
             {
-                _logger.LogWarning("TransitLineStop with ID {Id} not found for update.", id);
+                _logger.LogTransitLineStopNotFoundForUpdate(id);
                 return false;
             }
 
@@ -67,10 +92,17 @@ namespace KollektivSystem.ApiService.Services
             existing.StopId = updated.StopId;
             existing.TransitLineId = updated.TransitLineId;
 
-            await _uow.SaveChangesAsync(ct);
-
-            _logger.LogInformation("Updated TransitLineStop with ID {Id}.", id);
-            return true;
+            try
+            {
+                await _uow.SaveChangesAsync(ct);
+                _logger.LogTransitLineStopUpdated(id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTransitLineStopUpdateFailed(id, ex.Message);
+                throw;
+            }
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken ct)
@@ -78,15 +110,23 @@ namespace KollektivSystem.ApiService.Services
             var existing = await _uow.TransitLineStops.FindAsync(id, ct);
             if (existing is null)
             {
-                _logger.LogWarning("TransitLineStop with ID {Id} not found for deletion.", id);
+                _logger.LogTransitLineStopNotFoundForDeletion(id);
                 return false;
             }
 
-            _uow.TransitLineStops.Remove(existing);
-            await _uow.SaveChangesAsync(ct);
+            try
+            {
+                _uow.TransitLineStops.Remove(existing);
+                await _uow.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Deleted TransitLineStop with ID {Id}.", id);
-            return true;
+                _logger.LogTransitLineStopDeleted(id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTransitLineStopDeleteFailed(id, ex.Message);
+                throw;
+            }
         }
     }
 }
