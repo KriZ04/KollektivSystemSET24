@@ -34,7 +34,7 @@ namespace OidcStub.Services
             var code = form["code"].ToString();
             var clientId = form["client_id"].ToString();
             var clientSecret = form["client_secret"].ToString();
-            var redirectUri = form["redirect_uri"].ToString();
+            //var redirectUri = form["redirect_uri"].ToString();
 
             if (!string.Equals(grantType, "authorization_code", StringComparison.Ordinal))
                 throw new OidcException("unsupported_grant_type");
@@ -57,7 +57,7 @@ namespace OidcStub.Services
             //    _cfg.SigningKey?.Substring(0, Math.Min(8, _cfg.SigningKey?.Length ?? 0)), 
             //    _cfg.SigningKey?.Length ?? 0);
 
-            var keyBytes = Encoding.UTF8.GetBytes(_cfg.SigningKey ?? "");
+            //var keyBytes = Encoding.UTF8.GetBytes(_cfg.SigningKey ?? "");
             //_logger.LogInformation("OIDC keyBytes length={LenBytes}", keyBytes.Length);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_cfg.SigningKey!));
