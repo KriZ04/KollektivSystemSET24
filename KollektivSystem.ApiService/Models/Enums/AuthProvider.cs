@@ -1,10 +1,9 @@
-﻿namespace KollektivSystem.ApiService.Models.Enums
+﻿namespace KollektivSystem.ApiService.Models.Enums;
+
+public enum AuthProvider
 {
-    public enum AuthProvider
-    {
-        Mock = 0,
-        //Google = 1,
-        //Azure = 2,
-        //osv.
-    }
+    Mock = 0,
+    //Google = 1,
+    //Azure = 2,
+    //osv.
 }

@@ -2,12 +2,11 @@
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Repositories.Interfaces;
 
-namespace KollektivSystem.ApiService.Repositories
+namespace KollektivSystem.ApiService.Repositories;
+
+public class StopRepository : RepositoryBase<Stop, int>, IStopRepository
 {
-    public class StopRepository : RepositoryBase<Stop, int>, IStopRepository
+    public StopRepository(ApplicationDbContext db) : base(db)
     {
-        public StopRepository(ApplicationDbContext db) : base(db)
-        {
-        }
     }
 }

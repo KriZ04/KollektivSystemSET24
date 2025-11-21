@@ -1,8 +1,7 @@
 ﻿using KollektivSystem.ApiService.Models;
 
-namespace KollektivSystem.ApiService.Repositories.Interfaces
+namespace KollektivSystem.ApiService.Repositories.Interfaces;
+
+public interface ITicketTypeRepository : IRepository<TicketType, int>
 {
-    public interface ITicketTypeRepository : IRepository<TicketType, int>
-    {
-    }
 }

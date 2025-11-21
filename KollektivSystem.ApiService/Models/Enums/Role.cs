@@ -1,11 +1,10 @@
-﻿namespace KollektivSystem.ApiService.Models.Enums
+﻿namespace KollektivSystem.ApiService.Models.Enums;
+
+public enum Role
 {
-    public enum Role
-    {
-        None = 0,
-        Customer,
-        Admin,
-        Developer,
-        SystemManager
-    }
+    None = 0,
+    Customer,
+    Admin,
+    Developer,
+    SystemManager
 }

@@ -1,109 +1,107 @@
 ﻿using KollektivSystem.ApiService.Repositories.Uow;
 using KollektivSystem.ApiService.Services.Interfaces;
-using KollektivSystem.ApiService.Infrastructure.Logging;
-using Microsoft.Extensions.Logging;
 using KollektivSystem.ApiService.Models;
 using KollektivSystem.ApiService.Models.Dtos.TransitLines;
+using KollektivSystem.ApiService.Infrastructure.Logging.Services;
 
-namespace KollektivSystem.ApiService.Services
+namespace KollektivSystem.ApiService.Services;
+
+public class TransitLineService : ITransitLineService
 {
-    public class TransitLineService : ITransitLineService
+    private readonly IUnitOfWork _uow;
+    private readonly ILogger<TransitLineService> _logger;
+
+    public TransitLineService(IUnitOfWork uow, ILogger<TransitLineService> logger)
     {
-        private readonly IUnitOfWork _uow;
-        private readonly ILogger<TransitLineService> _logger;
+        _uow = uow;
+        _logger = logger;
+    }
 
-        public TransitLineService(IUnitOfWork uow, ILogger<TransitLineService> logger)
+    public async Task<TransitLine> CreateAsync(CreateTransitLineRequest request, CancellationToken ct = default)
+    {
+        var line = new TransitLine
         {
-            _uow = uow;
-            _logger = logger;
-        }
+            Name = request.Name
+        };
 
-        public async Task<TransitLine> CreateAsync(CreateTransitLineRequest request, CancellationToken ct = default)
+        try
         {
-            var line = new TransitLine
-            {
-                Name = request.Name
-            };
+            await _uow.TransitLines.AddAsync(line, ct);
+            await _uow.SaveChangesAsync(ct);
 
-            try
-            {
-                await _uow.TransitLines.AddAsync(line, ct);
-                await _uow.SaveChangesAsync(ct);
-
-                _logger.LogTransitLineCreated(line.Id, line.Name);
-                return line;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogTransitLineCreationFailed(line.Id, line.Name, ex.Message);
-                throw;
-            }
-        }
-
-        public async Task<IReadOnlyList<TransitLine>> GetAllAsync(CancellationToken ct = default)
-        {
-            return await _uow.TransitLines.GetAllAsync(ct);
-        }
-
-        public async Task<TransitLine?> GetByIdAsync(int id, CancellationToken ct = default)
-        {
-            var line = await _uow.TransitLines.FindAsync(id, ct);
-
-            if (line == null)
-                _logger.LogTransitLineNotFound(id);
-
+            _logger.LogTransitLineCreated(line.Id, line.Name);
             return line;
         }
-
-        public async Task<bool> UpdateAsync(int id, TransitLine updated, CancellationToken ct = default)
+        catch (Exception ex)
         {
-            var existing = await _uow.TransitLines.FindAsync(id, ct);
-            if (existing == null)
-            {
-                _logger.LogTransitLineNotFound(id);
-                return false;
-            }
+            _logger.LogTransitLineCreationFailed(line.Id, line.Name, ex.Message);
+            throw;
+        }
+    }
 
-            existing.Name = updated.Name;
-            existing.Stops = updated.Stops;
+    public async Task<IReadOnlyList<TransitLine>> GetAllAsync(CancellationToken ct = default)
+    {
+        return await _uow.TransitLines.GetAllAsync(ct);
+    }
 
-            try
-            {
-                _uow.TransitLines.Update(existing);
-                await _uow.SaveChangesAsync(ct);
+    public async Task<TransitLine?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        var line = await _uow.TransitLines.FindAsync(id, ct);
 
-                _logger.LogTransitLineUpdated(id, existing.Name);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogTransitLineUpdateFailed(id, ex.Message);
-                throw;
-            }
+        if (line == null)
+            _logger.LogTransitLineNotFound(id);
+
+        return line;
+    }
+
+    public async Task<bool> UpdateAsync(int id, TransitLine updated, CancellationToken ct = default)
+    {
+        var existing = await _uow.TransitLines.FindAsync(id, ct);
+        if (existing == null)
+        {
+            _logger.LogTransitLineNotFound(id);
+            return false;
         }
 
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+        existing.Name = updated.Name;
+        existing.Stops = updated.Stops;
+
+        try
         {
-            var existing = await _uow.TransitLines.FindAsync(id, ct);
-            if (existing == null)
-            {
-                _logger.LogTransitLineNotFound(id);
-                return false;
-            }
+            _uow.TransitLines.Update(existing);
+            await _uow.SaveChangesAsync(ct);
 
-            try
-            {
-                _uow.TransitLines.Remove(existing);
-                await _uow.SaveChangesAsync(ct);
+            _logger.LogTransitLineUpdated(id, existing.Name);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogTransitLineUpdateFailed(id, ex.Message);
+            throw;
+        }
+    }
 
-                _logger.LogTransitLineDeleted(id, existing.Name);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogTransitLineDeleteFailed(id, ex.Message);
-                throw;
-            }
+    public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+    {
+        var existing = await _uow.TransitLines.FindAsync(id, ct);
+        if (existing == null)
+        {
+            _logger.LogTransitLineNotFound(id);
+            return false;
+        }
+
+        try
+        {
+            _uow.TransitLines.Remove(existing);
+            await _uow.SaveChangesAsync(ct);
+
+            _logger.LogTransitLineDeleted(id, existing.Name);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogTransitLineDeleteFailed(id, ex.Message);
+            throw;
         }
     }
 }

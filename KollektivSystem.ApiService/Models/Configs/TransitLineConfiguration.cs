@@ -1,5 +1,4 @@
-﻿using KollektivSystem.ApiService.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KollektivSystem.ApiService.Models.Configs;
@@ -19,7 +18,6 @@ public class TransitLineConfiguration : IEntityTypeConfiguration<TransitLine>
                .IsRequired()
                .HasMaxLength(100);
 
-        // Relationship: TransitLine 1 -> TransitLineStop
         builder.HasMany(t => t.Stops)
                .WithOne(tls => tls.TransitLine)
                .HasForeignKey(tls => tls.TransitLineId)

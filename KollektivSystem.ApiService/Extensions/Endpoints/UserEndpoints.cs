@@ -66,5 +66,4 @@ public static class UserEndpoints
 
 }
 
-// Body til PUT /users/{id}/role → { "role": "Admin" }
 public sealed record UpdateUserRoleRequest(string Role);

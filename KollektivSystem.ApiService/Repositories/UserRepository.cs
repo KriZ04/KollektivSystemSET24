@@ -4,15 +4,14 @@ using KollektivSystem.ApiService.Models.Enums;
 using KollektivSystem.ApiService.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace KollektivSystem.ApiService.Repositories
-{
-    public class UserRepository: RepositoryBase<User, Guid>, IUserRepository
-    {
-        public UserRepository(ApplicationDbContext db) : base(db)
-        {
-        }
+namespace KollektivSystem.ApiService.Repositories;
 
-        public async Task<User?> GetByProviderSubAsync(AuthProvider provider, string sub, CancellationToken ct = default) 
-            => await Set.SingleOrDefaultAsync(u => u.Provider == provider && u.Sub == sub, ct);
+public class UserRepository: RepositoryBase<User, Guid>, IUserRepository
+{
+    public UserRepository(ApplicationDbContext db) : base(db)
+    {
     }
+
+    public async Task<User?> GetByProviderSubAsync(AuthProvider provider, string sub, CancellationToken ct = default) 
+        => await Set.SingleOrDefaultAsync(u => u.Provider == provider && u.Sub == sub, ct);
 }

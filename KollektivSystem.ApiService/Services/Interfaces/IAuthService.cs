@@ -2,10 +2,9 @@
 using KollektivSystem.ApiService.Models.Enums;
 using System.Security.Claims;
 
-namespace KollektivSystem.ApiService.Services.Interfaces
+namespace KollektivSystem.ApiService.Services.Interfaces;
+
+public interface IAuthService
 {
-    public interface IAuthService
-    {
-        Task<(User user, string apiJwt, string refreshToken)> SignInWithIdTokenAsync(AuthProvider provider, ClaimsPrincipal principal, CancellationToken ct);
-    }
+    Task<(User user, string apiJwt, string refreshToken)> SignInWithIdTokenAsync(AuthProvider provider, ClaimsPrincipal principal, CancellationToken ct);
 }

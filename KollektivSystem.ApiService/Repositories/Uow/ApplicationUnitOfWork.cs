@@ -1,47 +1,46 @@
 ﻿using KollektivSystem.ApiService.Infrastructure;
 using KollektivSystem.ApiService.Repositories.Interfaces;
 
-namespace KollektivSystem.ApiService.Repositories.Uow
+namespace KollektivSystem.ApiService.Repositories.Uow;
+
+public sealed class ApplicationUnitOfWork : IUnitOfWork
 {
-    public sealed class ApplicationUnitOfWork : IUnitOfWork
+    private readonly ApplicationDbContext _db;
+
+    public ApplicationUnitOfWork(
+        ApplicationDbContext db,
+        IUserRepository userRepository,
+        IRefreshTokenRepository refreshTokenRepository,
+        IStopRepository stopRepository,
+        ITicketTypeRepository ticketTypeRepository,
+        IPurchasedTicketRepository purchasedTicketRepository,
+        ITransitLineRepository transitLineRepository,
+        ITransitLineStopRepository transitLineStopRepository)
     {
-        private readonly ApplicationDbContext _db;
-
-        public ApplicationUnitOfWork(
-            ApplicationDbContext db,
-            IUserRepository userRepository,
-            IRefreshTokenRepository refreshTokenRepository,
-            IStopRepository stopRepository,
-            ITicketTypeRepository ticketTypeRepository,
-            IPurchasedTicketRepository purchasedTicketRepository,
-            ITransitLineRepository transitLineRepository,
-            ITransitLineStopRepository transitLineStopRepository)
-        {
-            _db = db;
-            Users = userRepository;
-            RefreshTokens = refreshTokenRepository;
-            Stops = stopRepository;
-            TicketTypes = ticketTypeRepository;
-            TransitLines = transitLineRepository;
-            PurchasedTickets = purchasedTicketRepository;
-            TransitLineStops = transitLineStopRepository;
-        }
-
-        public IUserRepository Users { get; }
-
-        public IRefreshTokenRepository RefreshTokens { get; }
-
-        public IStopRepository Stops { get; }
-
-        public ITicketTypeRepository TicketTypes { get; }
-
-        public ITransitLineRepository TransitLines { get; }
-
-        public IPurchasedTicketRepository PurchasedTickets { get; }
-
-        public ITransitLineStopRepository TransitLineStops { get; }
-
-        public Task<int> SaveChangesAsync(CancellationToken ct = default)
-            => _db.SaveChangesAsync(ct);
+        _db = db;
+        Users = userRepository;
+        RefreshTokens = refreshTokenRepository;
+        Stops = stopRepository;
+        TicketTypes = ticketTypeRepository;
+        TransitLines = transitLineRepository;
+        PurchasedTickets = purchasedTicketRepository;
+        TransitLineStops = transitLineStopRepository;
     }
+
+    public IUserRepository Users { get; }
+
+    public IRefreshTokenRepository RefreshTokens { get; }
+
+    public IStopRepository Stops { get; }
+
+    public ITicketTypeRepository TicketTypes { get; }
+
+    public ITransitLineRepository TransitLines { get; }
+
+    public IPurchasedTicketRepository PurchasedTickets { get; }
+
+    public ITransitLineStopRepository TransitLineStops { get; }
+
+    public Task<int> SaveChangesAsync(CancellationToken ct = default)
+        => _db.SaveChangesAsync(ct);
 }

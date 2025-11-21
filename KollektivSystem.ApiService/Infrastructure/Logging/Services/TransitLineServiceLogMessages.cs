@@ -1,4 +1,4 @@
-﻿namespace KollektivSystem.ApiService.Infrastructure.Logging;
+﻿namespace KollektivSystem.ApiService.Infrastructure.Logging.Services;
 
 internal static partial class TransitLineServiceLogMessages
 {

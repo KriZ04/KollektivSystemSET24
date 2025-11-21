@@ -1,7 +1,6 @@
-﻿namespace KollektivSystem.ApiService.Models.Dtos.Tickets
+﻿namespace KollektivSystem.ApiService.Models.Dtos.Tickets;
+
+public sealed class PurchaseTicketRequest
 {
-    public sealed class PurchaseTicketRequest
-    {
-        public int TicketTypeId { get; init; }
-    }
+    public int TicketTypeId { get; init; }
 }

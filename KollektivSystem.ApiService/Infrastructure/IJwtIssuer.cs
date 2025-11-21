@@ -1,8 +1,7 @@
-﻿namespace KollektivSystem.ApiService.Infrastructure
+﻿namespace KollektivSystem.ApiService.Infrastructure;
+
+public record ApiClaims(Guid UserId, string Role, string Provider, string Sub);
+public interface IJwtIssuer
 {
-    public record ApiClaims(Guid UserId, string Role, string Provider, string Sub);
-    public interface IJwtIssuer
-    {
-        string Issue(ApiClaims claims);
-    }
+    string Issue(ApiClaims claims);
 }

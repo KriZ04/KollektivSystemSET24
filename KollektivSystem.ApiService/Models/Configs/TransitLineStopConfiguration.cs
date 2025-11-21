@@ -1,5 +1,4 @@
-﻿using KollektivSystem.ApiService.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KollektivSystem.ApiService.Models.Configs;
@@ -18,13 +17,11 @@ public class TransitLineStopConfiguration : IEntityTypeConfiguration<TransitLine
         builder.Property(tls => tls.Order)
                .IsRequired();
 
-        // Relationship: TransitLineStop -> TransitLine (many-to-one)
         builder.HasOne(tls => tls.TransitLine)
                .WithMany(t => t.Stops)
                .HasForeignKey(tls => tls.TransitLineId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        // Relationship: TransitLineStop -> Stop (many-to-one)
         builder.HasOne(tls => tls.Stop)
                .WithMany(s => s.TransitLineStops)
                .HasForeignKey(tls => tls.StopId)

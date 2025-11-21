@@ -1,7 +1,6 @@
-﻿namespace KollektivSystem.ApiService.Services.Interfaces
+﻿namespace KollektivSystem.ApiService.Services.Interfaces;
+
+public interface ITokenService
 {
-    public interface ITokenService
-    {
-        Task<(bool Success, string? AccessToken, string? RefreshToken)> RefreshAsync(string refreshToken, CancellationToken ct = default);
-    }
+    Task<(bool Success, string? AccessToken, string? RefreshToken)> RefreshAsync(string refreshToken, CancellationToken ct = default);
 }

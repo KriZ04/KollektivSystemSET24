@@ -25,7 +25,6 @@ public class StopConfiguration : IEntityTypeConfiguration<Stop>
         builder.Property(s => s.Longitude)
                .IsRequired();
 
-        // Relationship: Stop 1 -> TransitLineStop
         builder.HasMany(s => s.TransitLineStops)
                .WithOne(tls => tls.Stop)
                .HasForeignKey(tls => tls.StopId)

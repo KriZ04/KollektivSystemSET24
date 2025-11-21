@@ -1,7 +1,6 @@
 ﻿using KollektivSystem.ApiService.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using KollektivSystem.ApiService.Infrastructure.Logging;
 using KollektivSystem.ApiService.Infrastructure.Logging.Infrastructure;
 
 namespace KollektivSystem.ApiService.Infrastructure;
