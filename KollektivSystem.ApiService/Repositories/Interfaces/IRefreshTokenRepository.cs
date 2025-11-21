@@ -1,9 +1,8 @@
 ﻿using KollektivSystem.ApiService.Models;
 
-namespace KollektivSystem.ApiService.Repositories
+namespace KollektivSystem.ApiService.Repositories.Interfaces;
+
+public interface IRefreshTokenRepository : IRepository<RefreshToken, Guid>
 {
-    public interface IRefreshTokenRepository : IRepository<RefreshToken, Guid>
-    {
-        Task<RefreshToken?> GetByHashAsync(string tokenHash, CancellationToken ct = default);
-    }
+    Task<RefreshToken?> GetByHashAsync(string tokenHash, CancellationToken ct = default);
 }

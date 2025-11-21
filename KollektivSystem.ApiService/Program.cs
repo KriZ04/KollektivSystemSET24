@@ -1,13 +1,12 @@
 using KollektivSystem.ApiService.Extensions.Endpoints;
 using KollektivSystem.ApiService.Extensions.ServiceExtensions;
-using KollektivSystem.ApiService.Models;
-using KollektivSystem.ApiService.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using KollektivSystem.ApiService.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using OidcStub.Endpoints;
 using OidcStub.Extensions;
 using System.Security.Claims;
+
+namespace KollektivSystem.ApiService;
 
 public class Program
 {
@@ -47,11 +46,11 @@ public class Program
             });
             c.AddSecurityRequirement(new()
             {
-        {
-            new() { Reference = new()
-            { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
-            Array.Empty<string>()
-        }
+    {
+        new() { Reference = new()
+        { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
+        Array.Empty<string>()
+    }
             });
         });
 

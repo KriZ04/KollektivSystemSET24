@@ -68,7 +68,7 @@ namespace OidcStub.Endpoints
 
                 // Issue code and cache identity
                 var code = Guid.NewGuid().ToString("N");
-                cache.Set($"auth_code:{code}", new Identity(p.Sub, p.Email, p.Name), TimeSpan.FromMinutes(2));
+                cache.Set($"auth_code:{code}", new Identity(p.Sub, p.Email!, p.Name), TimeSpan.FromMinutes(2));
 
                 var location = $"{redirect_uri}"
                              + $"?code={Uri.EscapeDataString(code)}"
@@ -82,7 +82,7 @@ namespace OidcStub.Endpoints
                 try
                 {
                     var form = await req.ReadFormAsync(ct);
-                    var tokens = await svc.ExchangeCodeAsync(form, ct);
+                    var tokens = svc.ExchangeCode(form, ct);
                     return Results.Json(tokens);
                 }
                 catch (OidcException ex)

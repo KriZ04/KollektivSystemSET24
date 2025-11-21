@@ -1,4 +1,5 @@
-﻿using KollektivSystem.ApiService.Infrastructure;
+﻿using KollektivSystem.ApiService;
+using KollektivSystem.ApiService.Infrastructure;
 using KollektivSystem.ApiService.Services.Interfaces;
 using KollektivSystem.IntegrationTests.ApiTests.TestClasses;
 using Microsoft.AspNetCore.Hosting;

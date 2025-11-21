@@ -1,9 +1,6 @@
-﻿using KollektivSystem.ApiService.Models;
-using KollektivSystem.ApiService.Models.Dtos.Stops;
+﻿using KollektivSystem.ApiService.Models.Dtos.Stops;
 using KollektivSystem.ApiService.Models.Mappers;
 using KollektivSystem.ApiService.Services.Interfaces;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using System.Net.Sockets;
 
 namespace KollektivSystem.ApiService.Extensions.Endpoints;
 

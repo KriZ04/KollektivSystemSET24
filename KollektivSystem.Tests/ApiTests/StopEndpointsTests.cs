@@ -56,7 +56,7 @@ public class StopEndpointsTests
         var value = Assert.IsType<IValueHttpResult>(result, exactMatch: false);
         Assert.NotNull(value.Value);
 
-        var list = Assert.IsAssignableFrom<IEnumerable<object>>(value.Value);
+        var list = Assert.IsType<IEnumerable<object>>(value.Value, exactMatch: false);
         Assert.Equal(2, list.Count());
 
         service.VerifyAll();
